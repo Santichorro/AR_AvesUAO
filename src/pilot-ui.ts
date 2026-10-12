@@ -126,12 +126,11 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   })
   const closeSpecies = () => { get('#aves-species-popover').hidden = true; speciesTrigger.setAttribute('aria-expanded', 'false') }
   const closePanels = () => { closeSpecies(); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
-  const openInfo = () => { closePanels(); get('#aves-info').hidden = false }
   let gestureBlocked = false
   const closeRadial = () => { get('.aves-radial').classList.remove('is-open'); get('.aves-radial').setAttribute('aria-hidden', 'true'); root.querySelectorAll('[data-radial]').forEach(s => s.classList.remove('is-highlighted')) }
   const runRadialAction = (action: string) => {
     closePanels()
-    if (action === 'info') openInfo()
+    if (action === 'info') get('#aves-info').hidden = false
     if (action === 'animation') get('#aves-animation').hidden = false
     if (action === 'relocate') controls.relocate()
     if (action === 'reset') controls.reset()
@@ -151,7 +150,6 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (button.dataset.close) { closePanels(); return }
     switch (button.dataset.action) {
       case 'start': controls.start(); break
-      case 'info': openInfo(); break
       case 'cancel': controls.cancel(); break
       case 'reset': closePanels(); controls.reset(); break
       case 'idle': controls.idle(); break
@@ -182,7 +180,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') { closePanels(); controls.dismiss() } }
   document.addEventListener('keydown', escape)
   return {
-    root, openInfo, closePanels, closeRadial, runRadialAction,
+    root, closePanels, closeRadial, runRadialAction,
     setGestureBlocked(blocked: boolean) { gestureBlocked = blocked },
     radialLayout(point: {x: number; y: number}) {
       const style = getComputedStyle(root)

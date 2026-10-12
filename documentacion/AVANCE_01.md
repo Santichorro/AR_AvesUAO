@@ -20,6 +20,7 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Interfaz natural con tarjetas claras, relieve suave, textos verde bosque y rojo UAO. Foco y pulsación sin morado; controles de al menos 48 px. Ver [DISENO_UI.md](DISENO_UI.md) para paleta y criterio visual.
 - Selector compacto con icono de ave abajo a la izquierda: muestra las cinco opciones, solo colibrí habilitado. Se cierra al elegir, tocar fuera o pulsar Cerrar.
 - Menú radial de Ficha, Animaciones, Reubicar y Reiniciar: mantener un dedo sobre el ave 1000 ms, deslizar y permanecer 180 ms en un sector para confirmar sin soltar. Centro y exterior neutrales; soltar antes de confirmar cancela.
+- La ficha se abre exclusivamente al confirmar Ficha en el radial. Un tap breve, un hold sin selección y sus eventos residuales no abren paneles; se eliminaron la apertura al liberar el toque y el fallback de click.
 - Sectores con resaltado rojo/rosa y crecimiento suave; apertura/cierre animados, configuración central y respeto de movimiento reducido.
 - El hold se cancela al arrastrar o agregar un dedo. Con el menú abierto, dos dedos cancelan y consumen la secuencia hasta retirarlos; confirmar una acción también bloquea el contacto restante, sin colocación accidental ni controles del panel activados.
 - Cancelar reubicación permanece visible fuera del radial. Reiniciar durante carga/error y Comenzar/Reintentar conservan acceso contextual.
@@ -40,21 +41,21 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 2. Para revisar en escritorio, servir dist/ y abrir localhost. Es una vista 3D; tocar el plano virtual del suelo coloca el ave.
 3. Pulsar Comenzar y esperar la carga del modelo. En móvil, permitir cámara y estabilizar el seguimiento sobre el suelo.
 4. Tocar el lugar elegido: debe aparecer una sola ave. Tocar de nuevo no debe duplicarla.
-5. Mantener el dedo sobre el ave un segundo, deslizar a Ficha y permanecer brevemente. Elegir una ficha de referencia y comparar datos con páginas 17–18. El tap breve también abre la ficha.
+5. Mantener el dedo sobre el ave un segundo: debe aparecer solo el radial. Deslizar a Ficha y permanecer 180 ms sin soltar para abrirla una vez. Elegir una referencia y comparar datos con páginas 17–18. Soltar no debe volver a abrirla.
 6. Repetir el gesto hacia Animaciones y recorrer los seis clips, pausar y volver a reposo.
 7. Elegir Reubicar desde el radial: mover o soltar el mismo dedo no coloca el ave; un toque nuevo confirma otro punto. Cancelar conserva el anterior.
 8. Pulsar Reiniciar mientras carga y después de colocar; no debe reaparecer un modelo de una carga vieja.
 9. Repetir tres recorridos. Los botones y selects no deben colocar modelos detrás del HUD.
-10. Con el ave colocada, arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y. Un toque breve sobre el ave debe abrir la ficha y un arrastre no.
+10. Con el ave colocada, arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y. Un toque breve, un hold menor a un segundo y un arrastre no deben abrir paneles.
 11. Hacer pinch con dos dedos: la escala debe cambiar de forma uniforme, respetar los límites y conservar el punto de apoyo. Reubicar debe mantener giro y escala; Reiniciar debe restaurarlos para la siguiente colocación.
 12. Abrir el radial cerca de cada borde: deben verse los cuatro sectores. Soltar en el centro o antes de completar la selección no ejecuta ninguna opción. No se abre al sostener suelo o HUD.
 13. Con el radial abierto, añadir otro dedo, cancelar el puntero, cambiar de orientación o salir de la pestaña: no deben quedar menús ni confirmaciones pendientes. Comprobar selector inferior izquierdo y cierre exterior sin gestos sobre el ave.
 
 ## Pruebas automatizadas
 
-Ejecutar npm test (o node --test tests/*.test.cjs). Hay 21 casos aprobados: colocación, inspección y 9 pruebas de hold, sectores, límites, confirmación única, dos dedos, cierre y limpieza con reloj controlado. Webpack compila con los dos avisos anteriores de tamaño de assets.
+Ejecutar npm test (o node --test tests/*.test.cjs). Los 22 casos pasan: colocación, inspección y 10 pruebas de hold, sectores, límites, confirmación única de Ficha, dos dedos, cierre y limpieza con reloj controlado. Webpack compila correctamente con los dos avisos anteriores de tamaño de assets.
 
-Revisión de navegador en Edge con World/ECS y raycast simulados: código real de HUD y controlador, cuatro acciones radiales, tap, giro, animaciones, cancelación de puntero/foco, contacto residual en Reubicar, reinicio y cuatro bordes. Tamaños: 390×844, 320×568, 844×390 y 1100×800. Sin errores de ejecución ni overflow horizontal. Este entorno no usa cámara, carga real del GLB ni tracking; no acredita compatibilidad física.
+Revisión de navegador en Edge sobre dist/bundle.js generado, con World/ECS y raycast simulados: tap/hold corto sin paneles, hold con solo radial, confirmación de Ficha una sola vez, liberación/click residuales, cancelación de selección, las otras tres opciones sin ficha, giro, pinch, animaciones, cancelación de puntero/foco, contacto residual en Reubicar, reinicio y cuatro bordes. Pasó en 390×844, 320×568, 844×390 y 1100×800, sin errores de ejecución ni overflow horizontal. Este entorno no usa cámara, carga real del GLB ni tracking; no acredita compatibilidad física.
 
 Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). Devuelve fase, posición, raíz/modelo, clip, giro/escala y estado del radial. No permite introducir posiciones falsas ni forzar tracking.
 

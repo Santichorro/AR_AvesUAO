@@ -389,7 +389,7 @@ Reiniciar detiene audio, cancela movimientos/cargas pendientes, invalida solicit
 
 1. Mantener ID seleccionado, ID del ave activa, entidad del modelo y catálogo por ID. Durante exploración solo hay una entidad de ave activa.
 2. Preparar zonas de toque suficientemente grandes, comprobando collider/raycast con la versión de Studio.
-3. Resolver el toque según el estado: EXPLORAR abre ficha; AVISTAMIENTO registra objetivo; QUIZ_CANTO contesta tocando una tarjeta RA de especie.
+3. Resolver el gesto según el estado: EXPLORAR abre únicamente el radial después de un hold de 1000 ms; confirmar Ficha durante 180 ms abre el panel. Un tap o liberar/cancelar sin confirmar no abre paneles. AVISTAMIENTO registra objetivo; QUIZ_CANTO contesta tocando una tarjeta RA de especie.
 4. Ignorar toques de aves cuando está activo un control superpuesto o no corresponde al modo.
 5. Mostrar el nombre del ave activa y permitir cambiarla con el selector. Bloquear ese selector durante quiz, búsqueda o carga de reemplazo.
 

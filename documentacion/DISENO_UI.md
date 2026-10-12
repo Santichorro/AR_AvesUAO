@@ -50,7 +50,7 @@ Queda pendiente revisar con cámara real en Android/Chrome e iPhone/Safari: lect
 
 La tarjeta inferior permanente se sustituye por el icono de ave abajo a la izquierda. Abre las cinco especies y se cierra al seleccionar, tocar fuera o usar Cerrar. El toque exterior se consume para que no coloque ni manipule el modelo.
 
-En EXPLORAR, mantener un dedo sobre el hit del modelo durante 1000 ms abre el radial. Un tap breve sigue abriendo la ficha; mover antes del plazo permite rotar, y añadir un dedo antes de abrirlo permite pinch. El menú tiene Ficha arriba, Animaciones a la derecha, Reubicar abajo y Reiniciar a la izquierda.
+En EXPLORAR, mantener un dedo sobre el hit del modelo durante 1000 ms abre únicamente el radial. La ficha se abre exclusivamente al confirmar su sector durante 180 ms sin soltar. Un tap breve, liberar el hold sin selección o cancelar no abre paneles. Mover antes del plazo permite rotar, y añadir un dedo antes de abrirlo permite pinch. El menú tiene Ficha arriba, Animaciones a la derecha, Reubicar abajo y Reiniciar a la izquierda.
 
 Al abrir, el centro se ajusta al viewport y a sus áreas seguras. Se exige un desplazamiento intencional de 12 px desde el punto inicial para armar la selección. El centro y el exterior son neutrales; los límites angulares conservan una separación de 4°. El sector resaltado crece 1.08 veces, pero el hit mantiene su geometría original. Permanecer 180 ms en el mismo sector confirma sin levantar el dedo. Salir cancela la confirmación; soltar sin confirmar cierra sin acción.
 
@@ -62,4 +62,4 @@ La integración utiliza SCREEN_TOUCH_START/MOVE/END y GESTURE_START/MOVE/END de 
 
 Fuentes: [Input Events de 8th Wall](https://8thwall.org/docs/api/studio/events/input), [Pointer Events de MDN](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) y las definiciones locales del paquete ECS.
 
-Validación del radial: 21 pruebas unitarias y compilación correctas. En Edge, con el controlador real y World/ECS/raycast simulados, se revisaron las cuatro acciones, resaltado/crecimiento, tap, giro, dos dedos, contacto residual, cancelación, cuatro bordes y pantallas de 320×568 a 1100×800, incluida orientación horizontal. No aparecieron errores de ejecución ni overflow horizontal. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.
+Validación del radial y apertura exclusiva: 22 pruebas unitarias aprobadas y build compilado. En Edge, ejecutando dist/bundle.js con World/ECS/raycast simulados, pasaron las cuatro acciones, resaltado/crecimiento, tap/hold corto sin paneles, confirmación única de Ficha, liberación/click residuales, giro, pinch, cancelación, cuatro bordes y pantallas de 320×568 a 1100×800, incluida orientación horizontal. La liberación del toque solo limpia el gesto; la UI ya no expone una apertura directa ni procesa un click de Ficha fuera del radial. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.

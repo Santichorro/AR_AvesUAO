@@ -221,10 +221,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     const consumed = radial.release(event.data.pointerId)
     if (consumed) { inspectionTouch = null; return }
     if (!inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
-    const touchedBird = inspectionTouch.target === model
-    const dragged = inspectionTouch.dragged || pinchActive
     inspectionTouch = null
-    if (!dragged && touchedBird && canInspect() && !isUiTouch(event.data.position)) ui.openInfo()
   }
   const beginPinch = (event: any) => {
     radial.cancel()

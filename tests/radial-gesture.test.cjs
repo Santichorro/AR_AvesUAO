@@ -17,11 +17,21 @@ async function fixture(origin={x:200,y:300}) {
  gesture.begin(1,origin,layout)
  return {gesture,time,calls,layout,origin}
 }
-test('solo abre al completar un segundo; soltar antes conserva un tap',async()=>{
+test('solo abre al completar un segundo; soltar antes no ejecuta opciones',async()=>{
  const f=await fixture();f.time.tick(999);assert.equal(f.gesture.phase,'pending')
  f.time.tick(1);assert.equal(f.gesture.phase,'open');assert.deepEqual(f.calls,['open'])
  const short=await fixture();short.time.tick(500);assert.equal(short.gesture.release(1),false)
  short.time.tick(2000);assert.deepEqual(short.calls,[]);assert.equal(short.time.size,0)
+})
+test('Ficha solo se confirma tras 180 ms y liberaciones residuales no repiten la acción',async()=>{
+ const f=await fixture();f.time.tick(1000)
+ assert.equal(f.calls.filter(a=>a==='info').length,0)
+ f.gesture.move(1,{x:f.layout.x,y:f.layout.y-100});f.time.tick(179)
+ assert.equal(f.calls.filter(a=>a==='info').length,0)
+ f.time.tick(1);assert.equal(f.calls.filter(a=>a==='info').length,1)
+ f.gesture.move(1,{x:f.layout.x-100,y:f.layout.y});f.time.tick(500)
+ assert.equal(f.gesture.release(1),true);f.gesture.release(1);f.time.tick(1000)
+ assert.equal(f.calls.filter(a=>a==='info').length,1);assert.ok(!f.calls.includes('reset'))
 })
 test('mover antes del plazo cancela la espera y deja disponible el arrastre',async()=>{
  const f=await fixture();f.gesture.move(1,{x:211,y:300});f.time.tick(2000)
