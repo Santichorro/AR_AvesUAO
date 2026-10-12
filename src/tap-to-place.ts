@@ -179,10 +179,10 @@ function attach(world: ecs.World, ground: ecs.Eid) {
 ecs.registerComponent({
   name: 'tap-to-place',
   schema: {prefab: 'eid'}, // Compatibilidad con el prefab conservado en Studio.
-  add(world, {eid}) { controllers.set(eid, attach(world, eid)) },
-  remove(_world, {eid}) { controllers.get(eid)?.(); controllers.delete(eid) },
+  add: (world, {eid}) => { controllers.set(eid, attach(world, eid)) },
+  remove: (_world, {eid}) => { controllers.get(eid)?.(); controllers.delete(eid) },
 })
 
 // Conserva campus y controles de plantilla en la escena, fuera del recorrido piloto.
-ecs.registerComponent({name: 'pilot-hidden', add(world, {eid}) { world.getEntity(eid).hide() }})
+ecs.registerComponent({name: 'pilot-hidden', add: (world, {eid}) => { world.getEntity(eid).hide() }})
 export {OBJECT_PLACED_EVENT}
