@@ -3,6 +3,7 @@ import catalog from './data/aves.json'
 import labels from './data/interfaz.json'
 import {PlacementSession, validPosition} from './placement-session'
 import {createPilotUi} from './pilot-ui'
+import {InspectionControls, normalizedScreenPosition} from './inspection-controls'
 
 // Se conserva el evento de la plantilla para no romper componentes ajenos.
 const OBJECT_PLACED_EVENT = 'object-placed'
@@ -22,7 +23,23 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let paused = false
   let activeClip = bird.animaciones.reposo
   let ui: ReturnType<typeof createPilotUi>
+  const inspection = new InspectionControls({
+    escalaBase: bird.escalaExhibicion,
+    escalaMinima: bird.inspeccion?.escalaMinima,
+    escalaMaxima: bird.inspeccion?.escalaMaxima,
+    sensibilidadGiro: bird.inspeccion?.sensibilidadGiro,
+    umbralArrastre: bird.inspeccion?.umbralArrastre,
+  })
+  let inspectionTouch: {pointerId: any; target: ecs.Eid | undefined; start: {x: number; y: number}; dragged: boolean} | null = null
+  let pinchActive = false
   const clearLoadTimer = () => { if (loadTimer) clearTimeout(loadTimer); loadTimer = null }
+  const applyInspection = () => {
+    if (root !== null) {
+      const rotation = ecs.math.quat.yRadians(inspection.yaw)
+      ecs.Quaternion.set(world, root, {x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w})
+    }
+    if (model !== null) world.setScale(model, inspection.scale, inspection.scale, inspection.scale)
+  }
   const destroy = () => {
     clearLoadTimer()
     if (model !== null) {
@@ -34,6 +51,9 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     model = root = null
     loadedListener = finishedListener = null
     paused = false
+    inspectionTouch = null
+    pinchActive = false
+    inspection.reset()
   }
   const setClip = (name: string) => {
     if (model === null || session.phase !== 'EXPLORAR') return
@@ -48,13 +68,14 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       if (root !== null) world.getEntity(root).setLocalPosition(position)
     },
     spawn(position: {x: number; y: number; z: number}, generation: number) {
+      inspection.reset()
       root = world.createEntity()
       world.getEntity(root).setLocalPosition(position)
       model = world.createEntity()
       world.getEntity(model).setParent(root)
       world.getEntity(model).setLocalPosition(bird.transformacion.posicionLocal)
-      world.setScale(model, bird.escalaExhibicion, bird.escalaExhibicion, bird.escalaExhibicion)
       world.getEntity(model).set(ecs.Quaternion, ecs.math.quat.yRadians(bird.transformacion.giroY))
+      applyInspection()
       const currentModel = model
       loadedListener = (event: any) => {
         if (model !== currentModel || !session.loaded(generation)) return
@@ -142,18 +163,60 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (!validPosition(position)) { ui.showMessage(labels.superficieInvalida); return }
     session.place(position)
   }
-  const birdTouch = (event: any) => {
-    if (session.phase !== 'EXPLORAR' || model === null || isUiTouch(event.data.position)) return
-    if (event.target === model || event.data.target === model) ui.openInfo()
+  const canInspect = () => session.phase === 'EXPLORAR' && root !== null && model !== null
+  const beginInspectionTouch = (event: any) => {
+    if (!canInspect() || isUiTouch(event.data.position)) return
+    const position = normalizedScreenPosition(event.data.position)
+    if (!position) return
+    inspectionTouch = {pointerId: event.data.pointerId, target: event.data.target ?? event.target, start: position, dragged: false}
+  }
+  const moveInspectionTouch = (event: any) => {
+    if (!canInspect() || pinchActive || !inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
+    const position = normalizedScreenPosition(event.data.position)
+    const change = normalizedScreenPosition(event.data.change)
+    if (!position || !change) return
+    if (!inspectionTouch.dragged) inspectionTouch.dragged = inspection.isDrag(inspectionTouch.start, position)
+    const totalX = position.x - inspectionTouch.start.x
+    const totalY = position.y - inspectionTouch.start.y
+    if (inspectionTouch.dragged && Math.abs(totalX) >= Math.abs(totalY)) {
+      inspection.rotate(change.x)
+      applyInspection()
+    }
+  }
+  const endInspectionTouch = (event: any) => {
+    if (!inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
+    const touchedBird = inspectionTouch.target === model
+    const dragged = inspectionTouch.dragged || pinchActive
+    inspectionTouch = null
+    if (!dragged && touchedBird && canInspect() && !isUiTouch(event.data.position)) ui.openInfo()
+  }
+  const beginPinch = (event: any) => {
+    if (!canInspect() || event.data.touchCount !== 2 || isUiTouch(event.data.position)) return
+    pinchActive = inspection.beginPinch(event.data.startSpread)
+    if (pinchActive) inspectionTouch = null
+  }
+  const movePinch = (event: any) => {
+    if (!pinchActive || !canInspect() || event.data.touchCount !== 2) return
+    inspection.pinch(event.data.spread)
+    applyInspection()
+  }
+  const endPinch = () => {
+    pinchActive = false
+    inspection.endPinch()
   }
   // El toque puede llegar al global aunque una geometría visual (como Hider)
   // sea la que recibió el raycast. La fase evita que un toque sobre el ave
   // vuelva a colocarla; el filtro del HUD evita colocar detrás de los controles.
   const screenTouch = (event: any) => {
     if (['ESCANEO', 'REUBICAR'].includes(session.phase)) touch(event)
-    else birdTouch(event)
+    else beginInspectionTouch(event)
   }
   world.events.addListener(world.events.globalId, ecs.input.SCREEN_TOUCH_START, screenTouch)
+  world.events.addListener(world.events.globalId, ecs.input.SCREEN_TOUCH_MOVE, moveInspectionTouch)
+  world.events.addListener(world.events.globalId, ecs.input.SCREEN_TOUCH_END, endInspectionTouch)
+  world.events.addListener(world.events.globalId, ecs.input.GESTURE_START, beginPinch)
+  world.events.addListener(world.events.globalId, ecs.input.GESTURE_MOVE, movePinch)
+  world.events.addListener(world.events.globalId, ecs.input.GESTURE_END, endPinch)
   world.events.addListener(world.events.globalId, ecs.events.REALITY_READY, ready)
   world.events.addListener(world.events.globalId, ecs.events.REALITY_TRACKING_STATUS, tracking)
   if (!desktop) startupTimer = setTimeout(() => {
@@ -161,7 +224,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }, 45000)
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
-    model: model?.toString() ?? null, activeClip, paused, desktop})
+    model: model?.toString() ?? null, activeClip, paused, desktop, inspection: inspection.snapshot(), pinchActive})
   ;(window as any).__AR_AVES_DEBUG__ = debug
   return () => {
     ++fetchGeneration
@@ -169,6 +232,11 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (startupTimer) clearTimeout(startupTimer)
     session.reset()
     world.events.removeListener(world.events.globalId, ecs.input.SCREEN_TOUCH_START, screenTouch)
+    world.events.removeListener(world.events.globalId, ecs.input.SCREEN_TOUCH_MOVE, moveInspectionTouch)
+    world.events.removeListener(world.events.globalId, ecs.input.SCREEN_TOUCH_END, endInspectionTouch)
+    world.events.removeListener(world.events.globalId, ecs.input.GESTURE_START, beginPinch)
+    world.events.removeListener(world.events.globalId, ecs.input.GESTURE_MOVE, movePinch)
+    world.events.removeListener(world.events.globalId, ecs.input.GESTURE_END, endPinch)
     world.events.removeListener(world.events.globalId, ecs.events.REALITY_READY, ready)
     world.events.removeListener(world.events.globalId, ecs.events.REALITY_TRACKING_STATUS, tracking)
     if ((window as any).__AR_AVES_DEBUG__ === debug) delete (window as any).__AR_AVES_DEBUG__

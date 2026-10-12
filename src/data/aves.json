@@ -15,6 +15,7 @@
       "audioCanto":null,
       "imagen":null,
       "escalaExhibicion":0.25,
+      "inspeccion":{"escalaMinima":0.12,"escalaMaxima":0.6,"sensibilidadGiro":6.283185307179586,"umbralArrastre":0.015},
       "transformacion":{"posicionLocal":{"x":0,"y":0.25,"z":0},"giroY":-1.5707963267948966},
       "animaciones":{"reposo":"03_Perched_Idle_Loop","vuelo":"02_Forward_Flight_Loop","aterrizaje":"05_Landing"},
       "clips":[

@@ -11,6 +11,8 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Doble toque bloqueado mientras carga o existe un modelo.
 - Reubicar mueve la raíz existente; cancelar conserva el punto anterior.
 - Reiniciar elimina modelo/raíz, cancela timeout y listeners y descarta cargas tardías.
+- Arrastrar horizontalmente sobre el área AR rota la raíz del ave en el eje Y; un arrastre no abre la ficha ni cambia el punto de colocación.
+- El gesto de dos dedos escala uniformemente el modelo hijo entre 0.12 y 0.60, sin cambiar su animación, orientación de raíz ni ubicación. Los límites y sensibilidad están en `aves.json`.
 - Ficha en español desde JSON; consulta de tres especies sin asignarles identidad al GLB.
 - Seis clips reales con pausa, reposo y vuelta a reposo después de clips no cíclicos.
 - Selector preparado para las cinco aves; solo colibrí disponible.
@@ -37,16 +39,18 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 7. Pulsar Reubicar: tocar otro punto mueve la misma ave; Cancelar conserva el anterior.
 8. Pulsar Reiniciar mientras carga y después de colocar; no debe reaparecer un modelo de una carga vieja.
 9. Repetir tres recorridos. Los botones y selects no deben colocar modelos detrás del HUD.
+10. Con el ave colocada, arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y. Un toque breve sobre el ave debe abrir la ficha y un arrastre no.
+11. Hacer pinch con dos dedos: la escala debe cambiar de forma uniforme, respetar los límites y conservar el punto de apoyo. Reubicar debe mantener giro y escala; Reiniciar debe restaurarlos para la siguiente colocación.
 
 ## Pruebas automatizadas
 
-Ejecutar npm test, o node --test tests/placement-session.test.cjs. Los casos verifican validación de posición, doble toque, ausencia de spawn automático, reubicación, cancelación, reinicio, carga tardía y pérdida de tracking.
+Ejecutar npm test. Los casos verifican validación de posición, doble toque, ausencia de spawn automático, reubicación, cancelación, reinicio, carga tardía, pérdida de tracking y las reglas puras de escala, giro y restauración de inspección.
 
-Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). La función devuelve fase, posición, identificadores de raíz/modelo y clip. No permite introducir posiciones falsas ni forzar tracking.
+Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). La función devuelve fase, posición, identificadores de raíz/modelo, clip y los valores actuales de giro y escala de inspección. No permite introducir posiciones falsas ni forzar tracking.
 
 ## Pendiente físico y de contenido
 
-- Android/Chrome e iPhone/Safari: permisos, tracking, posición de apoyo, escala, tap, animaciones y rendimiento.
+- Android/Chrome e iPhone/Safari: permisos, tracking, posición de apoyo, sensibilidad de giro, pinch, tap, animaciones y rendimiento. En ambos, confirmar que ningún gesto iniciado sobre el HUD modifica el ave.
 - El hit de la plantilla se calcula sobre Ground con tracking activo; no ofrece selección de múltiples planos físicos como ARKit/ARCore. Comprobar el apoyo real en el suelo con dispositivos.
 - El aro del HUD orienta el escaneo; no afirma ser una retícula proyectada con hit-test continuo.
 - Confirmar especie representada, canto, fotografía y licencia del modelo.
