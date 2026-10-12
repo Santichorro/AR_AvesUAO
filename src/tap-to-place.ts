@@ -37,7 +37,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   const radial = new RadialGesture({
     open(layout) {
       if (!canInspect() || !session.trackingReady) { radial.cancel(); return }
-      ui.showRadial(layout); ui.setGestureBlocked(true)
+      ui.showRadial(layout)
     },
     highlight(action) { ui.highlightRadial(action) },
     close() { ui?.closeRadial() },
@@ -147,6 +147,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     relocate() { session.relocate() },
     cancel() { session.cancelRelocation() },
     dismiss() { radial.cancel(); inspectionTouch = null },
+    radial(action: string) { if (canInspect()) radial.select(action) },
     clip: setClip,
     idle() { setClip(bird.animaciones.reposo) },
     pause() {
@@ -218,7 +219,12 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     }
   }
   const endInspectionTouch = (event: any) => {
-    const consumed = radial.release(event.data.pointerId)
+    const point = screenPixels(event.data.position)
+    if (point) radial.move(event.data.pointerId, point)
+    const tapOnBird = !!inspectionTouch && inspectionTouch.pointerId === event.data.pointerId &&
+      inspectionTouch.target === model && !inspectionTouch.dragged && !pinchActive &&
+      canInspect() && !isUiTouch(event.data.position)
+    const consumed = radial.release(event.data.pointerId, tapOnBird)
     if (consumed) { inspectionTouch = null; return }
     if (!inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
     inspectionTouch = null
@@ -256,7 +262,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (!radial.blocked && !radial.pointers.size) ui.setGestureBlocked(false)
     radial.pointerDown(event.pointerId)
     if (radial.pointers.size > 1) inspectionTouch = null
-    if (radial.blocked) { inspectionTouch = null; ui.setGestureBlocked(true) }
+    if (radial.blocked) { inspectionTouch = null; ui.setGestureBlocked(radial.phase === 'consuming') }
   }
   const nativeMove = (event: PointerEvent) => {
     if (radial.phase === 'open') radial.move(event.pointerId, {x: event.clientX, y: event.clientY})
@@ -264,6 +270,12 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   const nativeEnd = (event: PointerEvent) => {
     if (radial.blocked || event.type === 'pointercancel') inspectionTouch = null
     if (event.type === 'pointercancel') endPinch()
+    if (event.type === 'pointerup' && radial.phase === 'pending' && radial.pointerId === event.pointerId) {
+      // El hit inicial lo resolvió ECS. Completar aquí evita depender del orden de ambos END.
+      endInspectionTouch({data: {pointerId: event.pointerId, position: {x: event.clientX / innerWidth, y: event.clientY / innerHeight}}})
+      // Consumir también el click sintetizado del tap que acaba de abrir el menú.
+      if (radial.blocked) ui.setGestureBlocked(true)
+    }
     radial.release(event.pointerId)
     if (!radial.pointers.size) {
       // El click sintetizado tras pointerup también pertenece al gesto consumido.

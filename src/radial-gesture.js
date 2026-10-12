@@ -1,7 +1,6 @@
-// Geometría y temporizadores sin ECS/DOM. Todas las distancias se expresan en px.
+// Tap y geometría sin ECS/DOM ni temporizadores. Las distancias están en px.
 export const RADIAL_CONFIG = Object.freeze({
-  holdMs: 1000, confirmMs: 180, radius: 144, deadRadius: 44,
-  moveThreshold: 10, activationMove: 12, edgePadding: 12, visualScale: 1.08,
+  radius: 144, deadRadius: 44, moveThreshold: 10, edgePadding: 12, visualScale: 1.08,
 })
 export const RADIAL_ACTIONS = Object.freeze(['info', 'animation', 'relocate', 'reset'])
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
@@ -35,20 +34,13 @@ export function radialSector(point, layout) {
 }
 
 export class RadialGesture {
-  constructor(callbacks = {}, config = {}, clock = {}) {
+  constructor(callbacks = {}, config = {}) {
     this.config = {...RADIAL_CONFIG, ...config}
     this.callbacks = callbacks
-    this.clock = {set: clock.set || ((fn, ms) => setTimeout(fn, ms)), clear: clock.clear || (id => clearTimeout(id))}
     this.pointers = new Set()
     this.phase = 'idle'
     this.pointerId = null
-    this.holdTimer = this.confirmTimer = null
     this.selected = null
-  }
-  clearTimers() {
-    if (this.holdTimer !== null) this.clock.clear(this.holdTimer)
-    if (this.confirmTimer !== null) this.clock.clear(this.confirmTimer)
-    this.holdTimer = this.confirmTimer = null
   }
   pointerDown(id) {
     this.pointers.add(id)
@@ -60,54 +52,46 @@ export class RadialGesture {
     this.pointerId = id
     this.origin = {...origin}
     this.layout = layout
-    this.armed = false
     this.phase = 'pending'
-    this.holdTimer = this.clock.set(() => {
-      this.holdTimer = null
-      if (this.phase !== 'pending' || this.pointers.size !== 1) return
-      this.phase = 'open'
-      this.callbacks.open?.(this.layout)
-    }, this.config.holdMs)
     return true
   }
   move(id, point) {
+    if (this.phase === 'open') {
+      const next = radialSector(point, this.layout)
+      if (next !== this.selected) { this.selected = next; this.callbacks.highlight?.(next) }
+      return
+    }
     if (id !== this.pointerId) return
     if (this.phase === 'pending') {
       if (distance(point, this.origin) >= this.config.moveThreshold) this.cancel()
       return
     }
-    if (this.phase !== 'open') return
-    // El clamp del centro nunca arma un sector por sí solo.
-    if (!this.armed && distance(point, this.origin) < this.config.activationMove) return
-    this.armed = true
-    const next = radialSector(point, this.layout)
-    if (next === this.selected) return
-    if (this.confirmTimer !== null) this.clock.clear(this.confirmTimer)
-    this.confirmTimer = null
-    this.selected = next
-    this.callbacks.highlight?.(next)
-    if (next === null) return
-    this.confirmTimer = this.clock.set(() => {
-      this.confirmTimer = null
-      if (this.phase !== 'open' || this.selected !== next || this.pointers.size !== 1) return
-      this.phase = 'consuming' // Antes del callback: Reubicar/Reiniciar pueden cambiar el estado.
-      this.selected = null
-      this.callbacks.close?.()
-      this.callbacks.action?.(next)
-    }, this.config.confirmMs)
+  }
+  select(action) {
+    if (this.phase !== 'open' || !RADIAL_ACTIONS.includes(action) || this.pointers.size > 1) return false
+    this.phase = this.pointers.size ? 'consuming' : 'idle'
+    this.selected = null
+    this.callbacks.close?.()
+    this.callbacks.action?.(action)
+    return true
   }
   cancel() {
     const wasOpen = this.phase === 'open' || this.phase === 'consuming'
-    this.clearTimers()
     this.selected = null
     this.phase = wasOpen && this.pointers.size ? 'consuming' : 'idle'
     if (wasOpen) this.callbacks.close?.()
   }
-  release(id) {
+  release(id, openOnTap = false) {
     const consumed = this.blocked
     this.pointers.delete(id)
-    if (id === this.pointerId && this.phase !== 'idle') this.cancel()
-    if (!this.pointers.size) {
+    if (id === this.pointerId && this.phase === 'pending') {
+      if (openOnTap && !this.pointers.size) {
+        this.phase = 'open'
+        this.pointerId = null
+        this.callbacks.open?.(this.layout)
+      } else this.cancel()
+    }
+    if (!this.pointers.size && this.phase !== 'open') {
       this.phase = 'idle'
       this.pointerId = null
     }
@@ -115,7 +99,6 @@ export class RadialGesture {
   }
   reset(consume = false) {
     const keepBlocked = consume && this.blocked && this.pointers.size > 0
-    this.clearTimers()
     this.selected = null
     this.callbacks.close?.()
     this.phase = keepBlocked ? 'consuming' : 'idle'

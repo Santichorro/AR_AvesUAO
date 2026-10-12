@@ -92,6 +92,7 @@
   transition: opacity var(--radial-close-duration) var(--radial-close-ease), transform var(--radial-close-duration) var(--radial-close-ease), visibility 0s var(--radial-close-duration);
 }
 .aves-radial.is-open {
+  pointer-events: auto;
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, -50%) scale(1);
@@ -99,6 +100,7 @@
 }
 .aves-radial > svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 12px #243d3529); }
 .aves-radial-sector {
+  cursor: pointer;
   color: var(--aves-ink);
   transform-box: view-box;
   transform-origin: 50% 50%;
@@ -109,6 +111,7 @@
 .aves-radial-sector[data-radial="reset"] { color: var(--aves-primary); }
 .aves-radial-sector.is-highlighted { color: var(--aves-primary-pressed); transform: scale(var(--radial-highlight-scale)); }
 .aves-radial-sector.is-highlighted > path { fill: var(--aves-rose); stroke: var(--aves-red); }
+.aves-radial-sector:focus-visible > path { stroke: var(--aves-primary); stroke-width: 3; }
 .aves-radial-center { fill: #f5f7f2ed; stroke: #ffffff; }
 .aves-radial-hint { fill: var(--aves-ink); font-size: 11px; font-weight: 700; }
 .aves-radial-subhint { fill: var(--aves-muted); font-size: 7px; }

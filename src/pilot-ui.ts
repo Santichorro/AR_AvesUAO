@@ -2,7 +2,7 @@ import labels from './data/interfaz.json'
 import {RADIAL_CONFIG, RADIAL_ACTIONS, radialLayout} from './radial-gesture'
 
 type Controls = {start: () => void; reset: () => void; relocate: () => void;
-  cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void; dismiss: () => void}
+  cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void; dismiss: () => void; radial: (action: string) => void}
 
 const icons: Record<string, string> = {
   species: '<path d="M4 15c6 0 7-7 14-8l-3 6 5 3-7 1-4 5-1-6-4-1Z"/><path d="m8 16 5-5"/>',
@@ -20,7 +20,7 @@ function radialMarkup() {
     const angle = -90 + index * 90
     const a = polar(144, angle - 43), b = polar(144, angle + 43), c = polar(inner, angle + 43), d = polar(inner, angle - 43)
     const point = polar(94, angle)
-    return `<g class="aves-radial-sector" data-radial="${action}">
+    return `<g class="aves-radial-sector" data-radial="${action}" role="button" tabindex="0">
       <path d="M${a.x} ${a.y} A144 144 0 0 1 ${b.x} ${b.y} L${c.x} ${c.y} A${inner} ${inner} 0 0 0 ${d.x} ${d.y} Z"/>
       <g transform="translate(${point.x},${point.y})"><svg x="-14" y="-24" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[action]}</svg><text y="22" text-anchor="middle"></text></g>
     </g>`
@@ -41,7 +41,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       <button data-close="species"></button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
     <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
     <p class="aves-preview"></p>
-    <div class="aves-radial" aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
+    <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
     <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title"><button data-close="info"></button>
       <h2 id="aves-info-title"></h2><p class="aves-note"></p><p class="aves-source"></p>
       <label for="aves-reference"></label><select id="aves-reference"></select><div class="aves-facts"></div>
@@ -69,7 +69,10 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   get('.aves-radial').setAttribute('aria-label', labels.menuAve)
   get('.aves-radial-hint').textContent = labels.deslizarMenu
   get('.aves-radial-subhint').textContent = labels.soltarMenu
-  for (const action of RADIAL_ACTIONS) get(`[data-radial="${action}"] text`).textContent = radialText[action]
+  for (const action of RADIAL_ACTIONS) {
+    get(`[data-radial="${action}"] text`).textContent = radialText[action]
+    get(`[data-radial="${action}"]`).setAttribute('aria-label', radialText[action])
+  }
   get('.aves-preview').textContent = desktop ? labels.preview : ''
   get('#aves-info-title').textContent = labels.ficha
   get('.aves-note').textContent = labels.ilustrativo
@@ -136,6 +139,8 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (action === 'reset') controls.reset()
   }
   root.addEventListener('click', (e) => {
+    const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
+    if (sector) { controls.radial(sector.dataset.radial!); return }
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
     if (button.hasAttribute('data-species-toggle')) {
@@ -171,13 +176,23 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   for (const event of ['pointerdown','pointerup','touchstart','touchend','click','contextmenu']) root.addEventListener(event, block, {capture: true, passive: false})
   const outside = (e: PointerEvent) => {
+    if (get('.aves-radial').classList.contains('is-open') && !(e.target as Element).closest('.aves-radial')) {
+      controls.dismiss()
+      if (!(e.target as Element).closest('#aves-pilot button,#aves-pilot select,#aves-pilot .aves-panel,[data-aves-ui]')) {
+        e.preventDefault(); e.stopPropagation(); return
+      }
+    }
     if (get('#aves-species-popover').hidden || (e.target as Element).closest('[data-species-toggle],#aves-species-popover')) return
     closeSpecies()
     // Ese toque cierra el popover; no llega al canvas para colocar o inspeccionar.
     e.preventDefault(); e.stopPropagation()
   }
   document.addEventListener('pointerdown', outside, true)
-  const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') { closePanels(); controls.dismiss() } }
+  const escape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') { closePanels(); controls.dismiss() }
+    const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
+    if (sector && ['Enter',' '].includes(e.key)) { e.preventDefault(); controls.radial(sector.dataset.radial!) }
+  }
   document.addEventListener('keydown', escape)
   return {
     root, closePanels, closeRadial, runRadialAction,
