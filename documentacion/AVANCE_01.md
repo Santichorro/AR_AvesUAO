@@ -17,6 +17,7 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Seis clips reales con pausa, reposo y vuelta a reposo después de clips no cíclicos.
 - Selector preparado para las cinco aves; solo colibrí disponible.
 - Vista 3D de escritorio para probar sin cámara. No es una simulación certificada de RA.
+- Interfaz natural con tarjetas claras, relieve suave, textos verde bosque y rojo UAO. Foco y pulsación sin morado; controles de al menos 48 px. Ver [DISENO_UI.md](DISENO_UI.md) para paleta y criterio visual.
 
 ## Recursos y fuentes
 
