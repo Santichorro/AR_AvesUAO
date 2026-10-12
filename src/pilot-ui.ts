@@ -8,7 +8,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   document.getElementById('aves-pilot')?.remove()
   const root = document.createElement('main')
   root.id = 'aves-pilot'
-  root.innerHTML = `<header class="aves-header"><span class="aves-brand">✦</span><div><h1></h1><p></p></div></header>
+  root.innerHTML = `<header class="aves-header"><img class="aves-brand" src="assets/logo-colibri.png" alt="Colibrí de Aves UAO"><div><h1></h1><p></p></div></header>
     <section class="aves-status" aria-live="polite"><p></p><button data-action="start"></button></section>
     <div class="aves-scan" aria-hidden="true"><span></span></div>
     <aside class="aves-toolbar"><label for="aves-species"></label><select id="aves-species"></select>

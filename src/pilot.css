@@ -2,7 +2,7 @@
 #aves-pilot{position:fixed;inset:0;z-index:1000;pointer-events:none;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--aves-ink);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 18px)}
 #aves-pilot *{box-sizing:border-box}#aves-pilot [hidden]{display:none!important}
 .aves-header{display:flex;align-items:center;gap:12px;align-self:flex-start;background:var(--aves-paper);padding:12px 18px;border-radius:20px;box-shadow:0 5px 24px #17342f20}
-.aves-brand{font-size:28px;color:var(--aves-teal)}.aves-header h1{font-size:20px;margin:0;letter-spacing:-.5px}.aves-header p{margin:3px 0 0;font-size:12px;color:#5e756e}
+.aves-brand{display:block;width:36px;height:36px;flex:0 0 36px;object-fit:contain}.aves-header h1{font-size:20px;margin:0;letter-spacing:-.5px}.aves-header p{margin:3px 0 0;font-size:12px;color:#5e756e}
 .aves-status{align-self:center;max-width:460px;background:#f8f5ebed;border:1px solid #ffffff70;border-radius:20px;padding:16px 20px;margin-top:18px;text-align:center;box-shadow:0 4px 28px #17342f14}
 .aves-status p{font-size:14px;line-height:1.5;margin:0}.aves-status button{margin-top:14px;min-width:160px;background:var(--aves-teal);color:white}
 #aves-pilot button,#aves-pilot select{pointer-events:auto;font:inherit;font-size:13px;min-height:44px;border:1px solid #d5dfd6;border-radius:12px;padding:10px 14px;background:var(--aves-paper);color:var(--aves-ink);cursor:pointer;touch-action:manipulation}
