@@ -554,45 +554,6 @@
       "ui": {
         "type": "overlay"
       }
-    },
-    "114d822c-fc35-4ff3-ad89-9e0f89960cc7": {
-      "id": "114d822c-fc35-4ff3-ad89-9e0f89960cc7",
-      "position": [
-        1.6065708939765129,
-        0,
-        4.986566855281011
-      ],
-      "rotation": [
-        0,
-        0,
-        0,
-        1
-      ],
-      "scale": [
-        0.6426914644954065,
-        0.6426914644954065,
-        0.6426914644954065
-      ],
-      "geometry": null,
-      "material": null,
-      "parentId": "84028e73-ee70-412d-b8d4-c09bf07c655c",
-      "components": {
-        "4444f939-5bc8-4115-9223-e12f7548b1c7": {
-          "id": "4444f939-5bc8-4115-9223-e12f7548b1c7",
-          "name": "pilot-hidden",
-          "parameters": {}
-        }
-      },
-      "gltfModel": {
-        "src": {
-          "type": "asset",
-          "asset": "assets/UAO_Campus_LowPoly.glb"
-        },
-        "animationClip": "",
-        "loop": true
-      },
-      "name": "UAO_Campus_LowPoly.glb",
-      "order": 18.31293189942208
     }
   },
   "spaces": {
