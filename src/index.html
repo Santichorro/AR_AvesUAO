@@ -18,6 +18,12 @@
   --aves-line: #d6e1d6;
   --aves-rose: #fff0ee;
   --aves-shadow: 0 6px 20px #213e3024, inset 0 1px 0 #ffffff;
+  --radial-open-duration: 240ms;
+  --radial-close-duration: 160ms;
+  --radial-highlight-duration: 140ms;
+  --radial-open-ease: cubic-bezier(.16, 1, .3, 1);
+  --radial-close-ease: cubic-bezier(.4, 0, 1, 1);
+  --radial-highlight-scale: 1.08;
 }
 
 #aves-pilot {
@@ -32,17 +38,86 @@
   flex-direction: column;
   gap: 14px;
   padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  padding-left: calc(env(safe-area-inset-left, 0px) + 18px);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 18px);
   -webkit-tap-highlight-color: transparent;
 }
 #aves-pilot *, #aves-pilot *::before, #aves-pilot *::after { box-sizing: border-box; }
 #aves-pilot [hidden] { display: none !important; }
 #aves-pilot ::selection { color: var(--aves-ink); background: var(--aves-sage); }
 
-.aves-header, .aves-status, .aves-toolbar, .aves-panel {
+.aves-header, .aves-status, .aves-panel {
   background: linear-gradient(150deg, #fffffffa, #f5f7f2f5);
   border: 1px solid #ffffff;
   box-shadow: var(--aves-shadow);
 }
+
+#aves-pilot .aves-species-trigger {
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + 16px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  width: 56px;
+  height: 56px;
+  padding: 14px;
+  border-radius: 20px;
+  color: var(--aves-red);
+  background: var(--aves-white);
+  box-shadow: var(--aves-shadow);
+}
+.aves-species-trigger svg { width: 100%; height: 100%; }
+.aves-species-popover {
+  pointer-events: auto;
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + 16px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 86px);
+  width: min(290px, calc(100vw - 32px));
+  max-height: calc(100dvh - 120px);
+  overflow: auto;
+  padding: 16px;
+  border-radius: 24px;
+  background: var(--aves-paper);
+  border: 1px solid white;
+  box-shadow: var(--aves-shadow);
+}
+.aves-species-popover h2 { font-size: 15px; margin: 10px 0 18px; }
+#aves-pilot .aves-species-popover > button { float: right; font-size: 12px; padding: 8px 10px; min-height: 44px; }
+#aves-species { display: grid; gap: 8px; clear: both; }
+#aves-species button { text-align: left; }
+#aves-species button[aria-pressed="true"] { background: var(--aves-sage); border-color: #a6bca5; }
+.aves-context-controls { position: absolute; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+#aves-pilot > .aves-preview { position: absolute; left: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); width: min(300px, calc(100vw - 32px)); padding: 8px 12px; margin: 0; border-radius: 12px; background: var(--aves-paper); }
+.aves-radial {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(.82);
+  transition: opacity var(--radial-close-duration) var(--radial-close-ease), transform var(--radial-close-duration) var(--radial-close-ease), visibility 0s var(--radial-close-duration);
+}
+.aves-radial.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity var(--radial-open-duration) var(--radial-open-ease), transform var(--radial-open-duration) var(--radial-open-ease), visibility 0s;
+}
+.aves-radial > svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 12px #243d3529); }
+.aves-radial-sector {
+  color: var(--aves-ink);
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: transform var(--radial-highlight-duration) var(--radial-open-ease), color var(--radial-highlight-duration);
+}
+.aves-radial-sector > path { fill: var(--aves-paper); stroke: white; stroke-width: 1.5; transition: fill var(--radial-highlight-duration), stroke var(--radial-highlight-duration); }
+.aves-radial-sector text { fill: currentColor; font-size: 12px; font-weight: 650; }
+.aves-radial-sector[data-radial="reset"] { color: var(--aves-primary); }
+.aves-radial-sector.is-highlighted { color: var(--aves-primary-pressed); transform: scale(var(--radial-highlight-scale)); }
+.aves-radial-sector.is-highlighted > path { fill: var(--aves-rose); stroke: var(--aves-red); }
+.aves-radial-center { fill: #f5f7f2ed; stroke: #ffffff; }
+.aves-radial-hint { fill: var(--aves-ink); font-size: 11px; font-weight: 700; }
+.aves-radial-subhint { fill: var(--aves-muted); font-size: 7px; }
 .aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; padding: 12px 18px 12px 12px; border-radius: 24px; }
 .aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 7px; background: var(--aves-rose); border: 1px solid #ed1d241a; border-radius: 16px; }
 .aves-header h1 { font-size: 20px; margin: 0; letter-spacing: -.5px; font-weight: 700; }
@@ -88,9 +163,6 @@
 
 .aves-scan { position: absolute; left: 50%; top: 49%; width: 46px; height: 46px; border: 2px solid #ffffffd9; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 6px #48654b55, 0 3px 14px #243d3526; }
 .aves-scan span { display: block; width: 6px; height: 6px; background: var(--aves-white); border-radius: 50%; margin: 18px; }
-.aves-toolbar { margin-top: auto; align-self: center; border-radius: 26px; padding: 16px; max-width: 580px; width: 100%; }
-.aves-toolbar label { display: block; color: var(--aves-leaf); font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; margin: 0 4px 8px; font-weight: 700; }
-.aves-toolbar select { width: 100%; margin-bottom: 12px; }
 .aves-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .aves-actions button { min-width: 0; line-height: 1.3; }
 .aves-preview { font-size: 11px; line-height: 1.5; margin: 12px 4px 0; color: var(--aves-muted); }
@@ -101,9 +173,9 @@
   pointer-events: auto;
   position: absolute;
   right: 18px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 284px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
   width: min(420px, calc(100vw - 36px));
-  max-height: min(55vh, calc(100dvh - 310px));
+  max-height: min(70vh, calc(100dvh - 180px));
   overflow: auto;
   border-radius: 26px;
   padding: 22px;
@@ -125,22 +197,18 @@
 #aves-pilot .aves-clips button { font-size: 13px; line-height: 1.3; }
 
 @media (max-width: 600px) {
-  #aves-pilot { padding-left: 12px; padding-right: 12px; gap: 12px; }
+  #aves-pilot { padding-left: calc(env(safe-area-inset-left, 0px) + 12px); padding-right: calc(env(safe-area-inset-right, 0px) + 12px); gap: 12px; }
   .aves-header { padding: 10px 14px 10px 10px; gap: 10px; }
   .aves-header h1 { font-size: 18px; }
   .aves-status { padding: 12px 16px; }
-  .aves-toolbar { padding: 14px; }
-  .aves-panel { left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 258px); width: auto; padding: 18px; max-height: min(55vh, calc(100dvh - 280px)); }
+  .aves-panel { left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); width: auto; padding: 18px; max-height: min(70vh, calc(100dvh - 180px)); }
 }
 @media (max-height: 600px) and (orientation: landscape) {
   #aves-pilot { gap: 8px; padding-top: calc(env(safe-area-inset-top, 0px) + 10px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); }
   .aves-header { padding: 8px 12px; }
   .aves-status { position: absolute; right: 18px; top: 10px; max-width: 45%; padding: 10px 14px; }
-  .aves-toolbar { padding: 10px 14px; }
-  .aves-toolbar select { margin-bottom: 8px; }
-  .aves-toolbar .aves-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .aves-preview { margin-top: 6px; }
-  .aves-panel { left: auto; right: 18px; bottom: calc(env(safe-area-inset-bottom, 0px) + 175px); width: min(420px, calc(100vw - 36px)); max-height: calc(100dvh - 195px); }
+  .aves-panel { left: auto; right: 18px; bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); width: min(420px, calc(100vw - 36px)); max-height: calc(100dvh - 110px); }
 }
 @media (prefers-reduced-motion: reduce) {
   #aves-pilot * { transition: none; scroll-behavior: auto; }

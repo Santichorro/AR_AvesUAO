@@ -18,6 +18,11 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Selector preparado para las cinco aves; solo colibrí disponible.
 - Vista 3D de escritorio para probar sin cámara. No es una simulación certificada de RA.
 - Interfaz natural con tarjetas claras, relieve suave, textos verde bosque y rojo UAO. Foco y pulsación sin morado; controles de al menos 48 px. Ver [DISENO_UI.md](DISENO_UI.md) para paleta y criterio visual.
+- Selector compacto con icono de ave abajo a la izquierda: muestra las cinco opciones, solo colibrí habilitado. Se cierra al elegir, tocar fuera o pulsar Cerrar.
+- Menú radial de Ficha, Animaciones, Reubicar y Reiniciar: mantener un dedo sobre el ave 1000 ms, deslizar y permanecer 180 ms en un sector para confirmar sin soltar. Centro y exterior neutrales; soltar antes de confirmar cancela.
+- Sectores con resaltado rojo/rosa y crecimiento suave; apertura/cierre animados, configuración central y respeto de movimiento reducido.
+- El hold se cancela al arrastrar o agregar un dedo. Con el menú abierto, dos dedos cancelan y consumen la secuencia hasta retirarlos; confirmar una acción también bloquea el contacto restante, sin colocación accidental ni controles del panel activados.
+- Cancelar reubicación permanece visible fuera del radial. Reiniciar durante carga/error y Comenzar/Reintentar conservan acceso contextual.
 
 ## Recursos y fuentes
 
@@ -35,23 +40,27 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 2. Para revisar en escritorio, servir dist/ y abrir localhost. Es una vista 3D; tocar el plano virtual del suelo coloca el ave.
 3. Pulsar Comenzar y esperar la carga del modelo. En móvil, permitir cámara y estabilizar el seguimiento sobre el suelo.
 4. Tocar el lugar elegido: debe aparecer una sola ave. Tocar de nuevo no debe duplicarla.
-5. Abrir Ficha, elegir una ficha de referencia y comparar datos con páginas 17–18.
-6. Abrir Probar animaciones y recorrer los seis clips, pausar y volver a reposo.
-7. Pulsar Reubicar: tocar otro punto mueve la misma ave; Cancelar conserva el anterior.
+5. Mantener el dedo sobre el ave un segundo, deslizar a Ficha y permanecer brevemente. Elegir una ficha de referencia y comparar datos con páginas 17–18. El tap breve también abre la ficha.
+6. Repetir el gesto hacia Animaciones y recorrer los seis clips, pausar y volver a reposo.
+7. Elegir Reubicar desde el radial: mover o soltar el mismo dedo no coloca el ave; un toque nuevo confirma otro punto. Cancelar conserva el anterior.
 8. Pulsar Reiniciar mientras carga y después de colocar; no debe reaparecer un modelo de una carga vieja.
 9. Repetir tres recorridos. Los botones y selects no deben colocar modelos detrás del HUD.
 10. Con el ave colocada, arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y. Un toque breve sobre el ave debe abrir la ficha y un arrastre no.
 11. Hacer pinch con dos dedos: la escala debe cambiar de forma uniforme, respetar los límites y conservar el punto de apoyo. Reubicar debe mantener giro y escala; Reiniciar debe restaurarlos para la siguiente colocación.
+12. Abrir el radial cerca de cada borde: deben verse los cuatro sectores. Soltar en el centro o antes de completar la selección no ejecuta ninguna opción. No se abre al sostener suelo o HUD.
+13. Con el radial abierto, añadir otro dedo, cancelar el puntero, cambiar de orientación o salir de la pestaña: no deben quedar menús ni confirmaciones pendientes. Comprobar selector inferior izquierdo y cierre exterior sin gestos sobre el ave.
 
 ## Pruebas automatizadas
 
-Ejecutar npm test. Los casos verifican validación de posición, doble toque, ausencia de spawn automático, reubicación, cancelación, reinicio, carga tardía, pérdida de tracking y las reglas puras de escala, giro y restauración de inspección.
+Ejecutar npm test (o node --test tests/*.test.cjs). Hay 21 casos aprobados: colocación, inspección y 9 pruebas de hold, sectores, límites, confirmación única, dos dedos, cierre y limpieza con reloj controlado. Webpack compila con los dos avisos anteriores de tamaño de assets.
 
-Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). La función devuelve fase, posición, identificadores de raíz/modelo, clip y los valores actuales de giro y escala de inspección. No permite introducir posiciones falsas ni forzar tracking.
+Revisión de navegador en Edge con World/ECS y raycast simulados: código real de HUD y controlador, cuatro acciones radiales, tap, giro, animaciones, cancelación de puntero/foco, contacto residual en Reubicar, reinicio y cuatro bordes. Tamaños: 390×844, 320×568, 844×390 y 1100×800. Sin errores de ejecución ni overflow horizontal. Este entorno no usa cámara, carga real del GLB ni tracking; no acredita compatibilidad física.
+
+Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). Devuelve fase, posición, raíz/modelo, clip, giro/escala y estado del radial. No permite introducir posiciones falsas ni forzar tracking.
 
 ## Pendiente físico y de contenido
 
-- Android/Chrome e iPhone/Safari: permisos, tracking, posición de apoyo, sensibilidad de giro, pinch, tap, animaciones y rendimiento. En ambos, confirmar que ningún gesto iniciado sobre el HUD modifica el ave.
+- Android/Chrome e iPhone/Safari: permisos, tracking, apoyo, giro, pinch, tap, hold sobre hit real del GLB, selección sin soltar, contacto residual, cancelación multitáctil, animaciones y rendimiento. En ambos, confirmar que ningún gesto iniciado sobre el HUD modifica el ave, que el navegador no abre su menú contextual y que las safe areas se respetan.
 - El hit de la plantilla se calcula sobre Ground con tracking activo; no ofrece selección de múltiples planos físicos como ARKit/ARCore. Comprobar el apoyo real en el suelo con dispositivos.
 - El aro del HUD orienta el escaneo; no afirma ser una retícula proyectada con hit-test continuo.
 - Confirmar especie representada, canto, fotografía y licencia del modelo.

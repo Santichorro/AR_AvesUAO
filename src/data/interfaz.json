@@ -17,7 +17,7 @@
   "preparando": "Preparando el modelo y la cámara…",
   "escaneo": "Apunta al suelo y toca el lugar donde quieres que aparezca el colibrí.",
   "colocando": "Cargando el colibrí en el punto elegido…",
-  "explorar": "Colibrí colocado. Tócalo para consultar su ficha o prueba sus animaciones.",
+  "explorar": "Mantén un dedo sobre el ave un segundo y desliza hacia una opción. Tócala brevemente para ver su ficha.",
   "reubicando": "Toca otro lugar del suelo. Cancelar conserva la ubicación anterior.",
   "seguimiento": "Mueve el celular lentamente para recuperar el seguimiento antes de colocar.",
   "superficieInvalida": "Ese toque no encontró una posición válida sobre el suelo. Apunta hacia abajo e inténtalo de nuevo.",
@@ -37,5 +37,13 @@
   "alimentacion": "Alimentación",
   "habitat": "Hábitat",
   "rasgos": "Rasgos de identificación",
-  "especies": "Colibríes registrados en la guía"
+  "especies": "Colibríes registrados en la guía",
+  "seleccionarAve": "Seleccionar ave",
+  "menuAve": "Opciones del ave",
+  "deslizarMenu": "Desliza",
+  "soltarMenu": "Soltar cancela",
+  "radialFicha": "Ficha",
+  "radialAnimaciones": "Animaciones",
+  "radialReubicar": "Reubicar",
+  "radialReiniciar": "Reiniciar"
 }

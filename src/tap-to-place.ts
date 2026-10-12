@@ -4,6 +4,7 @@ import labels from './data/interfaz.json'
 import {PlacementSession, validPosition} from './placement-session'
 import {createPilotUi} from './pilot-ui'
 import {InspectionControls, normalizedScreenPosition} from './inspection-controls'
+import {RadialGesture} from './radial-gesture'
 
 // Se conserva el evento de la plantilla para no romper componentes ajenos.
 const OBJECT_PLACED_EVENT = 'object-placed'
@@ -32,6 +33,19 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   })
   let inspectionTouch: {pointerId: any; target: ecs.Eid | undefined; start: {x: number; y: number}; dragged: boolean} | null = null
   let pinchActive = false
+  let hudUnlockTimer: ReturnType<typeof setTimeout> | null = null
+  const radial = new RadialGesture({
+    open(layout) {
+      if (!canInspect() || !session.trackingReady) { radial.cancel(); return }
+      ui.showRadial(layout); ui.setGestureBlocked(true)
+    },
+    highlight(action) { ui.highlightRadial(action) },
+    close() { ui?.closeRadial() },
+    action(action) {
+      inspectionTouch = null
+      ui.runRadialAction(action)
+    },
+  })
   const clearLoadTimer = () => { if (loadTimer) clearTimeout(loadTimer); loadTimer = null }
   const applyInspection = () => {
     if (root !== null) {
@@ -54,6 +68,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     inspectionTouch = null
     pinchActive = false
     inspection.reset()
+    radial.reset(true)
+    ui?.setGestureBlocked(radial.blocked)
   }
   const setClip = (name: string) => {
     if (model === null || session.phase !== 'EXPLORAR') return
@@ -96,7 +112,13 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       }, 30000)
       ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: bird.animaciones.reposo, loop: true})
     },
-  }, snapshot => ui?.update(snapshot))
+  }, snapshot => {
+    if (snapshot.phase !== 'EXPLORAR' || !snapshot.trackingReady) {
+      radial.cancel()
+      inspectionTouch = null
+    }
+    ui?.update(snapshot)
+  })
 
   const prepareAsset = async () => {
     const generation = ++fetchGeneration
@@ -124,6 +146,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     reset() { session.reset() },
     relocate() { session.relocate() },
     cancel() { session.cancelRelocation() },
+    dismiss() { radial.cancel(); inspectionTouch = null },
     clip: setClip,
     idle() { setClip(bird.animaciones.reposo) },
     pause() {
@@ -144,7 +167,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (!position) return false
     const x = position.x <= 1 ? position.x * window.innerWidth : position.x
     const y = position.y <= 1 ? position.y * window.innerHeight : position.y
-    return !!document.elementFromPoint(x, y)?.closest('#aves-pilot button, #aves-pilot select, #aves-pilot .aves-panel')
+    return !!document.elementFromPoint(x, y)?.closest('#aves-pilot button, #aves-pilot select, #aves-pilot .aves-panel, #aves-pilot [data-aves-ui]')
   }
   // El modo 3D de escritorio no produce worldPosition de una superficie AR.
   // Se usa únicamente allí un plano virtual centrado en la escena para poder
@@ -164,18 +187,29 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     session.place(position)
   }
   const canInspect = () => session.phase === 'EXPLORAR' && root !== null && model !== null
+  const screenPixels = (position: {x: number; y: number}) => {
+    const normalized = normalizedScreenPosition(position)
+    return normalized ? {x: normalized.x * innerWidth, y: normalized.y * innerHeight} : null
+  }
   const beginInspectionTouch = (event: any) => {
-    if (!canInspect() || isUiTouch(event.data.position)) return
+    if (!canInspect() || pinchActive || radial.pointers.size > 1 || isUiTouch(event.data.position)) return
     const position = normalizedScreenPosition(event.data.position)
     if (!position) return
     inspectionTouch = {pointerId: event.data.pointerId, target: event.data.target ?? event.target, start: position, dragged: false}
+    const point = screenPixels(event.data.position)
+    if (inspectionTouch.target === model && point) radial.begin(event.data.pointerId, point, ui.radialLayout(point))
   }
   const moveInspectionTouch = (event: any) => {
+    const point = screenPixels(event.data.position)
+    const wasPending = radial.phase === 'pending'
+    if (point) radial.move(event.data.pointerId, point)
+    if (radial.blocked) return
     if (!canInspect() || pinchActive || !inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
     const position = normalizedScreenPosition(event.data.position)
     const change = normalizedScreenPosition(event.data.change)
     if (!position || !change) return
-    if (!inspectionTouch.dragged) inspectionTouch.dragged = inspection.isDrag(inspectionTouch.start, position)
+    if (!inspectionTouch.dragged) inspectionTouch.dragged = (wasPending && radial.phase === 'idle') || inspection.isDrag(inspectionTouch.start, position)
+    if (inspectionTouch.dragged) radial.cancel()
     const totalX = position.x - inspectionTouch.start.x
     const totalY = position.y - inspectionTouch.start.y
     if (inspectionTouch.dragged && Math.abs(totalX) >= Math.abs(totalY)) {
@@ -184,6 +218,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     }
   }
   const endInspectionTouch = (event: any) => {
+    const consumed = radial.release(event.data.pointerId)
+    if (consumed) { inspectionTouch = null; return }
     if (!inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
     const touchedBird = inspectionTouch.target === model
     const dragged = inspectionTouch.dragged || pinchActive
@@ -191,12 +227,14 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (!dragged && touchedBird && canInspect() && !isUiTouch(event.data.position)) ui.openInfo()
   }
   const beginPinch = (event: any) => {
+    radial.cancel()
+    if (radial.blocked) { inspectionTouch = null; return }
     if (!canInspect() || event.data.touchCount !== 2 || isUiTouch(event.data.position)) return
     pinchActive = inspection.beginPinch(event.data.startSpread)
     if (pinchActive) inspectionTouch = null
   }
   const movePinch = (event: any) => {
-    if (!pinchActive || !canInspect() || event.data.touchCount !== 2) return
+    if (radial.blocked || !pinchActive || !canInspect() || event.data.touchCount !== 2) return
     inspection.pinch(event.data.spread)
     applyInspection()
   }
@@ -208,9 +246,51 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   // sea la que recibió el raycast. La fase evita que un toque sobre el ave
   // vuelva a colocarla; el filtro del HUD evita colocar detrás de los controles.
   const screenTouch = (event: any) => {
+    radial.pointerDown(event.data.pointerId)
+    if (radial.blocked) return
+    if (radial.pointers.size > 1) { inspectionTouch = null; return }
     if (['ESCANEO', 'REUBICAR'].includes(session.phase)) touch(event)
     else beginInspectionTouch(event)
   }
+  // Pointer Events completa cancelación y contactos sobre DOM; ECS resuelve el hit 3D.
+  const nativeDown = (event: PointerEvent) => {
+    if (hudUnlockTimer) clearTimeout(hudUnlockTimer)
+    hudUnlockTimer = null
+    if (!radial.blocked && !radial.pointers.size) ui.setGestureBlocked(false)
+    radial.pointerDown(event.pointerId)
+    if (radial.pointers.size > 1) inspectionTouch = null
+    if (radial.blocked) { inspectionTouch = null; ui.setGestureBlocked(true) }
+  }
+  const nativeMove = (event: PointerEvent) => {
+    if (radial.phase === 'open') radial.move(event.pointerId, {x: event.clientX, y: event.clientY})
+  }
+  const nativeEnd = (event: PointerEvent) => {
+    if (radial.blocked || event.type === 'pointercancel') inspectionTouch = null
+    if (event.type === 'pointercancel') endPinch()
+    radial.release(event.pointerId)
+    if (!radial.pointers.size) {
+      // El click sintetizado tras pointerup también pertenece al gesto consumido.
+      hudUnlockTimer = setTimeout(() => { hudUnlockTimer = null; if (!radial.pointers.size) ui.setGestureBlocked(false) }, 0)
+    }
+  }
+  const cancelInteraction = () => {
+    radial.reset()
+    inspectionTouch = null
+    endPinch()
+    ui.setGestureBlocked(false)
+  }
+  const visibility = () => { if (document.hidden) cancelInteraction() }
+  const contextMenu = (event: Event) => {
+    if (radial.phase !== 'idle') event.preventDefault()
+  }
+  window.addEventListener('pointerdown', nativeDown, true)
+  window.addEventListener('pointermove', nativeMove, true)
+  window.addEventListener('pointerup', nativeEnd, true)
+  window.addEventListener('pointercancel', nativeEnd, true)
+  window.addEventListener('blur', cancelInteraction)
+  window.addEventListener('resize', cancelInteraction)
+  window.addEventListener('contextmenu', contextMenu)
+  document.addEventListener('visibilitychange', visibility)
   world.events.addListener(world.events.globalId, ecs.input.SCREEN_TOUCH_START, screenTouch)
   world.events.addListener(world.events.globalId, ecs.input.SCREEN_TOUCH_MOVE, moveInspectionTouch)
   world.events.addListener(world.events.globalId, ecs.input.SCREEN_TOUCH_END, endInspectionTouch)
@@ -224,13 +304,23 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }, 45000)
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
-    model: model?.toString() ?? null, activeClip, paused, desktop, inspection: inspection.snapshot(), pinchActive})
+    model: model?.toString() ?? null, activeClip, paused, desktop, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot()})
   ;(window as any).__AR_AVES_DEBUG__ = debug
   return () => {
     ++fetchGeneration
     fetchController?.abort()
     if (startupTimer) clearTimeout(startupTimer)
     session.reset()
+    radial.reset()
+    if (hudUnlockTimer) clearTimeout(hudUnlockTimer)
+    window.removeEventListener('pointerdown', nativeDown, true)
+    window.removeEventListener('pointermove', nativeMove, true)
+    window.removeEventListener('pointerup', nativeEnd, true)
+    window.removeEventListener('pointercancel', nativeEnd, true)
+    window.removeEventListener('blur', cancelInteraction)
+    window.removeEventListener('resize', cancelInteraction)
+    window.removeEventListener('contextmenu', contextMenu)
+    document.removeEventListener('visibilitychange', visibility)
     world.events.removeListener(world.events.globalId, ecs.input.SCREEN_TOUCH_START, screenTouch)
     world.events.removeListener(world.events.globalId, ecs.input.SCREEN_TOUCH_MOVE, moveInspectionTouch)
     world.events.removeListener(world.events.globalId, ecs.input.SCREEN_TOUCH_END, endInspectionTouch)

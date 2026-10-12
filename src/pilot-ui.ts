@@ -1,20 +1,47 @@
 import labels from './data/interfaz.json'
+import {RADIAL_CONFIG, RADIAL_ACTIONS, radialLayout} from './radial-gesture'
 
 type Controls = {start: () => void; reset: () => void; relocate: () => void;
-  cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void}
+  cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void; dismiss: () => void}
+
+const icons: Record<string, string> = {
+  species: '<path d="M4 15c6 0 7-7 14-8l-3 6 5 3-7 1-4 5-1-6-4-1Z"/><path d="m8 16 5-5"/>',
+  info: '<path d="M4 5h6l2 2 2-2h6v14h-6l-2 2-2-2H4Z"/><path d="M12 7v14M7 9h2m-2 4h2m6-4h2m-2 4h2"/>',
+  animation: '<path d="M8 5v14l11-7Z"/><path d="M4 5v14"/>',
+  relocate: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
+  reset: '<path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/>',
+}
+const icon = (name: string) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[name]}</svg>`
+const radialText: Record<string, string> = {info: labels.radialFicha, animation: labels.radialAnimaciones, relocate: labels.radialReubicar, reset: labels.radialReiniciar}
+function radialMarkup() {
+  const inner = 144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius
+  const polar = (r: number, deg: number) => { const a = deg * Math.PI / 180; return {x: 160 + r * Math.cos(a), y: 160 + r * Math.sin(a)} }
+  return RADIAL_ACTIONS.map((action: string, index: number) => {
+    const angle = -90 + index * 90
+    const a = polar(144, angle - 43), b = polar(144, angle + 43), c = polar(inner, angle + 43), d = polar(inner, angle - 43)
+    const point = polar(94, angle)
+    return `<g class="aves-radial-sector" data-radial="${action}">
+      <path d="M${a.x} ${a.y} A144 144 0 0 1 ${b.x} ${b.y} L${c.x} ${c.y} A${inner} ${inner} 0 0 0 ${d.x} ${d.y} Z"/>
+      <g transform="translate(${point.x},${point.y})"><svg x="-14" y="-24" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[action]}</svg><text y="22" text-anchor="middle"></text></g>
+    </g>`
+  }).join('')
+}
 
 // El contenido académico y las etiquetas proceden de JSON; el DOM no recibe HTML del PDF.
 export function createPilotUi(catalog: any[], bird: any, controls: Controls, desktop: boolean) {
   document.getElementById('aves-pilot')?.remove()
   const root = document.createElement('main')
   root.id = 'aves-pilot'
+  root.style.setProperty('--radial-highlight-scale', String(RADIAL_CONFIG.visualScale))
   root.innerHTML = `<header class="aves-header"><img class="aves-brand" src="assets/logo-colibri.png" alt="Colibrí de Aves UAO"><div><h1></h1><p></p></div></header>
     <section class="aves-status" aria-live="polite"><p></p><button data-action="start"></button></section>
     <div class="aves-scan" aria-hidden="true"><span></span></div>
-    <aside class="aves-toolbar"><label for="aves-species"></label><select id="aves-species"></select>
-      <div class="aves-actions"><button data-action="info"></button><button data-action="animation"></button>
-      <button data-action="relocate"></button><button data-action="cancel"></button><button data-action="reset"></button></div>
-      <p class="aves-preview"></p></aside>
+    <button class="aves-species-trigger" data-aves-ui data-species-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="aves-species-popover">${icon('species')}</button>
+    <aside class="aves-species-popover" id="aves-species-popover" data-aves-ui role="dialog" aria-labelledby="aves-species-title" hidden>
+      <button data-close="species"></button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
+    <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
+    <p class="aves-preview"></p>
+    <div class="aves-radial" aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
     <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title"><button data-close="info"></button>
       <h2 id="aves-info-title"></h2><p class="aves-note"></p><p class="aves-source"></p>
       <label for="aves-reference"></label><select id="aves-reference"></select><div class="aves-facts"></div>
@@ -26,14 +53,23 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   const get = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!
   get('h1').textContent = labels.titulo
   get('header p').textContent = labels.subtitulo
-  get('label[for="aves-species"]').textContent = labels.catalogo
-  const select = get<HTMLSelectElement>('#aves-species')
+  get('#aves-species-title').textContent = labels.catalogo
+  const speciesTrigger = get<HTMLButtonElement>('[data-species-toggle]')
+  speciesTrigger.setAttribute('aria-label', labels.seleccionarAve)
+  speciesTrigger.title = labels.seleccionarAve
   for (const b of catalog) {
-    const option = new Option(b.nombre + (b.disponible ? '' : ` · ${labels.pendiente}`), b.id)
+    const option = document.createElement('button')
+    option.type = 'button'
+    option.textContent = b.nombre + (b.disponible ? '' : ` · ${labels.pendiente}`)
     option.disabled = !b.disponible
-    option.selected = b.id === bird.id
-    select.add(option)
+    option.dataset.species = b.id
+    option.setAttribute('aria-pressed', String(b.id === bird.id))
+    get('#aves-species').append(option)
   }
+  get('.aves-radial').setAttribute('aria-label', labels.menuAve)
+  get('.aves-radial-hint').textContent = labels.deslizarMenu
+  get('.aves-radial-subhint').textContent = labels.soltarMenu
+  for (const action of RADIAL_ACTIONS) get(`[data-radial="${action}"] text`).textContent = radialText[action]
   get('.aves-preview').textContent = desktop ? labels.preview : ''
   get('#aves-info-title').textContent = labels.ficha
   get('.aves-note').textContent = labels.ilustrativo
@@ -88,17 +124,34 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (b.dataset.action) b.textContent = buttonLabels[b.dataset.action]
     if (b.dataset.close) b.textContent = labels.cerrar
   })
-  const closePanels = () => root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true)
+  const closeSpecies = () => { get('#aves-species-popover').hidden = true; speciesTrigger.setAttribute('aria-expanded', 'false') }
+  const closePanels = () => { closeSpecies(); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
   const openInfo = () => { closePanels(); get('#aves-info').hidden = false }
+  let gestureBlocked = false
+  const closeRadial = () => { get('.aves-radial').classList.remove('is-open'); get('.aves-radial').setAttribute('aria-hidden', 'true'); root.querySelectorAll('[data-radial]').forEach(s => s.classList.remove('is-highlighted')) }
+  const runRadialAction = (action: string) => {
+    closePanels()
+    if (action === 'info') openInfo()
+    if (action === 'animation') get('#aves-animation').hidden = false
+    if (action === 'relocate') controls.relocate()
+    if (action === 'reset') controls.reset()
+  }
   root.addEventListener('click', (e) => {
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
+    if (button.hasAttribute('data-species-toggle')) {
+      const open = get('#aves-species-popover').hidden
+      closePanels(); controls.dismiss()
+      get('#aves-species-popover').hidden = !open
+      speciesTrigger.setAttribute('aria-expanded', String(open))
+      return
+    }
+    if (button.dataset.species) { closeSpecies(); return }
+    if (button.dataset.close === 'species') { closeSpecies(); return }
     if (button.dataset.close) { closePanels(); return }
     switch (button.dataset.action) {
       case 'start': controls.start(); break
       case 'info': openInfo(); break
-      case 'animation': closePanels(); get('#aves-animation').hidden = false; break
-      case 'relocate': closePanels(); controls.relocate(); break
       case 'cancel': controls.cancel(); break
       case 'reset': closePanels(); controls.reset(); break
       case 'idle': controls.idle(); break
@@ -108,13 +161,41 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   // Captura eventos del HUD antes que el canvas. Incluye selects y gestos en paneles.
   const stop = (e: Event) => e.stopPropagation()
   const pointer = (e: Event) => {
-    if ((e.target as Element).closest('button,select,label,.aves-panel')) stop(e)
+    if ((e.target as Element).closest('button,select,label,.aves-panel,[data-aves-ui]')) stop(e)
   }
   for (const event of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'mouseup']) {
     root.addEventListener(event, pointer)
   }
+  const block = (e: Event) => {
+    if (!gestureBlocked) return
+    if (e.cancelable) e.preventDefault()
+    e.stopImmediatePropagation()
+  }
+  for (const event of ['pointerdown','pointerup','touchstart','touchend','click','contextmenu']) root.addEventListener(event, block, {capture: true, passive: false})
+  const outside = (e: PointerEvent) => {
+    if (get('#aves-species-popover').hidden || (e.target as Element).closest('[data-species-toggle],#aves-species-popover')) return
+    closeSpecies()
+    // Ese toque cierra el popover; no llega al canvas para colocar o inspeccionar.
+    e.preventDefault(); e.stopPropagation()
+  }
+  document.addEventListener('pointerdown', outside, true)
+  const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') { closePanels(); controls.dismiss() } }
+  document.addEventListener('keydown', escape)
   return {
-    root, openInfo, closePanels,
+    root, openInfo, closePanels, closeRadial, runRadialAction,
+    setGestureBlocked(blocked: boolean) { gestureBlocked = blocked },
+    radialLayout(point: {x: number; y: number}) {
+      const style = getComputedStyle(root)
+      return radialLayout(point, {width: innerWidth, height: innerHeight}, {left: parseFloat(style.paddingLeft), right: parseFloat(style.paddingRight), top: parseFloat(style.paddingTop), bottom: parseFloat(style.paddingBottom)})
+    },
+    showRadial(layout: {x: number; y: number; radius: number}) {
+      closePanels()
+      const menu = get('.aves-radial')
+      menu.style.left = layout.x + 'px'; menu.style.top = layout.y + 'px'
+      menu.style.width = menu.style.height = (layout.radius * 320 / 144) + 'px'
+      menu.setAttribute('aria-hidden', 'false'); menu.classList.add('is-open')
+    },
+    highlightRadial(action: string | null) { root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.classList.toggle('is-highlighted', s.dataset.radial === action)) },
     showMessage(message: string) { get('.aves-status p').textContent = message },
     update(snapshot: any) {
       const phase = snapshot.phase
@@ -128,11 +209,12 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         REUBICAR: labels.reubicando, ERROR: snapshot.message || labels.errorRecurso}
       get('.aves-status p').textContent = !snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'EXPLORAR'].includes(phase) ? labels.seguimiento : messages[phase]
       get('.aves-scan').hidden = !['ESCANEO', 'REUBICAR'].includes(phase)
-      for (const action of ['info', 'animation', 'relocate', 'idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
+      for (const action of ['idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
       get('[data-action="cancel"]').hidden = phase !== 'REUBICAR'
+      get('[data-action="reset"]').hidden = !['COLOCANDO','ERROR'].includes(phase)
       get<HTMLButtonElement>('[data-action="reset"]').disabled = !snapshot.position && phase !== 'ERROR'
-      if (!placed) closePanels()
+      if (!placed) { closePanels(); closeRadial() }
     },
-    dispose() { root.remove() },
+    dispose() { document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape); root.remove() },
   }
 }
