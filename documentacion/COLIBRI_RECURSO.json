@@ -1,0 +1,90 @@
+{
+  "fuente": "C:\\Users\\Juan Andres\\Downloads\\hummingbird-rigged-6-animations-open-bill\\source\\hummingbird_core_animations.glb",
+  "sha256Fuente": "bfb839560be9b751315f0cbe309aa390671a00f77dd25dbf658856b8b93534cc",
+  "bytesFuente": 10942732,
+  "bytesCopia": 3274900,
+  "generador": {
+    "version": "2.0",
+    "generator": "animalanimator.com",
+    "copyright": "animalanimator.com"
+  },
+  "clips": [
+    {
+      "nombre": "01_Hover_Idle_Loop",
+      "duracionSegundos": 2,
+      "bucle": true
+    },
+    {
+      "nombre": "02_Forward_Flight_Loop",
+      "duracionSegundos": 2,
+      "bucle": true
+    },
+    {
+      "nombre": "03_Perched_Idle_Loop",
+      "duracionSegundos": 4,
+      "bucle": true
+    },
+    {
+      "nombre": "04_Takeoff",
+      "duracionSegundos": 1.5,
+      "bucle": false
+    },
+    {
+      "nombre": "05_Landing",
+      "duracionSegundos": 2.5,
+      "bucle": false
+    },
+    {
+      "nombre": "06_Flower_Feeding",
+      "duracionSegundos": 3,
+      "bucle": false
+    }
+  ],
+  "texturas": [
+    {
+      "nombre": "hummingbird_normal",
+      "dimensionOriginal": [
+        2048,
+        2048
+      ],
+      "dimensionFinal": [
+        512,
+        512
+      ],
+      "bytesFinales": 469332
+    },
+    {
+      "nombre": "hummingbird_basecolor",
+      "dimensionOriginal": [
+        2048,
+        2048
+      ],
+      "dimensionFinal": [
+        1024,
+        1024
+      ],
+      "bytesFinales": 322674
+    },
+    {
+      "nombre": "hummingbird_roughness",
+      "dimensionOriginal": [
+        2048,
+        2048
+      ],
+      "dimensionFinal": [
+        512,
+        512
+      ],
+      "bytesFinales": 63786
+    }
+  ],
+  "accesoriosOcultados": [
+    "Prop_Perch",
+    "Prop_TrumpetFlower",
+    "Prop_TrumpetFlower_Stem"
+  ],
+  "animacionesConservadas": 6,
+  "articulaciones": 58,
+  "licencia": "Pendiente: el paquete aportado no incluye texto de licencia inspeccionado. No inferir una licencia del copyright.",
+  "especie": "Representacion ilustrativa de colibri; identidad especifica no confirmada."
+}

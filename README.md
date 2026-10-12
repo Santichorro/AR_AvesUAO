@@ -1,11 +1,19 @@
 # AR_AvesUAO
 
-Guía de avistamiento en **WebAR** de **5 aves del campus UAO** — *Pellare(s),
+Guía de avistamiento en **WebAR** de **5 aves del campus UAO** — *Colibrí,
 Paloma, Azulejo, Pechirrojo y Loro* — construida con **8th Wall Studio**, con un
 **quiz** de reconocimiento al final.
 
 > Proyecto de 4 personas. La app de escritorio de 8th Wall Studio abre esta carpeta
 > directamente. **No reestructures** `src/` ni `.expanse.json`.
+
+## Primer avance: colibrí colocado directamente
+
+La escena piloto permite colocar una sola ave al tocar el suelo, consultar fichas de referencia UAO, probar seis animaciones, reubicar/cancelar y reiniciar. Las otras cuatro aves se muestran como pendientes en el selector. El campus y el prefab de ejemplo se conservan; quedan fuera del recorrido piloto.
+
+En escritorio se ofrece vista 3D sin cámara para inspección y pruebas. No verifica seguimiento real. En Android/iPhone el motor solicita los permisos de cámara; Comenzar habilita la sesión de colocación.
+
+Información, pruebas y pendientes: [documentacion/AVANCE_01.md](documentacion/AVANCE_01.md). Las fichas proceden de la guía aportada (páginas 8, 17 y 18); el modelo se presenta como ilustrativo, sin asignarle una especie científica.
 
 ## Requisitos
 

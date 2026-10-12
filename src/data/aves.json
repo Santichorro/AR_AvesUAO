@@ -1,0 +1,64 @@
+{
+  "aves": [
+    {"id":"pechirrojo","nombre":"Pechirrojo","disponible":false,"modelo":null},
+    {"id":"azulejo","nombre":"Azulejo","disponible":false,"modelo":null},
+    {"id":"paloma","nombre":"Paloma","disponible":false,"modelo":null},
+    {"id":"loro","nombre":"Loro","disponible":false,"modelo":null},
+    {
+      "id":"colibri",
+      "nombre":"Colibrí",
+      "disponible":true,
+      "nombreCientifico":null,
+      "especieAsignada":null,
+      "tipoRepresentacion":"ilustrativa",
+      "modelo":"assets/models/colibri.glb",
+      "audioCanto":null,
+      "imagen":null,
+      "escalaExhibicion":0.25,
+      "transformacion":{"posicionLocal":{"x":0,"y":0.25,"z":0},"giroY":-1.5707963267948966},
+      "animaciones":{"reposo":"03_Perched_Idle_Loop","vuelo":"02_Forward_Flight_Loop","aterrizaje":"05_Landing"},
+      "clips":[
+        {"nombre":"01_Hover_Idle_Loop","etiqueta":"Vuelo suspendido","duracionSegundos":2,"bucle":true},
+        {"nombre":"02_Forward_Flight_Loop","etiqueta":"Vuelo hacia adelante","duracionSegundos":2,"bucle":true},
+        {"nombre":"03_Perched_Idle_Loop","etiqueta":"Reposo","duracionSegundos":4,"bucle":true},
+        {"nombre":"04_Takeoff","etiqueta":"Despegue","duracionSegundos":1.5,"bucle":false},
+        {"nombre":"05_Landing","etiqueta":"Aterrizaje","duracionSegundos":2.5,"bucle":false},
+        {"nombre":"06_Flower_Feeding","etiqueta":"Alimentación (gesto)","duracionSegundos":3,"bucle":false}
+      ],
+      "fuente":{"titulo":"Guía ilustrada de las aves del campus de la UAO","edicion":"Primera edición 2023","archivo":"GUIA AVES UAO FINAL.pdf","paginas":[8,17,18],"autores":["Germán Morales Zuñiga","Natalia Lenis Sánchez"],"consulta":"2026-10-12"},
+      "candidatas":[
+        {"nombre":"Colibrí Colirrufo","nombreCientifico":"Amazilia tzacatl","pagina":8},
+        {"nombre":"Colibrí Coliazul","nombreCientifico":"Saucerottia saucerottei","pagina":8},
+        {"nombre":"Colibrí Esmeralda","nombreCientifico":"Chlorostilbon melanorhynchus","pagina":8},
+        {"nombre":"Zafiro Cabeciazul","nombreCientifico":"Chylocharis grayi","pagina":8},
+        {"nombre":"Picudo Coronado","nombreCientifico":"Heliomaster longirostris","pagina":8},
+        {"nombre":"Picaflor de garganta negra","nombreCientifico":"Anthracothorax nigricollis","pagina":8}
+      ],
+      "fichas":[
+        {
+          "id":"colirrufo","nombre":"Colibrí Colirrufo","nombreCientifico":"Amazilia tzacatl","pagina":17,
+          "descripcion":"La guía describe un colibrí mediano de tierras bajas tropicales. Su vientre gris manchado y la extensión del color canela en la cola ayudan a distinguirlo de especies similares.",
+          "habitat":"Bordes del bosque, vegetación secundaria y jardines en algunas áreas.",
+          "alimentacion":"La guía indica que se alimenta desde niveles bajos hasta altos y visita comederos; esta ficha no añade una dieta que el texto no especifica.",
+          "rasgos":"Canela extendido en la cola, vientre gris manchado y cola no horquetada en la comparación descrita en la guía."
+        },
+        {
+          "id":"coliazul","nombre":"Colibrí Coliazul","nombreCientifico":"Saucerottia saucerottei","pagina":18,
+          "descripcion":"Colibrí bastante pequeño y oscuro, principalmente verde, con cola azul oscura. La guía señala que machos y hembras son similares.",
+          "habitat":"Bordes de bosque, arbustos secundarios y jardines.",
+          "alimentacion":"Suele alimentarse individualmente en flores.",
+          "rasgos":"Pico recto de longitud media, cola azul oscura y una mancha bronceada en la rabadilla."
+        },
+        {
+          "id":"esmeralda","nombre":"Colibrí Esmeralda","nombreCientifico":"Chlorostilbon melanorhynchus","pagina":18,
+          "descripcion":"La guía describe un colibrí pequeño de zonas abiertas o bordes de bosque. El macho es verde esmeralda; la hembra es verde arriba y gris pálido abajo.",
+          "habitat":"Hábitats secos y abiertos o bordes de bosque; también jardines. La guía menciona el oeste de Ecuador y Colombia.",
+          "alimentacion":"Se observa alimentándose individualmente en niveles bajos o medios y visita comederos.",
+          "rasgos":"Pico recto y corto. La hembra presenta mejilla oscura y línea blanca detrás del ojo; el macho tiene cola azul oscura."
+        }
+      ],
+      "pendientes":["Identificar la especie exacta representada por el modelo","Incorporar canto documentado","Incorporar fotografía y créditos","Confirmar licencia de redistribución del modelo antes de publicar"],
+      "creditoModelo":{"copyright":"animalanimator.com","licencia":null,"origen":"Paquete local proporcionado por el usuario"}
+    }
+  ]
+}
