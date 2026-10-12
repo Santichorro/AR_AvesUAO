@@ -1,158 +1,50 @@
 # AGENTS.md — AR_AvesUAO
 
-Este archivo describe el proyecto y las reglas que deben seguir las personas (y los
-agentes de IA) que trabajen en él. Léelo antes de tocar nada.
+Guía para el agente de código (OpenCode). Léela completa antes de tocar nada.
 
-## Objetivo
+## Qué es este proyecto
+App web de realidad aumentada (AR de superficie) que sirve como guía de avistamiento de 5 aves del campus de la Universidad Autónoma de Occidente (UAO), con un quiz dentro de la escena AR. Es el Parcial 2 de Fundamentos de Realidad Virtual. Trabaja un equipo de 4 personas, cada una en su propia rama.
 
-**AR_AvesUAO** es una experiencia **WebAR** hecha con **8th Wall Studio** (app de
-escritorio). Es una **guía de avistamiento de 5 aves del campus UAO**:
+Documentos del proyecto (léelos después de este):
+- `docs/PLANEACION.md`: qué se construye y por qué.
+- `docs/TECNICO.md`: cómo se construye (estados, datos, assets, flujo Git, despliegue).
 
-1. Pellare(s)
-2. Paloma
-3. Azulejo
-4. Pechirrojo
-5. Loro
+## Tecnología
+- **8th Wall Studio** (app de escritorio, modo local/offline). El proyecto es un proyecto de Studio con la plantilla *World Effects*.
+- Destino: **web** (Android e iOS desde el navegador). No se hace APK ni app nativa.
+- Todo lo que se use debe ser **gratuito**. No agregues servicios de pago ni dependencias que requieran cuenta o tarjeta.
 
-La experiencia muestra las aves ancladas al mundo real (World Effects / SLAM) y
-termina con un **quiz** de reconocimiento. El proyecto es para **4 personas**.
+## Acceso a la documentación de 8th Wall
+La plataforma hospedada de 8th Wall ya no existe; no hay cuenta, API key ni servidor al cual conectarse. Tu fuente de verdad son los docs públicos y el código abierto. Consúltalos con webfetch cuando necesites un dato, en lugar de recordarlo de memoria:
 
-## Estructura real del proyecto
+- Studio: https://8thwall.org/docs/studio
+- Instalación y setup: https://8thwall.org/docs/getting-started/installation
+- Engine (motor): https://8thwall.org/docs/engine
+- API Reference: https://8thwall.org/docs/api
+- Migración y licencia: https://8thwall.org/docs/migration/faq
+- Open source y cumplimiento de licencia: https://8thwall.org/docs/open-source
+- Código fuente (incluye `packages/ecs`, el motor de Studio, y `examples/`): https://github.com/8thwall/8thwall
 
-> ⚠️ **NO reestructures el proyecto de Studio.** La carpeta `src/` y el archivo
-> `.expanse.json` son gestionados por la app de 8th Wall Studio. Mover o renombrar
-> archivos a mano puede romper la escena. Trabaja *dentro* de la estructura existente.
+## Reglas de trabajo
+1. **Explora antes de editar.** Lista la estructura real del proyecto de Studio y resúmela. No asumas nombres de archivos, componentes ni APIs: verifícalos en el proyecto o en los docs. Si algo no está documentado, dilo en lugar de inventarlo.
+2. **No reestructures lo que Studio genera.** Respeta su organización de carpetas y archivos de escena. Agrega código y assets en los lugares que Studio espera.
+3. **Cambios pequeños y verificables.** Un commit por cambio lógico, con mensaje claro en español.
+4. **Ramas.** Las ramas son `main`, `tello`, `sam`, `meli` y `juandate`. Trabaja solo en la rama activa. Nunca hagas push directo a `main`; se integra por pull request.
+5. **No borres ni sobrescribas** modelos, audios o escenas de otros integrantes. Si hay conflicto, detente y avisa.
+6. **Datos separados del código.** Textos, preguntas y rutas de audio van en el JSON de aves (ver `docs/TECNICO.md`), no escritos a mano en la lógica.
+7. **Placeholders, no bloqueos.** Si falta un modelo GLB o un audio, usa un placeholder para que la app siga corriendo y deja un `TODO` visible.
+8. **Entorno del usuario:** Windows con PowerShell. Da comandos compatibles con PowerShell.
+9. **Ante duda de alcance o decisiones de diseño, pregunta** antes de implementar.
 
-```
-AR_AvesUAO/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml         # CI: compila y publica en GitHub Pages (rama main)
-├── config/                    # Configuración del build (webpack). No tocar sin motivo.
-│   ├── webpack.config.js      # Entrada, salida (dist/), loaders y plugins
-│   ├── entry-plugin.js        # Genera `entry.js` virtual desde .expanse.json + src/*.ts
-│   ├── dev8-plugin.js         # Inyecta dev8.js en modo desarrollo
-│   ├── asset-loader.js        # Exporta rutas de assets como strings
-│   ├── LICENSE                # Licencia de Niantic Spatial, Inc. (MIT)
-│   └── types/                 # Declaraciones .d.ts
-├── src/                       # Código y contenido de la experiencia
-│   ├── .expanse.json          # ESCENA de Studio (espacios, entidades y componentes)
-│   ├── index.html             # HTML raíz; carga el runtime y bundle.js
-│   ├── app.js                 # Entrada de la app (Landing Page)
-│   ├── logo.ts                # Componente ECS `logo`
-│   ├── tap-to-place.ts        # Componente ECS `tap-to-place`
-│   ├── reset-button.ts        # Componente ECS `reset-button`
-│   ├── hide-on-ready.ts       # Componente ECS `hide-on-ready`
-│   └── assets/                # Assets binarios (GLB, imágenes) — versionados con Git LFS
-├── node_modules/              # Dependencias (IGNORADO en git)
-├── package.json               # Scripts `build` y `serve`
-├── package-lock.json
-├── tsconfig.json
-├── .gitattributes             # Git LFS para binarios
-├── .gitignore
-├── LICENSE                    # Licencia de 8th Wall, Inc. (MIT)
-└── README.md
-```
+## Licencia del motor (obligatorio)
+El motor con SLAM (seguimiento de superficie) se distribuye como binario cerrado de Niantic Spatial. No lo modifiques, descompiles ni redistribuyas alterado. Debe conservarse el aviso de copyright "Copyright © 2026 Niantic Spatial, Inc." en el archivo del motor, visible en el build publicado. Si el build no lo conserva, agrega el comentario de atribución indicado en https://8thwall.org/docs/open-source dentro del `index.html` publicado.
 
-### Cómo funciona (resumen)
+## Convenciones del proyecto
+- Idioma de la interfaz y de los textos: español.
+- IDs de aves en minúscula sin tildes: `pellares`, `paloma`, `azulejo`, `pechirrojo`, `loro`.
+- Clips de animación estándar en todos los GLB: `idle`, `fly`, `land`, `sing`, `happy`, `no`.
+- Modelos: `assets/models/<id>.glb`. Audios: `assets/audio/<id>_canto.mp3` y `assets/audio/sfx_*.mp3`.
+- Si la estructura de Studio exige otra ruta, adáptate a ella y documenta el cambio en `docs/TECNICO.md`.
 
-- **ECS (Entity Component System).** El mundo contiene espacios (`spaces`); cada
-  espacio contiene entidades con componentes. La escena se define en
-  `src/.expanse.json`.
-- **Componentes propios** = archivos `.ts` en `src/`. `config/entry-plugin.js`
-  importa automáticamente todo `.ts`/`.js` de `src/` (excepto `src/assets/` y
-  `src/.dependencies/`), así que **basta con crear el `.ts` en `src/`** para que se
-  incluya en el bundle (y para que Studio lo pueda usar).
-- **Modelos 3D.** Se referencian desde `.expanse.json` (campo `gltfModel.src`) y
-  viven en `src/assets/`.
-- **Assets.** Cualquier archivo dentro de `src/assets/` se copia tal cual al build.
-  Los binarios se guardan con **Git LFS** (ver `.gitattributes`).
-
-## Reglas
-
-### 1. Modelos GLB (assets)
-
-- Los modelos deben ser **GLB** e incluir **exactamente estos clips de animación**,
-  con estos nombres (en minúscula):
-  - `idle`
-  - `fly`
-  - `land`
-  - `sing`
-  - `happy`
-  - `no`
-- Guarda los `.glb` en `src/assets/` y referéncialos desde `.expanse.json`.
-- Optimiza el tamaño (Draco/compresión) antes de subirlos; recuerda que Git LFS
-  guarda el binario real.
-
-### 2. Datos de las aves (JSON)
-
-Los datos de las aves viven en **un único JSON** (convención sugerida:
-`src/data/aves.json`). Cada ave debe tener:
-
-```json
-{
-  "id": "azulejo",
-  "nombre": "Azulejo",
-  "nombreCientifico": "Thraupis episcopus",
-  "descripcion": "Texto con los datos del ave que alimentan el quiz...",
-  "audioCanto": "assets/audio/azulejo.mp3",
-  "preguntas": [
-    {
-      "enunciado": "¿De qué color es principalmente el azulejo?",
-      "opciones": ["Azul", "Rojo", "Verde"],
-      "indiceCorrecto": 0
-    }
-  ]
-}
-```
-
-Reglas del esquema:
-
-- `id`: identificador único y estable (se usa para emparejar con el modelo/entidad).
-- `nombre`: nombre común.
-- `nombreCientifico`: nombre científico.
-- `descripcion`: información del ave (fuente de las preguntas).
-- `audioCanto`: ruta relativa al audio del canto.
-- `preguntas`: lista con `enunciado`, **3 opciones** (`opciones`) e `indiceCorrecto`
-  (índice 0-2 de la opción correcta).
-
-Cada vez que se agregue/modifique información de un ave, actualiza también sus
-preguntas en este JSON.
-
-### 3. Quiz AR
-
-El quiz tiene **dos modos** y **puntaje al final**:
-
-- **(a) Identificar el canto.** Se reproduce el `audioCanto` de un ave (aleatoria) y
-  el usuario debe **tocar el ave correcta entre las 5** presentes en escena.
-- **(b) Preguntas de opción múltiple.** Se toman de la información de cada ave
-  (`preguntas` del JSON): 1 enunciado + 3 opciones.
-- Al terminar se muestra el **puntaje final** (aciertos sobre el total).
-
-### 4. Licencia y copyright (obligatorio antes de usar el SLAM/motor)
-
-- El motor/SLAM de 8th Wall y el runtime están sujetos a derechos de autor de
-  **Niantic Spatial, Inc.** Conserva y respeta los avisos:
-  - `LICENSE` (Copyright 2025 8th Wall, Inc.)
-  - `config/LICENSE` (Copyright 2025 Niantic Spatial, Inc.)
-  - El aviso dentro de `external/runtime/LICENSE` que se copia al build.
-- **Antes de tocar el SLAM, el motor (`@8thwall/ecs`, `runtime.js`) o los binarios
-  de terceros (Draco, fuentes, etc.), revisa la licencia de Niantic Spatial** y no
-  elimines ni ocultes los avisos de copyright.
-- No se puede usar código/asset propietario por fuera de lo que permite la licencia.
-
-### 5. Build y despliegue
-
-- Compilar: `npm run build` → genera `dist/`.
-- Servir en local: `npm run serve` (modo desarrollo).
-- El despliegue a GitHub Pages es automático al hacer push a `main`
-  (`.github/workflows/deploy.yml`). Detalles en el `README.md`.
-
-### 6. Flujo de trabajo en git
-
-- Rama principal: `main` (solo lo que se publica).
-- Ramas de trabajo: `tello`, `sam`, `meli`, `juandate`.
-- Trabaja en tu rama y abre un Pull Request hacia `main`.
-- No subas `node_modules/` ni `dist/`.
-- Si clonas con Git LFS: instala `git-lfs` primero (`git lfs install`) para que se
-  descarguen los modelos e imágenes reales.
+## Qué reportar al terminar cada tarea
+Resume qué cambiaste, qué archivos tocaste, cómo probarlo y qué quedó pendiente o sin verificar.

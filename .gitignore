@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 
+# Almacenamiento local de Git LFS / Studio (no es código fuente)
+/lfs/
+
 # Temporales de 8th Wall Studio / Expanse
 tmp/
 .dependencies/
