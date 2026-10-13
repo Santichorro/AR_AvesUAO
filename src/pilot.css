@@ -116,7 +116,7 @@
 .aves-radial-hint { fill: var(--aves-ink); font-size: 11px; font-weight: 700; }
 .aves-radial-subhint { fill: var(--aves-muted); font-size: 7px; }
 .aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; padding: 12px 18px 12px 12px; border-radius: 24px; }
-.aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 7px; background: var(--aves-rose); border: 1px solid #ed1d241a; border-radius: 16px; }
+.aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 3px; }
 .aves-header h1 { font-size: 20px; margin: 0; letter-spacing: -.5px; font-weight: 700; }
 .aves-header p { margin: 3px 0 0; font-size: 12px; color: var(--aves-muted); }
 .aves-status { align-self: center; max-width: 460px; border-radius: 22px; padding: 14px 20px; text-align: center; }
