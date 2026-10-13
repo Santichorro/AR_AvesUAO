@@ -37,7 +37,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     <section class="aves-status" aria-live="polite"><p></p><button data-action="start"></button></section>
     <div class="aves-scan" aria-hidden="true"><span></span></div>
     <button class="aves-species-trigger" data-aves-ui data-species-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="aves-species-popover">${icon('species')}</button>
-    <aside class="aves-species-popover" id="aves-species-popover" data-aves-ui role="dialog" aria-labelledby="aves-species-title" hidden>
+    <aside class="aves-species-popover" id="aves-species-popover" data-aves-ui role="dialog" aria-labelledby="aves-species-title" aria-hidden="true" hidden>
       <button data-close="species"></button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
     <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
     <p class="aves-preview"></p>
@@ -133,7 +133,35 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (b.dataset.action) b.textContent = buttonLabels[b.dataset.action]
     if (b.dataset.close) b.textContent = labels.cerrar
   })
-  const closeSpecies = () => { get('#aves-species-popover').hidden = true; speciesTrigger.setAttribute('aria-expanded', 'false') }
+  const speciesPopover = get('#aves-species-popover')
+  let speciesOpen = false
+  const setSpeciesContentActive = (active: boolean) => {
+    // El contenedor sigue consumiendo toques mientras sus controles se desvanecen.
+    Array.from(speciesPopover.children).forEach(child => child.toggleAttribute('inert', !active))
+  }
+  const closeSpecies = (immediate = false) => {
+    speciesOpen = false
+    if (speciesPopover.contains(document.activeElement)) speciesTrigger.focus({preventScroll: true})
+    setSpeciesContentActive(false)
+    speciesPopover.setAttribute('aria-hidden', 'true'); speciesTrigger.setAttribute('aria-expanded', 'false')
+    speciesPopover.classList.remove('is-open')
+    if (immediate || matchMedia('(prefers-reduced-motion: reduce)').matches || getComputedStyle(speciesPopover).opacity === '0') speciesPopover.hidden = true
+  }
+  const openSpecies = () => {
+    speciesOpen = true; speciesPopover.hidden = false
+    setSpeciesContentActive(true)
+    speciesPopover.setAttribute('aria-hidden', 'false'); speciesTrigger.setAttribute('aria-expanded', 'true')
+    // Calcula el estado cerrado antes de abrir; invertir a mitad de transición es continuo.
+    speciesPopover.getBoundingClientRect()
+    speciesPopover.classList.add('is-open')
+  }
+  const finishSpeciesClose = (event: TransitionEvent) => {
+    if (event.target !== speciesPopover || event.propertyName !== 'opacity' || speciesOpen) return
+    // Invertir una apertura también cancela la transición anterior: no cortar la salida.
+    if (getComputedStyle(speciesPopover).opacity === '0' || matchMedia('(prefers-reduced-motion: reduce)').matches) speciesPopover.hidden = true
+  }
+  speciesPopover.addEventListener('transitionend', finishSpeciesClose)
+  speciesPopover.addEventListener('transitioncancel', finishSpeciesClose)
   const closePanels = () => { closeSpecies(); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
   // La entrada utilizada por el tap ECS conserva su nombre; ahora presenta el círculo.
   // La guía tiene una función propia para que Ficha no vuelva a abrir el menú.
@@ -211,11 +239,11 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     }
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
+    if (!speciesOpen && speciesPopover.contains(button)) return
     if (button.hasAttribute('data-species-toggle')) {
-      const open = get('#aves-species-popover').hidden
+      const open = !speciesOpen
       closeRadial(); closePanels(); controls.dismiss()
-      get('#aves-species-popover').hidden = !open
-      speciesTrigger.setAttribute('aria-expanded', String(open))
+      if (open) openSpecies()
       return
     }
     if (button.dataset.species) { closeSpecies(); return }
@@ -257,8 +285,9 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       pressedSector = (e.target as Element).closest<HTMLElement>('[data-radial]')?.dataset.radial || null
       highlightRadial(pressedSector)
     }
-    if (get('#aves-species-popover').hidden || (e.target as Element).closest('[data-species-toggle],#aves-species-popover')) return
+    if (!speciesOpen || (e.target as Element).closest('[data-species-toggle],#aves-species-popover')) return
     closeSpecies()
+    dismissedOutside = true
     // Ese toque cierra el popover; no llega al canvas para colocar o inspeccionar.
     e.preventDefault(); e.stopPropagation()
   }
@@ -310,6 +339,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       if (!placed) { closePanels(); closeRadial() }
     },
     dispose() {
+      closeSpecies(true)
       clearStartTransition()
       document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape)
       document.removeEventListener('click', consumeOutsideClick, true)
