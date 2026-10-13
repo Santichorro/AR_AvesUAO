@@ -53,9 +53,11 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 
 ## Pruebas automatizadas
 
-Ejecutar npm test (o node --test tests/*.test.cjs). Pasaron los 22 casos: colocación, inspección y 10 pruebas de tap, apertura persistente, sectores, límites, acción única, dos dedos, cancelación y reinicio. El radial no utiliza temporizadores de hold ni de confirmación. Webpack compiló con los dos avisos previos de tamaño de assets.
+Ejecutar npm test (o node --test tests/*.test.cjs). Pasaron los 24 casos: colocación, inspección, 10 pruebas del radial y 2 de conversión entre coordenadas ECS/canvas y DOM/viewport. El radial no utiliza temporizadores de hold ni de confirmación. Webpack compiló con los dos avisos previos de tamaño de assets.
 
 Revisión aprobada en navegador sobre dist/bundle.js con World/ECS y raycast simulados: tap sobre ave, persistencia tras soltar, cuatro opciones por tap, cierre exterior sin mover, giro/pinch sin menú, selector, cancelación/reinicio, cuatro bordes y selección con teclado. Tamaños: 390×844, 320×568, 844×390 y 1100×800. Sin errores de ejecución ni overflow horizontal. Este entorno no usa cámara, carga real del GLB ni tracking; no acredita compatibilidad física.
+
+Se reprodujo una cancelación incorrecta del tap con un canvas reducido (330×680, desplazado 30 px a la derecha y 80 px abajo dentro de una ventana 390×844): el controlador mezclaba posiciones normalizadas respecto del canvas con píxeles de toda la ventana. La corrección utiliza el rectángulo de world.three.renderer.domElement para convertir en ambas direcciones. Pasaron cuatro taps fuera del centro y la selección de Ficha en ese canvas, además de las pruebas anteriores. Falta comprobar la sesión real de Studio y teléfonos.
 
 Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). Devuelve fase, posición, raíz/modelo, clip, giro/escala y estado del radial. No permite introducir posiciones falsas ni forzar tracking.
 

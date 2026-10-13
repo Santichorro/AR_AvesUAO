@@ -5,6 +5,7 @@ import {PlacementSession, validPosition} from './placement-session'
 import {createPilotUi} from './pilot-ui'
 import {InspectionControls, normalizedScreenPosition} from './inspection-controls'
 import {RadialGesture} from './radial-gesture'
+import {screenToViewport, viewportToScreen} from './screen-coordinates'
 
 // Se conserva el evento de la plantilla para no romper componentes ajenos.
 const OBJECT_PLACED_EVENT = 'object-placed'
@@ -164,11 +165,11 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (!desktop) ui.showMessage(labels.seguimiento)
   }
   const tracking = (event: any) => session.setTracking(event.data?.status === 'NORMAL')
+  const inputRect = () => world.three.renderer.domElement.getBoundingClientRect()
   const isUiTouch = (position: {x: number; y: number} | undefined) => {
-    if (!position) return false
-    const x = position.x <= 1 ? position.x * window.innerWidth : position.x
-    const y = position.y <= 1 ? position.y * window.innerHeight : position.y
-    return !!document.elementFromPoint(x, y)?.closest('#aves-pilot button, #aves-pilot select, #aves-pilot .aves-panel, #aves-pilot [data-aves-ui]')
+    const point = screenToViewport(position, inputRect())
+    if (!point) return false
+    return !!document.elementFromPoint(point.x, point.y)?.closest('#aves-pilot button, #aves-pilot select, #aves-pilot .aves-panel, #aves-pilot [data-aves-ui]')
   }
   // El modo 3D de escritorio no produce worldPosition de una superficie AR.
   // Se usa únicamente allí un plano virtual centrado en la escena para poder
@@ -188,10 +189,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     session.place(position)
   }
   const canInspect = () => session.phase === 'EXPLORAR' && root !== null && model !== null
-  const screenPixels = (position: {x: number; y: number}) => {
-    const normalized = normalizedScreenPosition(position)
-    return normalized ? {x: normalized.x * innerWidth, y: normalized.y * innerHeight} : null
-  }
+  const screenPixels = (position: {x: number; y: number}) => screenToViewport(position, inputRect())
   const beginInspectionTouch = (event: any) => {
     if (!canInspect() || pinchActive || radial.pointers.size > 1 || isUiTouch(event.data.position)) return
     const position = normalizedScreenPosition(event.data.position)
@@ -272,7 +270,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (event.type === 'pointercancel') endPinch()
     if (event.type === 'pointerup' && radial.phase === 'pending' && radial.pointerId === event.pointerId) {
       // El hit inicial lo resolvió ECS. Completar aquí evita depender del orden de ambos END.
-      endInspectionTouch({data: {pointerId: event.pointerId, position: {x: event.clientX / innerWidth, y: event.clientY / innerHeight}}})
+      const position = viewportToScreen({x: event.clientX, y: event.clientY}, inputRect())
+      if (position) endInspectionTouch({data: {pointerId: event.pointerId, position}})
       // Consumir también el click sintetizado del tap que acaba de abrir el menú.
       if (radial.blocked) ui.setGestureBlocked(true)
     }

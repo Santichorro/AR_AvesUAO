@@ -62,4 +62,8 @@ La integración utiliza SCREEN_TOUCH_START/MOVE/END y GESTURE_START/MOVE/END de 
 
 Fuentes: [Input Events de 8th Wall](https://8thwall.org/docs/api/studio/events/input), [Pointer Events de MDN](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) y las definiciones locales del paquete ECS.
 
-Validación de la activación por tap: 22 pruebas unitarias aprobadas y compilación correcta. En el build con World/ECS/raycast simulados pasaron apertura persistente, cuatro opciones por tap, tap exterior sin manipulación, giro/pinch, selector, cancelación, reinicio, cuatro bordes, teclado y pantallas de 320×568 a 1100×800. La UI no abre la ficha directamente al tocar el ave. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.
+Validación de la activación por tap: 24 pruebas unitarias aprobadas y compilación correcta. En el build con World/ECS/raycast simulados pasaron apertura persistente, cuatro opciones por tap, tap exterior sin manipulación, giro/pinch, selector, cancelación, reinicio, cuatro bordes, teclado y pantallas de 320×568 a 1100×800. La UI no abre la ficha directamente al tocar el ave. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.
+
+## Coordenadas de simulación
+
+Los eventos ECS normalizan respecto del canvas; Pointer Events, elementFromPoint y el menú DOM trabajan en coordenadas del viewport. src/screen-coordinates.js centraliza la conversión usando getBoundingClientRect de world.three.renderer.domElement. Usar innerWidth/innerHeight para comparar ambos producía un desplazamiento falso al liberar, que cancelaba un tap cuando el canvas estaba reducido o desplazado. El fallo se reprodujo antes de corregirlo y ahora pasan cuatro taps fuera del centro y apertura de Ficha con un canvas de 330×680 situado en (30,80). Las pruebas previas de pantalla completa no cubrían este caso.
