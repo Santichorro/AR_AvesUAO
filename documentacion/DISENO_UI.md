@@ -4,7 +4,7 @@
 
 Se toma el estilo de la imagen aportada por el usuario: tarjetas claras, bordes redondeados, relieves suaves, controles separados y acentos puntuales de color. No se trasladan sus contenidos, ilustraciones ni mecánicas a la aplicación. El enfoque natural se expresa con tonos de vegetación y superficies claras, sin agregar texturas o adornos que compitan con el ave en cámara.
 
-El rojo institucional se conserva como identificador. El texto pasa del rojo oscuro al verde bosque para evitar que todos los elementos compitan como acciones principales. Comenzar utiliza rojo; el selector y las opciones radiales usan superficies claras. El sector activo se resalta en rosa/rojo y Reiniciar mantiene su icono y texto rojos.
+El rojo institucional se conserva como identificador. El texto pasa del rojo oscuro al verde bosque para evitar que todos los elementos compitan como acciones principales. Comenzar utiliza rojo; el selector y la ficha usan superficies claras. Reiniciar mantiene texto rojo.
 
 ## Paleta
 
@@ -27,7 +27,7 @@ Contrastes calculados con luminancia sRGB sobre superficies sólidas: bosque/sup
 - Se elimina el morado del foco, las notas y los textos auxiliares.
 - Se reemplaza el brillo táctil del navegador por una pulsación rosa/roja y un foco rojo visible con teclado.
 - Se usan sombras suaves, borde superior claro y gradiente discreto para conservar el relieve de la referencia.
-- Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. Las acciones del ave se presentan en cuatro sectores.
+- Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. Las acciones de Animaciones, Reubicar y Reiniciar se presentan dentro de la ficha.
 - Se mantiene la zona central libre para observar y manipular el ave. El HUD conserva su comportamiento de eventos.
 - Se contemplan celulares estrechos, escritorio, modo horizontal y preferencia de movimiento reducido.
 - La selección de aves usa ahora un popover de botones propio; cuatro especies siguen deshabilitadas. El selector de fichas de referencia conserva su menú nativo.
@@ -46,23 +46,23 @@ Validación realizada el 12 de octubre de 2026: HUD real renderizado en Edge sin
 
 Queda pendiente revisar con cámara real en Android/Chrome e iPhone/Safari: lectura al sol y frente a fondos claros/oscuros, safe areas, selector nativo y pulsación táctil. Las vistas de navegador sin motor verifican el HUD, no el seguimiento AR.
 
-## Menú radial y selector compacto
+## Guía directa y selector compacto
 
 La tarjeta inferior permanente se sustituye por el icono de ave abajo a la izquierda. Abre las cinco especies y se cierra al seleccionar, tocar fuera o usar Cerrar. El toque exterior se consume para que no coloque ni manipule el modelo.
 
-En EXPLORAR, un tap sobre el hit del ave abre únicamente el radial. Permanece abierto al retirar el dedo; otro tap en Ficha, Animaciones, Reubicar o Reiniciar ejecuta esa opción. La ficha solo se abre desde su sector. Arrastrar o agregar un segundo dedo invalida el tap y permite giro/pinch. El menú tiene Ficha arriba, Animaciones a la derecha, Reubicar abajo y Reiniciar a la izquierda.
+Se recupera la ruta anterior a los cambios de menú circular: en EXPLORAR, un tap sobre el ave abre directamente Ficha del colibrí. Conserva la nota del modelo ilustrativo, fuente UAO, selector de referencias y contenido de la guía. Cerrar o Escape cierra el panel. No se requiere hold ni selección intermedia.
 
-Al abrir, el centro se ajusta al viewport y a sus áreas seguras. El centro es neutral; tocar fuera cierra sin manipular el ave. Los límites angulares conservan una separación de 4°. El sector resaltado crece 1.08 veces y no se selecciona por permanecer sobre él: requiere tap/click. Las opciones también admiten Enter/Espacio y Escape cierra el menú.
+El panel mantiene superficies claras, bordes suaves, salvia y rojo UAO, scroll y tamaños móviles. Los botones Probar animaciones, Reubicar y Reiniciar se colocan dentro de la ficha para mantener esas funciones accesibles. El selector de aves sigue abajo a la izquierda.
 
-El click residual del tap que abre el menú se consume para evitar seleccionar un sector automáticamente. Añadir un segundo dedo con el menú abierto cancela hasta retirar los contactos. Un tap exterior solo cierra; Reubicar requiere un toque nuevo en el suelo para confirmar el punto. Cancelar reubicación, inicio, recuperación y reinicio durante carga/error permanecen accesibles.
+Arrastre y pinch no abren la ficha. Los controles del HUD se filtran antes de manipular el ave. Reubicar conserva escala y giro y requiere un toque nuevo para elegir el punto; Cancelar conserva el anterior. Inicio, recuperación y reinicio durante carga/error siguen accesibles.
 
-Configuración en RADIAL_CONFIG de src/radial-gesture.js: radius, deadRadius, moveThreshold, edgePadding y visualScale. Se eliminaron holdMs, confirmMs y sus temporizadores. Apertura de 240 ms, cierre de 160 ms y resaltado de 140 ms, con curvas configurables en variables CSS. El movimiento reducido desactiva las transiciones.
+El recurso radial y sus pruebas permanecen en el proyecto, pero ya no se activa desde el ave. El flujo actual es tap → guía. Se conserva el estilo y la preferencia de movimiento reducido.
 
 La integración utiliza SCREEN_TOUCH_START/MOVE/END y GESTURE_START/MOVE/END de ECS para resolver el ave y sus gestos. Pointer Events del navegador complementa contactos sobre HUD, pointercancel y liberación; blur, resize y visibilitychange limpian interacciones. No se inventa un evento SCREEN_TOUCH_CANCEL.
 
 Fuentes: [Input Events de 8th Wall](https://8thwall.org/docs/api/studio/events/input), [Pointer Events de MDN](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) y las definiciones locales del paquete ECS.
 
-Validación de la activación por tap: 24 pruebas unitarias aprobadas y compilación correcta. En el build con World/ECS/raycast simulados pasaron apertura persistente, cuatro opciones por tap, tap exterior sin manipulación, giro/pinch, selector, cancelación, reinicio, cuatro bordes, teclado y pantallas de 320×568 a 1100×800. La UI no abre la ficha directamente al tocar el ave. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.
+Validación de la guía restaurada: 24 pruebas existentes aprobadas y compilación correcta. En dist/bundle.js con World/ECS/raycast simulados pasaron guía directa, cambio de referencia, cierre, suelo sin ficha, giro/pinch sin panel, animaciones, reubicación/cancelación, reinicio y selector. Se revisaron cuatro tamaños de pantalla y cuatro taps fuera del centro en canvas reducido. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.
 
 ## Coordenadas de simulación
 

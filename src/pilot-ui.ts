@@ -44,6 +44,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
     <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title"><button data-close="info"></button>
       <h2 id="aves-info-title"></h2><p class="aves-note"></p><p class="aves-source"></p>
+      <div class="aves-actions aves-guide-actions"><button data-action="animation"></button><button data-action="relocate"></button><button data-action="reset"></button></div>
       <label for="aves-reference"></label><select id="aves-reference"></select><div class="aves-facts"></div>
       <p class="aves-audio"></p><p class="aves-photo"></p></section>
     <section class="aves-panel" id="aves-animation" hidden aria-labelledby="aves-animation-title"><button data-close="animation"></button>
@@ -129,11 +130,12 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   })
   const closeSpecies = () => { get('#aves-species-popover').hidden = true; speciesTrigger.setAttribute('aria-expanded', 'false') }
   const closePanels = () => { closeSpecies(); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
+  const openInfo = () => { closePanels(); get('#aves-info').hidden = false }
   let gestureBlocked = false
   const closeRadial = () => { get('.aves-radial').classList.remove('is-open'); get('.aves-radial').setAttribute('aria-hidden', 'true'); root.querySelectorAll('[data-radial]').forEach(s => s.classList.remove('is-highlighted')) }
   const runRadialAction = (action: string) => {
     closePanels()
-    if (action === 'info') get('#aves-info').hidden = false
+    if (action === 'info') openInfo()
     if (action === 'animation') get('#aves-animation').hidden = false
     if (action === 'relocate') controls.relocate()
     if (action === 'reset') controls.reset()
@@ -155,6 +157,8 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (button.dataset.close) { closePanels(); return }
     switch (button.dataset.action) {
       case 'start': controls.start(); break
+      case 'animation': closePanels(); get('#aves-animation').hidden = false; break
+      case 'relocate': closePanels(); controls.relocate(); break
       case 'cancel': controls.cancel(); break
       case 'reset': closePanels(); controls.reset(); break
       case 'idle': controls.idle(); break
@@ -195,7 +199,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   document.addEventListener('keydown', escape)
   return {
-    root, closePanels, closeRadial, runRadialAction,
+    root, openInfo, closePanels, closeRadial, runRadialAction,
     setGestureBlocked(blocked: boolean) { gestureBlocked = blocked },
     radialLayout(point: {x: number; y: number}) {
       const style = getComputedStyle(root)
