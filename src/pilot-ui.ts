@@ -5,7 +5,7 @@ type Controls = {start: () => void; reset: () => void; relocate: () => void;
   cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void; dismiss: () => void; radial: (action: string) => void}
 
 const icons: Record<string, string> = {
-  species: '<path d="M4 15c6 0 7-7 14-8l-3 6 5 3-7 1-4 5-1-6-4-1Z"/><path d="m8 16 5-5"/>',
+  species: '<path d="M3 13c2 8 16 8 18 0M3 13c5 3 13 3 18 0M5 17c4 2 10 2 14 0"/><ellipse cx="8" cy="10" rx="2.3" ry="3.4" transform="rotate(-15 8 10)"/><ellipse cx="13.5" cy="10" rx="2.3" ry="3.4" transform="rotate(12 13.5 10)"/><path d="M16 6a2.5 2.5 0 0 1 5 0l1 1-1 1v4"/>',
   info: '<path d="M4 5h6l2 2 2-2h6v14h-6l-2 2-2-2H4Z"/><path d="M12 7v14M7 9h2m-2 4h2m6-4h2m-2 4h2"/>',
   animation: '<path d="M8 5v14l11-7Z"/><path d="M4 5v14"/>',
   relocate: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
