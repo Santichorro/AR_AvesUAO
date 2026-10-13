@@ -14,7 +14,7 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Arrastrar horizontalmente sobre el área AR rota la raíz del ave en el eje Y; un arrastre no abre la ficha ni cambia el punto de colocación.
 - El gesto de dos dedos escala uniformemente el modelo hijo entre 0.12 y 0.60, sin cambiar su animación, orientación de raíz ni ubicación. Los límites y sensibilidad están en `aves.json`.
 - Ficha única de Colibrí Colirufo (Amazilia tzacatl, Trochilidae) desde JSON, con fotografía aportada y contenido de página 17. El usuario asigna esa representación al GLB existente; no se reemplaza ni se identifica nuevamente el modelo.
-- Seis clips reales con pausa, reposo y vuelta a reposo después de clips no cíclicos.
+- Seis clips reales con pausa, reposo y vuelta a reposo después de clips no cíclicos. Elegir un clip, Volver a reposo o Pausar/continuar ejecuta la acción de inmediato y cierra el panel con salida suave de 180 ms para observar el ave.
 - Selector preparado para las cinco aves; solo colibrí disponible.
 - Vista 3D de escritorio para probar sin cámara. No es una simulación certificada de RA.
 - Interfaz natural con tarjetas claras, relieve suave, textos verde bosque y rojo UAO. Foco y pulsación sin morado; controles de al menos 48 px. Ver [DISENO_UI.md](DISENO_UI.md) para paleta y criterio visual.

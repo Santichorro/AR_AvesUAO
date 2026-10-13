@@ -99,12 +99,47 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   get('#aves-animation-title').textContent = labels.animaciones
   get('#aves-animation > p').textContent = labels.animacionesNota
+  const animationPanel = get('#aves-animation')
+  const animationMotion = matchMedia('(prefers-reduced-motion: reduce)')
+  let animationClosing = false
+  const finishAnimationClose = () => {
+    animationClosing = false; animationPanel.hidden = true
+    animationPanel.classList.remove('is-closing')
+  }
+  const closeAnimation = (immediate = false) => {
+    if (animationPanel.hidden || (animationClosing && !immediate)) return
+    animationClosing = true; animationPanel.setAttribute('aria-hidden', 'true')
+    if (animationPanel.contains(document.activeElement)) (document.activeElement as HTMLElement)?.blur()
+    Array.from(animationPanel.children).forEach(child => child.setAttribute('inert', ''))
+    if (immediate || animationMotion.matches) { finishAnimationClose(); return }
+    animationPanel.classList.add('is-closing')
+  }
+  const openAnimation = () => {
+    animationClosing = false; animationPanel.classList.remove('is-closing')
+    Array.from(animationPanel.children).forEach(child => child.removeAttribute('inert'))
+    animationPanel.setAttribute('aria-hidden', 'false'); animationPanel.hidden = false
+  }
+  const finishAnimationExit = (event: AnimationEvent) => {
+    if (event.target !== animationPanel || event.animationName !== 'aves-panel-exit' || !animationClosing) return
+    const style = getComputedStyle(animationPanel)
+    // Un evento de la salida anterior no debe cortar una reapertura o salida nueva.
+    if (event.type === 'animationend' && style.opacity !== '0') return
+    if (event.type === 'animationcancel' && style.animationName !== 'none') return
+    finishAnimationClose()
+  }
+  animationPanel.addEventListener('animationend', finishAnimationExit)
+  animationPanel.addEventListener('animationcancel', finishAnimationExit)
+  const reduceAnimationExit = () => { if (animationMotion.matches && animationClosing) finishAnimationClose() }
+  animationMotion.addEventListener('change', reduceAnimationExit)
   for (const clip of bird.clips) {
     const button = document.createElement('button'); button.type = 'button'
     button.textContent = clip.etiqueta
     button.dataset.clip = clip.nombre
     button.title = `${clip.nombre} · ${clip.duracionSegundos}s`
-    button.addEventListener('click', () => controls.clip(clip.nombre))
+    button.addEventListener('click', () => {
+      if (animationClosing || animationPanel.hidden) return
+      controls.clip(clip.nombre); closeAnimation()
+    })
     get('.aves-clips').append(button)
   }
   const buttonLabels: Record<string, string> = {start: labels.comenzar, info: labels.ficha,
@@ -147,7 +182,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   speciesPopover.addEventListener('transitionend', finishSpeciesClose)
   speciesPopover.addEventListener('transitioncancel', finishSpeciesClose)
-  const closePanels = () => { closeSpecies(); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
+  const closePanels = () => { closeSpecies(); closeAnimation(true); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
   // La entrada utilizada por el tap ECS conserva su nombre; ahora presenta el círculo.
   // La guía tiene una función propia para que Ficha no vuelva a abrir el menú.
   const openGuide = () => { closePanels(); get('#aves-info').hidden = false }
@@ -180,7 +215,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (!RADIAL_ACTIONS.includes(action)) return
     closeRadial(); closePanels()
     if (action === 'info') openGuide()
-    if (action === 'animation') get('#aves-animation').hidden = false
+    if (action === 'animation') openAnimation()
     if (action === 'relocate') controls.relocate()
     if (action === 'reset') controls.reset()
   }
@@ -250,6 +285,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     }
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
+    if (animationClosing && animationPanel.contains(button)) return
     if (button.dataset.dismiss === 'status') { dismissStatus(); return }
     if (!speciesOpen && speciesPopover.contains(button)) return
     if (button.hasAttribute('data-species-toggle')) {
@@ -260,6 +296,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     }
     if (button.dataset.species) { closeSpecies(); return }
     if (button.dataset.close === 'species') { closeSpecies(); return }
+    if (button.dataset.close === 'animation') { closeAnimation(); return }
     if (button.dataset.close) { closePanels(); return }
     switch (button.dataset.action) {
       case 'start': animateStart(); controls.start(); break
@@ -267,8 +304,8 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       case 'relocate': runRadialAction('relocate'); break
       case 'cancel': controls.cancel(); break
       case 'reset': runRadialAction('reset'); break
-      case 'idle': controls.idle(); break
-      case 'pause': controls.pause(); break
+      case 'idle': controls.idle(); closeAnimation(); break
+      case 'pause': controls.pause(); closeAnimation(); break
     }
   })
   // Captura eventos del HUD antes que el canvas. Incluye selects y gestos en paneles.
@@ -316,7 +353,12 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   menu.addEventListener('pointerleave', () => highlightRadial(null))
   menu.addEventListener('pointercancel', () => { closeRadial(); controls.dismiss() })
   const escape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') { closeRadial(); closePanels(); controls.dismiss() }
+    if (e.key === 'Escape') {
+      closeRadial()
+      if (!animationPanel.hidden) closeAnimation()
+      else closePanels()
+      controls.dismiss()
+    }
     const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
     if (sector && menu.classList.contains('is-open') && ['Enter',' '].includes(e.key)) { e.preventDefault(); runRadialAction(sector.dataset.radial!) }
   }
@@ -353,6 +395,8 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       if (!placed) { closePanels(); closeRadial() }
     },
     dispose() {
+      closeAnimation(true)
+      animationMotion.removeEventListener('change', reduceAnimationExit)
       closeSpecies(true)
       clearStartTransition()
       document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape)

@@ -223,6 +223,11 @@
   scrollbar-color: #a6bca5 var(--aves-paper);
 }
 .aves-panel h2 { font-size: 20px; letter-spacing: -.5px; margin: 6px 0 14px; }
+#aves-animation.is-closing { transform-origin: center bottom; animation: aves-panel-exit 180ms cubic-bezier(.4, 0, 1, 1) both; }
+@keyframes aves-panel-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(.98); }
+}
 #aves-pilot .aves-panel > button[data-close] { float: right; font-size: 12px; min-height: 44px; padding: 8px 12px; margin: -4px -4px 8px 12px; border-radius: 999px; }
 .aves-panel p, .aves-panel dd, .aves-panel li { font-size: 14px; line-height: 1.6; }
 .aves-source, .aves-panel small { color: var(--aves-muted); font-size: 12px !important; }
