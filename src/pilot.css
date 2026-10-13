@@ -162,7 +162,8 @@
 }
 .aves-listening > svg { width: 25px; height: 25px; color: var(--aves-red); }
 .aves-listening > span { line-height: 1.35; }
-#aves-pilot .aves-listening button[data-audio] { display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 12px; border-radius: 12px; }
+#aves-pilot .aves-listening button[data-audio] { display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 12px; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+#aves-pilot .aves-listening button[data-audio]:hover:enabled, #aves-pilot .aves-listening button[data-audio]:active:enabled { background: transparent; box-shadow: none; }
 .aves-listening button svg { display: block; width: 20px; height: 20px; }
 #aves-pilot .aves-listening button[data-audio="close"] { width: 32px; height: 32px; min-height: 32px; padding: 8px; color: var(--aves-muted); background: transparent; border: 0; box-shadow: none; border-radius: 0; }
 #aves-pilot .aves-listening button[data-audio="close"]:hover:enabled, #aves-pilot .aves-listening button[data-audio="close"]:active:enabled { color: var(--aves-ink); background: transparent; box-shadow: none; }
