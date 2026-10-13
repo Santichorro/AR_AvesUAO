@@ -52,7 +52,7 @@
   bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
   width: 56px;
   height: 56px;
-  padding: 14px;
+  padding: 9px;
   border-radius: 20px;
   color: var(--aves-red);
   background: var(--aves-white);
@@ -72,9 +72,20 @@
   background: var(--aves-paper);
   border: 1px solid white;
   box-shadow: var(--aves-shadow);
+  opacity: 0;
+  transform: translateY(10px) scale(.97);
+  transform-origin: left bottom;
+  transition: opacity 180ms cubic-bezier(.4, 0, 1, 1), transform 180ms cubic-bezier(.4, 0, 1, 1);
+}
+.aves-species-popover.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition-duration: 260ms;
+  transition-timing-function: cubic-bezier(.16, 1, .3, 1);
 }
 .aves-species-popover h2 { font-size: 15px; margin: 10px 0 18px; }
-#aves-pilot .aves-species-popover > button { float: right; font-size: 12px; padding: 8px 10px; min-height: 44px; }
+#aves-pilot .aves-species-popover > button { float: right; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 10px; border-radius: 50%; }
+.aves-species-popover > button svg, .aves-info-heading > button svg { display: block; width: 100%; height: 100%; }
 #aves-species { display: grid; gap: 8px; clear: both; }
 #aves-species button { text-align: left; }
 #aves-species button[aria-pressed="true"] { background: var(--aves-sage); border-color: #a6bca5; }
@@ -115,12 +126,32 @@
 .aves-radial-center { fill: #f5f7f2ed; stroke: #ffffff; }
 .aves-radial-hint { fill: var(--aves-ink); font-size: 11px; font-weight: 700; }
 .aves-radial-subhint { fill: var(--aves-muted); font-size: 7px; }
-.aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; padding: 12px 18px 12px 12px; border-radius: 24px; }
-.aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 7px; background: var(--aves-rose); border: 1px solid #ed1d241a; border-radius: 16px; }
+.aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; max-width: 100%; padding: 12px 18px 12px 12px; border-radius: 24px; }
+.aves-header > div { min-width: 0; }
+.aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 3px; }
 .aves-header h1 { font-size: 20px; margin: 0; letter-spacing: -.5px; font-weight: 700; }
+.aves-header .aves-title-uao { color: var(--aves-red); }
 .aves-header p { margin: 3px 0 0; font-size: 12px; color: var(--aves-muted); }
-.aves-status { align-self: center; max-width: 460px; border-radius: 22px; padding: 14px 20px; text-align: center; }
+.aves-status { position: relative; align-self: center; max-width: 460px; border-radius: 22px; padding: 14px 20px; text-align: center; opacity: 1; transition: opacity 180ms cubic-bezier(.4, 0, 1, 1), transform 180ms cubic-bezier(.4, 0, 1, 1); }
 .aves-status p { font-size: 14px; line-height: 1.5; margin: 0; }
+.aves-status.is-dismissible { padding-right: 38px; }
+.aves-status.is-dismissed { opacity: 0; transform: translateY(-6px) scale(.99); pointer-events: auto; }
+.aves-status.is-leaving {
+  position: absolute;
+  z-index: 3;
+  pointer-events: auto;
+  transform-origin: center top;
+  animation: aves-start-exit 220ms cubic-bezier(.4, 0, 1, 1) both;
+}
+.aves-status.is-entering { animation: aves-status-enter 320ms 80ms cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes aves-start-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-10px) scale(.98); }
+}
+@keyframes aves-status-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 #aves-pilot button, #aves-pilot select {
   pointer-events: auto;
@@ -144,9 +175,12 @@
 }
 #aves-pilot button:active:enabled { transform: translateY(1px); color: var(--aves-primary-pressed); background: var(--aves-rose); border-color: #c91b2266; box-shadow: inset 0 2px 5px #a7151b14; }
 #aves-pilot button:focus-visible, #aves-pilot select:focus-visible { outline: 2px solid var(--aves-primary); outline-offset: 3px; }
-#aves-pilot .aves-status button { margin-top: 14px; min-width: 180px; border-color: var(--aves-primary); background: var(--aves-primary); color: var(--aves-white); border-radius: 999px; box-shadow: 0 4px 12px #c91b2226, inset 0 1px 0 #ffffff30; }
-#aves-pilot .aves-status button:hover:enabled { background: #b91820; border-color: #b91820; }
-#aves-pilot .aves-status button:active:enabled { background: var(--aves-primary-pressed); border-color: var(--aves-primary-pressed); }
+#aves-pilot .aves-status .aves-start-button { margin-top: 14px; min-width: 180px; border-color: var(--aves-primary); background: var(--aves-primary); color: var(--aves-white); border-radius: 999px; box-shadow: 0 4px 12px #c91b2226, inset 0 1px 0 #ffffff30; }
+#aves-pilot .aves-status .aves-start-button:hover:enabled { background: #b91820; border-color: #b91820; }
+#aves-pilot .aves-status .aves-start-button:active:enabled { background: var(--aves-primary-pressed); border-color: var(--aves-primary-pressed); }
+#aves-pilot .aves-status .aves-status-dismiss { position: absolute; top: 5px; right: 5px; display: grid; place-items: center; width: 32px; height: 32px; min-width: 0; min-height: 32px; padding: 8px; margin: 0; color: var(--aves-muted); background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+#aves-pilot .aves-status .aves-status-dismiss:hover:enabled, #aves-pilot .aves-status .aves-status-dismiss:active:enabled { color: var(--aves-ink); background: transparent; border: 0; box-shadow: none; }
+.aves-status-dismiss svg { display: block; width: 16px; height: 16px; }
 #aves-pilot button[data-action="info"] { background: var(--aves-sage); border-color: #b8cdb5; }
 #aves-pilot button[data-action="reset"] { color: var(--aves-primary); }
 #aves-pilot select {
@@ -162,6 +196,8 @@
 .aves-scan span { display: block; width: 6px; height: 6px; background: var(--aves-white); border-radius: 50%; margin: 18px; }
 .aves-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .aves-actions button { min-width: 0; line-height: 1.3; }
+.aves-guide-actions { margin: 16px 0; }
+.aves-guide-actions button:last-child { grid-column: 1 / -1; }
 .aves-preview { font-size: 11px; line-height: 1.5; margin: 12px 4px 0; color: var(--aves-muted); }
 .aves-preview:empty { display: none; }
 
@@ -183,13 +219,21 @@
 .aves-panel h2 { font-size: 20px; letter-spacing: -.5px; margin: 6px 0 14px; }
 #aves-pilot .aves-panel > button[data-close] { float: right; font-size: 12px; min-height: 44px; padding: 8px 12px; margin: -4px -4px 8px 12px; border-radius: 999px; }
 .aves-panel p, .aves-panel dd, .aves-panel li { font-size: 14px; line-height: 1.6; }
-.aves-panel .aves-note { border-left: 3px solid var(--aves-leaf); padding: 10px 12px; color: var(--aves-ink); background: var(--aves-sage); border-radius: 0 14px 14px 0; }
 .aves-source, .aves-panel small { color: var(--aves-muted); font-size: 12px !important; }
-.aves-panel label { display: block; color: var(--aves-leaf); font-size: 12px; font-weight: 650; margin-top: 16px; }
-.aves-panel select { width: 100%; margin: 8px 0; }
-.aves-panel dt { color: var(--aves-leaf); font-size: 12px; font-weight: 700; margin-top: 14px; }
-.aves-panel dd { margin: 4px 0; }
-.aves-panel ul { padding-left: 20px; }
+.aves-info-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.aves-info-heading > div { min-width: 0; }
+.aves-info-heading h2 { margin: 0 0 6px; font-size: 22px; line-height: 1.2; }
+.aves-info-heading .aves-scientific { margin: 0; font-size: 14px; color: var(--aves-leaf); }
+.aves-info-heading .aves-family { margin: 3px 0 0; font-size: 12px; color: var(--aves-muted); }
+#aves-pilot .aves-info-heading > button { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; min-height: 44px; padding: 10px; border-radius: 50%; }
+.aves-bird-photo { margin: 18px 0 22px; text-align: center; }
+.aves-bird-photo img { display: block; width: min(100%, 220px); height: auto; margin: 0 auto; border-radius: 18px; box-shadow: 0 4px 14px #243d3514; }
+.aves-bird-photo figcaption { margin-top: 8px; font-size: 11px; line-height: 1.4; color: var(--aves-muted); }
+.aves-facts { display: grid; gap: 18px; }
+.aves-facts section { border-left: 3px solid var(--aves-leaf); padding-left: 12px; }
+.aves-facts h3 { margin: 0 0 6px; font-size: 15px; line-height: 1.4; color: var(--aves-leaf); }
+.aves-facts p { margin: 0; }
+#aves-info .aves-source { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--aves-line); }
 .aves-clips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
 #aves-pilot .aves-clips button { font-size: 13px; line-height: 1.3; }
 
@@ -208,5 +252,5 @@
   .aves-panel { left: auto; right: 18px; bottom: calc(env(safe-area-inset-bottom, 0px) + 88px); width: min(420px, calc(100vw - 36px)); max-height: calc(100dvh - 110px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  #aves-pilot * { transition: none; scroll-behavior: auto; }
+  #aves-pilot * { transition: none; animation: none !important; scroll-behavior: auto; }
 }</style><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aves UAO · Colibrí</title><meta itemprop="name" content="Aves UAO · Colibrí"><meta name="twitter:title" content="Aves UAO · Colibrí"><meta property="og:title" content="Aves UAO · Colibrí"><meta property="og:site_name" content="Aves UAO · Colibrí"><meta name="description" content="This project demonstrates how to use Aves UAO · Colibrí to anchor virtual content to a flat surface."><meta itemprop="description" content="This project demonstrates how to use Aves UAO · Colibrí to anchor virtual content to a flat surface."><meta property="og:description" content="This project demonstrates how to use Aves UAO · Colibrí to anchor virtual content to a flat surface."><meta name="twitter:description" content="This project demonstrates how to use Aves UAO · Colibrí to anchor virtual content to a flat surface."><script crossorigin="anonymous" src="./external/runtime/runtime.js"></script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"></script><script src="https://cdn.jsdelivr.net/npm/@8thwall/landing-page@1/dist/landing-page.js" crossorigin="anonymous"></script><meta property="og:image" content="./assets/preview.jpg"></head><body><script src="bundle.js"></script></body></html>
