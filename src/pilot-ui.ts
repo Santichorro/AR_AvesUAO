@@ -35,7 +35,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   root.id = 'aves-pilot'
   root.style.setProperty('--radial-highlight-scale', String(RADIAL_CONFIG.visualScale))
   root.innerHTML = `<header class="aves-header"><img class="aves-brand" src="assets/logo-colibri.png" alt="Colibrí de Aves UAO"><div><h1></h1><p></p></div></header>
-    <section class="aves-status" aria-live="polite"><p></p><button data-action="start"></button></section>
+    <section class="aves-status" data-aves-ui aria-live="polite"><button class="aves-status-dismiss" data-dismiss="status" hidden>${icon('close')}</button><p></p><button class="aves-start-button" data-action="start"></button></section>
     <div class="aves-scan" aria-hidden="true"><span></span></div>
     <button class="aves-species-trigger" data-aves-ui data-species-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="aves-species-popover">${icon('species')}</button>
     <aside class="aves-species-popover" id="aves-species-popover" data-aves-ui role="dialog" aria-labelledby="aves-species-title" aria-hidden="true" hidden>
@@ -113,6 +113,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   root.querySelectorAll<HTMLButtonElement>('button').forEach(b => {
     b.type = 'button'
     if (b.dataset.action) b.textContent = buttonLabels[b.dataset.action]
+    if (b.dataset.dismiss === 'status') { b.setAttribute('aria-label', labels.cerrarMensaje); b.title = labels.cerrarMensaje }
     if (b.dataset.close === 'species' || b.dataset.close === 'info') {
       b.setAttribute('aria-label', labels.cerrar); b.title = labels.cerrar
     } else if (b.dataset.close) b.textContent = labels.cerrar
@@ -184,6 +185,18 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (action === 'reset') controls.reset()
   }
   const status = get('.aves-status')
+  const statusDismiss = get<HTMLButtonElement>('[data-dismiss="status"]')
+  let statusKey = ''
+  let dismissedStatusKey: string | null = null
+  const setStatusMessage = (message: string) => {
+    const key = `${root.dataset.phase}:${message}`
+    if (key !== statusKey) {
+      statusKey = key; dismissedStatusKey = null
+      status.hidden = false; status.setAttribute('aria-hidden', 'false')
+      status.classList.remove('is-dismissed'); statusDismiss.disabled = false
+    }
+    get('.aves-status p').textContent = message
+  }
   let startExit: HTMLElement | null = null
   const clearStartTransition = () => {
     startExit?.remove(); startExit = null
@@ -212,6 +225,20 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   status.addEventListener('animationend', () => status.classList.remove('is-entering'))
   status.addEventListener('animationcancel', () => status.classList.remove('is-entering'))
+  const dismissStatus = () => {
+    if (statusDismiss.hidden || dismissedStatusKey === statusKey) return
+    clearStartTransition()
+    dismissedStatusKey = statusKey
+    statusDismiss.blur(); statusDismiss.disabled = true
+    status.setAttribute('aria-hidden', 'true'); status.classList.add('is-dismissed')
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || getComputedStyle(status).opacity === '0') status.hidden = true
+  }
+  const finishStatusDismiss = (event: TransitionEvent) => {
+    if (event.target !== status || event.propertyName !== 'opacity' || dismissedStatusKey !== statusKey) return
+    if (getComputedStyle(status).opacity === '0' || matchMedia('(prefers-reduced-motion: reduce)').matches) status.hidden = true
+  }
+  status.addEventListener('transitionend', finishStatusDismiss)
+  status.addEventListener('transitioncancel', finishStatusDismiss)
   root.addEventListener('click', (e) => {
     const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
     if (sector) {
@@ -223,6 +250,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     }
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
+    if (button.dataset.dismiss === 'status') { dismissStatus(); return }
     if (!speciesOpen && speciesPopover.contains(button)) return
     if (button.hasAttribute('data-species-toggle')) {
       const open = !speciesOpen
@@ -302,7 +330,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     root, openInfo, closePanels, closeRadial, runRadialAction,
     setGestureBlocked(blocked: boolean) { gestureBlocked = blocked },
     radialLayout: layoutAt, showRadial, highlightRadial,
-    showMessage(message: string) { get('.aves-status p').textContent = message },
+    showMessage: setStatusMessage,
     update(snapshot: any) {
       const phase = snapshot.phase
       if (phase === 'ERROR') clearStartTransition()
@@ -310,11 +338,13 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       const placed = phase === 'EXPLORAR'
       const start = get<HTMLButtonElement>('[data-action="start"]')
       start.hidden = !['INTRO', 'ERROR'].includes(phase)
+      statusDismiss.hidden = !start.hidden
+      status.classList.toggle('is-dismissible', start.hidden)
       start.textContent = phase === 'ERROR' ? labels.reintentar : labels.comenzar
       const messages: Record<string, string> = {INTRO: labels.intro, PREPARANDO: labels.preparando,
         ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, EXPLORAR: labels.explorar,
         REUBICAR: labels.reubicando, ERROR: snapshot.message || labels.errorRecurso}
-      get('.aves-status p').textContent = !snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'EXPLORAR'].includes(phase) ? labels.seguimiento : messages[phase]
+      setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'EXPLORAR'].includes(phase) ? labels.seguimiento : messages[phase])
       get('.aves-scan').hidden = !['ESCANEO', 'REUBICAR'].includes(phase)
       for (const action of ['idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
       get('[data-action="cancel"]').hidden = phase !== 'REUBICAR'
