@@ -195,8 +195,6 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     const position = normalizedScreenPosition(event.data.position)
     if (!position) return
     inspectionTouch = {pointerId: event.data.pointerId, target: event.data.target ?? event.target, start: position, dragged: false}
-    const point = screenPixels(event.data.position)
-    if (inspectionTouch.target === model && point) radial.begin(event.data.pointerId, point, ui.radialLayout(point))
   }
   const moveInspectionTouch = (event: any) => {
     const point = screenPixels(event.data.position)
@@ -222,10 +220,11 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     const tapOnBird = !!inspectionTouch && inspectionTouch.pointerId === event.data.pointerId &&
       inspectionTouch.target === model && !inspectionTouch.dragged && !pinchActive &&
       canInspect() && !isUiTouch(event.data.position)
-    const consumed = radial.release(event.data.pointerId, tapOnBird)
+    const consumed = radial.release(event.data.pointerId)
     if (consumed) { inspectionTouch = null; return }
     if (!inspectionTouch || inspectionTouch.pointerId !== event.data.pointerId) return
     inspectionTouch = null
+    if (tapOnBird) ui.openInfo(point)
   }
   const beginPinch = (event: any) => {
     radial.cancel()

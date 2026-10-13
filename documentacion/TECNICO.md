@@ -389,7 +389,7 @@ Reiniciar detiene audio, cancela movimientos/cargas pendientes, invalida solicit
 
 1. Mantener ID seleccionado, ID del ave activa, entidad del modelo y catálogo por ID. Durante exploración solo hay una entidad de ave activa.
 2. Preparar zonas de toque suficientemente grandes, comprobando collider/raycast con la versión de Studio.
-3. Resolver el gesto según el estado: en EXPLORAR un tap sobre el ave abre el radial persistente; tocar Ficha abre el panel. Arrastre y pinch no cuentan como tap; tocar fuera cierra el radial sin manipular el ave. AVISTAMIENTO registra objetivo; QUIZ_CANTO contesta tocando una tarjeta RA de especie.
+3. Resolver el gesto según el estado: en EXPLORAR se conserva la ruta funcional tap sobre el ave → ui.openInfo(point), pero la UI presenta el círculo persistente. Un segundo tap ejecuta Ficha, Animaciones, Reubicar o Reiniciar directamente desde la UI. Ficha llama a openGuide para mostrar la guía existente, sin volver a abrir el círculo. Arrastre y pinch no cuentan como tap. Tocar fuera o Escape cancela el círculo; sus eventos no actúan detrás del HUD. AVISTAMIENTO registra objetivo; QUIZ_CANTO contesta tocando una tarjeta RA de especie.
 4. Ignorar toques de aves cuando está activo un control superpuesto o no corresponde al modo.
 5. Mostrar el nombre del ave activa y permitir cambiarla con el selector. Bloquear ese selector durante quiz, búsqueda o carga de reemplazo.
 
@@ -643,6 +643,8 @@ Fuente: [configurar la publicación de Pages](https://docs.github.com/en/pages/g
 
 ### 12.3 Subcarpeta y rutas
 
+El servidor de desarrollo de Studio necesita output.publicPath = '/' para resolver sus rutas HTTP. config/webpack.config.js aplica esa ruta solo con --mode=development y conserva './' para el build de Pages. Con './' en desarrollo se comprobó que /index.html y /bundle.js respondían 404 aunque /webpack-dev-server listaba los assets compilados; el middleware compara cada URL con el prefijo configurado. Al cambiar esta configuración, cerrar y volver a abrir el proyecto en Studio para reiniciar su servidor. El fallo documentado de cambiar clientes con el simulador ejecutándose también puede dejarlo en Initializing; ver [problemas conocidos](https://8thwall.org/docs/troubleshooting).
+
 Para un repositorio llamado `AR_AvesUAO`, la URL habitual sería `https://<propietario>.github.io/AR_AvesUAO/`. Es un patrón, no el enlace confirmado del equipo.
 
 En la base original `output.publicPath` valía `/`; el piloto lo cambia a `./` para el bundle. Eso puede afectar recursos generados que se resuelvan desde la raíz del dominio; no implica por sí solo que toda ruta relativa vaya a fallar. Revisar Network para localizar la URL concreta incorrecta. Si corresponde al despliegue de proyecto bajo esa subcarpeta, ajustar coherentemente el publicPath a `/AR_AvesUAO/` o una estrategia relativa comprobada. No cambiarlo sin revisar también runtime, assets y uso local.
@@ -711,6 +713,6 @@ Se consultaron los archivos reales del repositorio, documentación oficial de Gl
 
 Se implementó la colocación directa de una sola ave, con estado independiente del motor, ficha de referencia desde JSON, seis clips reales, reubicación con cancelación y reinicio. Los recursos anteriores y las modificaciones previas de la escena se conservan. Ver [AVANCE_01.md](AVANCE_01.md) para archivos, comprobaciones y pruebas físicas pendientes.
 
-La especie del modelo no está identificada: la guía enumera seis colibríes (página 8), con tres fichas detalladas en páginas 17–18. El GLB piloto es una representación ilustrativa. Cantos, fotografías y licencia específica de redistribución siguen pendientes. Las cinco especies no se marcan como terminadas.
+El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). src/data/aves.json conserva ID colibri, modelo, clips e inspección; añade familia, ficha única de página 17, imagen assets/img/colirufo.jpg y crédito independiente. La UI elimina referencias/candidatas; el archivo documentacion/REFERENCIAS_COLIBRIES.json conserva esos datos sin incluirlos en la ficha activa. Canto y créditos/licencias siguen pendientes. Las cinco especies no se marcan como terminadas.
 
 Se conservan los nombres reales de los clips aportados; no se afirma que existan clips sing, happy o no. El campus queda opcional. La vista 3D de escritorio sirve para inspección y no certifica tracking en Android/iPhone. El control de inicio habilita la colocación; el runtime administra los permisos de cámara.

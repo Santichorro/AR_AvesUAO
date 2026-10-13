@@ -78,7 +78,7 @@ APK, cuentas, ranking en servidor, reconocimiento automático de aves reales con
 3. **Escaneo:** guía para mover el celular y localizar una superficie válida.
 4. **Selección y colocación:** el usuario elige un ave y toca un área válida del plano; aparece esa especie directamente en el punto elegido.
 5. **Cambio de especie:** el selector reemplaza el ave visible por otra en el mismo punto. Solo queda una ave activa.
-6. **Exploración:** toca el ave activa para abrir el menú circular y después toca Ficha; consulta sus datos y reproduce su canto cuando esté integrado. La ficha permanece asociada a la escena y solo se abre desde su opción del menú.
+6. **Exploración:** toca el ave activa para abrir el menú circular y después toca una opción: Ficha, Animaciones, Reubicar o Reiniciar. Ficha abre la guía existente; consulta sus datos y reproduce su canto cuando esté integrado. Tocar fuera o Escape cierra el círculo sin acciones.
 7. **Inspección:** rota o escala el ave seleccionada dentro de límites útiles y puede restaurarla.
 8. **Reubicación y avistamiento:** puede elegir otro punto de colocación. En el reto busca el ave activa guiándose por el sonido y la toca para registrarla.
 9. **Quiz:** identifica cantos tocando tarjetas de especies en RA y responde preguntas relacionadas con las fichas.
@@ -385,6 +385,6 @@ Esta ampliación es un plan de ejecución. No acredita que las tareas pendientes
 
 Se implementó la colocación directa de una sola ave, con estado independiente del motor, ficha de referencia desde JSON, seis clips reales, reubicación con cancelación y reinicio. Los recursos anteriores y las modificaciones previas de la escena se conservan. Ver [AVANCE_01.md](AVANCE_01.md) para archivos, comprobaciones y pruebas físicas pendientes.
 
-La especie del modelo no está identificada: la guía enumera seis colibríes (página 8), con tres fichas detalladas en páginas 17–18. El GLB piloto es una representación ilustrativa. Cantos, fotografías y licencia específica de redistribución siguen pendientes. Las cinco especies no se marcan como terminadas.
+El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). Su ficha usa la página 17 de la guía y la fotografía aportada; conserva ID colibri y el modelo original. Las referencias previas de otras especies se archivan para futuras etapas. Canto y créditos/licencias siguen pendientes. Las cinco especies no se marcan como terminadas.
 
 Se conservan los nombres reales de los clips aportados; no se afirma que existan clips sing, happy o no. El campus queda opcional. La vista 3D de escritorio sirve para inspección y no certifica tracking en Android/iPhone. El control de inicio habilita la colocación; el runtime administra los permisos de cámara.
