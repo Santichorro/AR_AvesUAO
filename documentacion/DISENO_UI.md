@@ -30,6 +30,7 @@ Contrastes calculados con luminancia sRGB sobre superficies sólidas: bosque/sup
 - Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. El círculo ofrece Ficha, Animaciones, Reubicar y Reiniciar. Los controles ya existentes dentro de la ficha se conservan.
 - Se mantiene la zona central libre para observar y manipular el ave. El HUD conserva su comportamiento de eventos.
 - El colibrí del encabezado aparece directamente sobre la tarjeta, sin recuadro rosa ni borde rojo. Su espacio exterior de 44 px se conserva y el padding baja de 7 a 3 px para ampliar la ilustración sin desplazar el texto.
+- En el título «Aves UAO», solo «UAO» usa rojo UAO (#ed1d24), como el colibrí; «Aves» conserva el verde bosque. El texto completo continúa procediendo de interfaz.json.
 - Se contemplan celulares estrechos, escritorio, modo horizontal y preferencia de movimiento reducido.
 - La selección de aves usa ahora un popover de botones propio; cuatro especies siguen deshabilitadas. El selector de fichas de referencia conserva su menú nativo.
 

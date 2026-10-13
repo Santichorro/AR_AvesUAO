@@ -52,7 +52,12 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       <div class="aves-actions"><button data-action="idle"></button><button data-action="pause"></button></div></section>`
   document.body.append(root)
   const get = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!
-  get('h1').textContent = labels.titulo
+  get('h1').replaceChildren(...labels.titulo.split(/(\bUAO\b)/).map(part => {
+    if (part !== 'UAO') return document.createTextNode(part)
+    const accent = document.createElement('span')
+    accent.className = 'aves-title-uao'; accent.textContent = part
+    return accent
+  }))
   get('header p').textContent = labels.subtitulo
   get('#aves-species-title').textContent = labels.catalogo
   const speciesTrigger = get<HTMLButtonElement>('[data-species-toggle]')
