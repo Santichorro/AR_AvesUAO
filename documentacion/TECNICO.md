@@ -643,6 +643,8 @@ Fuente: [configurar la publicación de Pages](https://docs.github.com/en/pages/g
 
 ### 12.3 Subcarpeta y rutas
 
+El servidor de desarrollo de Studio necesita output.publicPath = '/' para resolver sus rutas HTTP. config/webpack.config.js aplica esa ruta solo con --mode=development y conserva './' para el build de Pages. Con './' en desarrollo se comprobó que /index.html y /bundle.js respondían 404 aunque /webpack-dev-server listaba los assets compilados; el middleware compara cada URL con el prefijo configurado. Al cambiar esta configuración, cerrar y volver a abrir el proyecto en Studio para reiniciar su servidor. El fallo documentado de cambiar clientes con el simulador ejecutándose también puede dejarlo en Initializing; ver [problemas conocidos](https://8thwall.org/docs/troubleshooting).
+
 Para un repositorio llamado `AR_AvesUAO`, la URL habitual sería `https://<propietario>.github.io/AR_AvesUAO/`. Es un patrón, no el enlace confirmado del equipo.
 
 En la base original `output.publicPath` valía `/`; el piloto lo cambia a `./` para el bundle. Eso puede afectar recursos generados que se resuelvan desde la raíz del dominio; no implica por sí solo que toda ruta relativa vaya a fallar. Revisar Network para localizar la URL concreta incorrecta. Si corresponde al despliegue de proyecto bajo esa subcarpeta, ajustar coherentemente el publicPath a `/AR_AvesUAO/` o una estrategia relativa comprobada. No cambiarlo sin revisar también runtime, assets y uso local.
