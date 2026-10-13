@@ -104,14 +104,14 @@
       "id": "52ba8a86-a459-4df8-b954-a570e85e0484",
       "position": [
         0,
-        2,
-        3.211226375221431
+        1.2,
+        2.2
       ],
       "rotation": [
-        -0.0004637899966810532,
-        0.9978406073902779,
-        -0.06529682289718859,
-        -0.007087458033270938
+        -0.24708733217017945,
+        0,
+        0,
+        0.968993448428556
       ],
       "scale": [
         1.0000000000000002,
@@ -128,7 +128,7 @@
         "xr": {
           "xrCameraType": "world",
           "phone": "AR",
-          "desktop": "disabled",
+          "desktop": "3D",
           "headset": "disabled"
         }
       },
@@ -159,6 +159,11 @@
         "f31ef85b-8c9e-41ca-817f-a53bb7000a2d": {
           "id": "f31ef85b-8c9e-41ca-817f-a53bb7000a2d",
           "name": "hide-on-ready",
+          "parameters": {}
+        },
+        "dc6e8802-8d84-407e-b19d-645509159c99": {
+          "id": "dc6e8802-8d84-407e-b19d-645509159c99",
+          "name": "pilot-hidden",
           "parameters": {}
         }
       },
@@ -537,7 +542,13 @@
       "geometry": null,
       "material": null,
       "parentId": "84028e73-ee70-412d-b8d4-c09bf07c655c",
-      "components": {},
+      "components": {
+        "49c12fc0-6a64-4a65-a20e-8af641f25206": {
+          "id": "49c12fc0-6a64-4a65-a20e-8af641f25206",
+          "name": "pilot-hidden",
+          "parameters": {}
+        }
+      },
       "name": "Main Screen",
       "order": 14.958687422311806,
       "ui": {

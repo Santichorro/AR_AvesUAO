@@ -26,7 +26,7 @@ const config = {
   output: {
     filename: 'bundle.js',
     path: distPath,
-    publicPath: '/',
+    publicPath: './',
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -93,6 +93,8 @@ module.exports = (_, argv) => {
   if (argv.mode === 'development') {
     return {
       ...config,
+      // El middleware sirve URLs desde /; ./ se reserva para el build de Pages.
+      output: {...config.output, publicPath: '/'},
       plugins: [
         ...config.plugins,
         createDev8Plugin({src: './external/dev8/dev8.js'}),
