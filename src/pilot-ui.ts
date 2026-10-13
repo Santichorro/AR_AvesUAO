@@ -171,6 +171,35 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (action === 'relocate') controls.relocate()
     if (action === 'reset') controls.reset()
   }
+  const status = get('.aves-status')
+  let startExit: HTMLElement | null = null
+  const clearStartTransition = () => {
+    startExit?.remove(); startExit = null
+    status.classList.remove('is-entering')
+  }
+  const animateStart = () => {
+    clearStartTransition()
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // Conserva visualmente la bienvenida mientras el estado real avanza sin esperar.
+    const rect = status.getBoundingClientRect(), bounds = root.getBoundingClientRect()
+    const exit = status.cloneNode(true) as HTMLElement
+    exit.removeAttribute('aria-live'); exit.setAttribute('aria-hidden', 'true')
+    exit.setAttribute('data-aves-ui', '')
+    exit.querySelectorAll<HTMLElement>('button').forEach(b => {
+      b.removeAttribute('data-action'); b.tabIndex = -1
+    })
+    exit.classList.add('is-leaving')
+    Object.assign(exit.style, {left: rect.left - bounds.left + 'px', top: rect.top - bounds.top + 'px', width: rect.width + 'px'})
+    // La tarjeta de salida consume los contactos; no activa controles ni el suelo.
+    exit.addEventListener('click', e => { e.preventDefault(); e.stopPropagation() })
+    const finishExit = () => { exit.remove(); if (startExit === exit) startExit = null }
+    exit.addEventListener('animationend', finishExit, {once: true})
+    exit.addEventListener('animationcancel', finishExit, {once: true})
+    startExit = exit; root.append(exit)
+    status.classList.add('is-entering')
+  }
+  status.addEventListener('animationend', () => status.classList.remove('is-entering'))
+  status.addEventListener('animationcancel', () => status.classList.remove('is-entering'))
   root.addEventListener('click', (e) => {
     const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
     if (sector) {
@@ -193,7 +222,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (button.dataset.close === 'species') { closeSpecies(); return }
     if (button.dataset.close) { closePanels(); return }
     switch (button.dataset.action) {
-      case 'start': controls.start(); break
+      case 'start': animateStart(); controls.start(); break
       case 'animation': runRadialAction('animation'); break
       case 'relocate': runRadialAction('relocate'); break
       case 'cancel': controls.cancel(); break
@@ -263,6 +292,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     showMessage(message: string) { get('.aves-status p').textContent = message },
     update(snapshot: any) {
       const phase = snapshot.phase
+      if (phase === 'ERROR') clearStartTransition()
       root.dataset.phase = phase
       const placed = phase === 'EXPLORAR'
       const start = get<HTMLButtonElement>('[data-action="start"]')
@@ -280,6 +310,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       if (!placed) { closePanels(); closeRadial() }
     },
     dispose() {
+      clearStartTransition()
       document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape)
       document.removeEventListener('click', consumeOutsideClick, true)
       window.removeEventListener('blur', dismissMenu); window.removeEventListener('resize', dismissMenu)

@@ -31,6 +31,9 @@ Contrastes calculados con luminancia sRGB sobre superficies sólidas: bosque/sup
 - Se mantiene la zona central libre para observar y manipular el ave. El HUD conserva su comportamiento de eventos.
 - El colibrí del encabezado aparece directamente sobre la tarjeta, sin recuadro rosa ni borde rojo. Su espacio exterior de 44 px se conserva y el padding baja de 7 a 3 px para ampliar la ilustración sin desplazar el texto.
 - En el título «Aves UAO», solo «UAO» usa rojo UAO (#ed1d24), como el colibrí; «Aves» conserva el verde bosque. El texto completo continúa procediendo de interfaz.json.
+- Al pulsar Comenzar, la tarjeta de bienvenida sale en 220 ms con desvanecimiento y desplazamiento de 10 px. El mensaje vigente entra en 320 ms, tras 80 ms, con desaceleración. La copia visual de salida no anuncia texto ni ejecuta botones y consume contactos durante su salida. El estado avanza inmediatamente; no se retrasa la carga o colocación. Al completar la animación se elimina la copia; error y dispose limpian la transición. Con movimiento reducido el cambio es inmediato.
+
+La transición de inicio se comprobó sobre el bundle generado en Edge con ECS simulado, en 390×844, 320×568 y 844×390: opacidad intermedia de salida/entrada, avance inmediato a ESCANEO, contacto sobre la copia sin colocación, eliminación de la copia y colocación posterior. También se verificó movimiento reducido desde inicio y al activarlo durante la animación. Pasan las 24 pruebas existentes y la compilación, con los dos avisos previos de tamaño. Falta evaluar la suavidad percibida en Studio y teléfonos reales.
 - Se contemplan celulares estrechos, escritorio, modo horizontal y preferencia de movimiento reducido.
 - La selección de aves usa ahora un popover de botones propio; cuatro especies siguen deshabilitadas. El selector de fichas de referencia conserva su menú nativo.
 
