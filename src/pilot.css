@@ -85,7 +85,7 @@
 }
 .aves-species-popover h2 { font-size: 15px; margin: 10px 0 18px; }
 #aves-pilot .aves-species-popover > button { float: right; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 10px; border-radius: 50%; }
-.aves-species-popover > button svg { display: block; width: 100%; height: 100%; }
+.aves-species-popover > button svg, .aves-info-heading > button svg { display: block; width: 100%; height: 100%; }
 #aves-species { display: grid; gap: 8px; clear: both; }
 #aves-species button { text-align: left; }
 #aves-species button[aria-pressed="true"] { background: var(--aves-sage); border-color: #a6bca5; }
@@ -126,7 +126,8 @@
 .aves-radial-center { fill: #f5f7f2ed; stroke: #ffffff; }
 .aves-radial-hint { fill: var(--aves-ink); font-size: 11px; font-weight: 700; }
 .aves-radial-subhint { fill: var(--aves-muted); font-size: 7px; }
-.aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; padding: 12px 18px 12px 12px; border-radius: 24px; }
+.aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; max-width: 100%; padding: 12px 18px 12px 12px; border-radius: 24px; }
+.aves-header > div { min-width: 0; }
 .aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 3px; }
 .aves-header h1 { font-size: 20px; margin: 0; letter-spacing: -.5px; font-weight: 700; }
 .aves-header .aves-title-uao { color: var(--aves-red); }
@@ -213,13 +214,21 @@
 .aves-panel h2 { font-size: 20px; letter-spacing: -.5px; margin: 6px 0 14px; }
 #aves-pilot .aves-panel > button[data-close] { float: right; font-size: 12px; min-height: 44px; padding: 8px 12px; margin: -4px -4px 8px 12px; border-radius: 999px; }
 .aves-panel p, .aves-panel dd, .aves-panel li { font-size: 14px; line-height: 1.6; }
-.aves-panel .aves-note { border-left: 3px solid var(--aves-leaf); padding: 10px 12px; color: var(--aves-ink); background: var(--aves-sage); border-radius: 0 14px 14px 0; }
 .aves-source, .aves-panel small { color: var(--aves-muted); font-size: 12px !important; }
-.aves-panel label { display: block; color: var(--aves-leaf); font-size: 12px; font-weight: 650; margin-top: 16px; }
-.aves-panel select { width: 100%; margin: 8px 0; }
-.aves-panel dt { color: var(--aves-leaf); font-size: 12px; font-weight: 700; margin-top: 14px; }
-.aves-panel dd { margin: 4px 0; }
-.aves-panel ul { padding-left: 20px; }
+.aves-info-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.aves-info-heading > div { min-width: 0; }
+.aves-info-heading h2 { margin: 0 0 6px; font-size: 22px; line-height: 1.2; }
+.aves-info-heading .aves-scientific { margin: 0; font-size: 14px; color: var(--aves-leaf); }
+.aves-info-heading .aves-family { margin: 3px 0 0; font-size: 12px; color: var(--aves-muted); }
+#aves-pilot .aves-info-heading > button { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; min-height: 44px; padding: 10px; border-radius: 50%; }
+.aves-bird-photo { margin: 18px 0 22px; text-align: center; }
+.aves-bird-photo img { display: block; width: min(100%, 220px); height: auto; margin: 0 auto; border-radius: 18px; box-shadow: 0 4px 14px #243d3514; }
+.aves-bird-photo figcaption { margin-top: 8px; font-size: 11px; line-height: 1.4; color: var(--aves-muted); }
+.aves-facts { display: grid; gap: 18px; }
+.aves-facts section { border-left: 3px solid var(--aves-leaf); padding-left: 12px; }
+.aves-facts h3 { margin: 0 0 6px; font-size: 15px; line-height: 1.4; color: var(--aves-leaf); }
+.aves-facts p { margin: 0; }
+#aves-info .aves-source { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--aves-line); }
 .aves-clips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
 #aves-pilot .aves-clips button { font-size: 13px; line-height: 1.3; }
 

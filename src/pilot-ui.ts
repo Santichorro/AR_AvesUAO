@@ -43,11 +43,12 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
     <p class="aves-preview"></p>
     <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
-    <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title"><button data-close="info"></button>
-      <h2 id="aves-info-title"></h2><p class="aves-note"></p><p class="aves-source"></p>
+    <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title">
+      <div class="aves-info-heading"><div><h2 id="aves-info-title"></h2><p class="aves-scientific"><em></em></p><p class="aves-family"></p></div><button data-close="info">${icon('close')}</button></div>
+      <figure class="aves-bird-photo"><img width="480" height="639" decoding="async"><figcaption></figcaption></figure>
+      <div class="aves-facts"></div><p class="aves-source"></p>
       <div class="aves-actions aves-guide-actions"><button data-action="animation"></button><button data-action="relocate"></button><button data-action="reset"></button></div>
-      <label for="aves-reference"></label><select id="aves-reference"></select><div class="aves-facts"></div>
-      <p class="aves-audio"></p><p class="aves-photo"></p></section>
+    </section>
     <section class="aves-panel" id="aves-animation" hidden aria-labelledby="aves-animation-title"><button data-close="animation"></button>
       <h2 id="aves-animation-title"></h2><p></p><div class="aves-clips"></div>
       <div class="aves-actions"><button data-action="idle"></button><button data-action="pause"></button></div></section>`
@@ -81,41 +82,21 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     get(`[data-radial="${action}"]`).setAttribute('aria-label', radialText[action])
   }
   get('.aves-preview').textContent = desktop ? labels.preview : ''
-  get('#aves-info-title').textContent = labels.ficha
-  get('.aves-note').textContent = labels.ilustrativo
-  get('.aves-source').textContent = `${labels.guia} · páginas ${bird.fuente.paginas.join(', ')}`
-  get('label[for="aves-reference"]').textContent = labels.fichasGuia
-  const references = get<HTMLSelectElement>('#aves-reference')
-  references.add(new Option(labels.elegirFicha, ''))
-  for (const species of bird.fichas) references.add(new Option(species.nombre, species.id))
+  get('#aves-info-title').textContent = bird.nombre
+  get('.aves-scientific em').textContent = bird.nombreCientifico
+  get('.aves-family').textContent = bird.familia
+  const photo = get<HTMLImageElement>('.aves-bird-photo img')
+  photo.src = bird.imagen; photo.alt = bird.imagenAlt
+  get('.aves-bird-photo figcaption').textContent = bird.creditoImagen.origen
+  get('.aves-source').textContent = `${labels.guia} · ${labels.pagina} ${bird.fuente.paginas[0]}`
   const facts = get('.aves-facts')
-  const renderFacts = () => {
-    facts.replaceChildren()
-    const selected = bird.fichas.find((s: any) => s.id === references.value)
-    const description = document.createElement('p')
-    description.textContent = selected ? `${selected.nombreCientifico} · ${labels.referencia}` : labels.modeloGenerico
-    facts.append(description)
-    if (selected) {
-      const text = document.createElement('p'); text.textContent = selected.descripcion; facts.append(text)
-      const dl = document.createElement('dl')
-      for (const [key, label] of [['habitat', labels.habitat], ['alimentacion', labels.alimentacion], ['rasgos', labels.rasgos]]) {
-        if (!selected[key]) continue
-        const dt = document.createElement('dt'); dt.textContent = label
-        const dd = document.createElement('dd'); dd.textContent = selected[key]; dl.append(dt, dd)
-      }
-      facts.append(dl)
-      const source = document.createElement('small'); source.textContent = `${labels.guia} · página ${selected.pagina}`; facts.append(source)
-    } else {
-      const list = document.createElement('ul')
-      for (const species of bird.candidatas) {
-        const item = document.createElement('li'); item.textContent = `${species.nombre} (${species.nombreCientifico})`; list.append(item)
-      }
-      facts.append(list)
-    }
+  for (const [key, label] of [['descripcion', labels.descripcion], ['habitat', labels.habitat], ['comportamiento', labels.comportamiento], ['rasgos', labels.rasgos]]) {
+    if (!bird.ficha[key]) continue
+    const section = document.createElement('section')
+    const heading = document.createElement('h3'); heading.textContent = label
+    const text = document.createElement('p'); text.textContent = bird.ficha[key]
+    section.append(heading, text); facts.append(section)
   }
-  references.addEventListener('change', renderFacts); renderFacts()
-  get('.aves-audio').textContent = labels.sinAudio
-  get('.aves-photo').textContent = labels.sinFoto
   get('#aves-animation-title').textContent = labels.animaciones
   get('#aves-animation > p').textContent = labels.animacionesNota
   for (const clip of bird.clips) {
@@ -132,7 +113,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   root.querySelectorAll<HTMLButtonElement>('button').forEach(b => {
     b.type = 'button'
     if (b.dataset.action) b.textContent = buttonLabels[b.dataset.action]
-    if (b.dataset.close === 'species') {
+    if (b.dataset.close === 'species' || b.dataset.close === 'info') {
       b.setAttribute('aria-label', labels.cerrar); b.title = labels.cerrar
     } else if (b.dataset.close) b.textContent = labels.cerrar
   })

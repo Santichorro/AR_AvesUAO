@@ -35,7 +35,7 @@ Contrastes calculados con luminancia sRGB sobre superficies sólidas: bosque/sup
 
 La transición de inicio se comprobó sobre el bundle generado en Edge con ECS simulado, en 390×844, 320×568 y 844×390: opacidad intermedia de salida/entrada, avance inmediato a ESCANEO, contacto sobre la copia sin colocación, eliminación de la copia y colocación posterior. También se verificó movimiento reducido desde inicio y al activarlo durante la animación. Pasan las 24 pruebas existentes y la compilación, con los dos avisos previos de tamaño. Falta evaluar la suavidad percibida en Studio y teléfonos reales.
 - Se contemplan celulares estrechos, escritorio, modo horizontal y preferencia de movimiento reducido.
-- La selección de aves usa ahora un popover de botones propio; cuatro especies siguen deshabilitadas. El selector de fichas de referencia conserva su menú nativo.
+- La selección de aves usa un popover de botones propio; cuatro especies siguen deshabilitadas. La ficha del Colirufo no incluye un selector de referencias.
 
 ## Archivos y mantenimiento
 
@@ -57,7 +57,7 @@ La tarjeta inferior permanente se sustituye por el icono de ave abajo a la izqui
 
 El selector utiliza un nido con tres huevos como silueta SVG sólida, adaptada de la referencia visual del usuario. El rojo UAO sustituye el negro de la referencia; las separaciones dejan ver el fondo blanco del botón. El padding baja de 14 a 9 px para ampliar el icono, conservando el botón de 56 px, posición, etiqueta accesible «Seleccionar ave» y funcionamiento. pilot.css y el bloque de estilos de index.html se mantienen sincronizados.
 
-El cierre del selector se representa con una X de trazos redondeados en un control circular de 44 px. No muestra el texto «Cerrar», pero lo conserva como etiqueta accesible y tooltip. Se mantiene la misma acción y animación de salida; los cierres de la guía y de animaciones conservan su presentación.
+El cierre del selector y el de la ficha del Colirufo se representan con la misma X de trazos redondeados en un control circular de 44 px. No muestran el texto «Cerrar», pero lo conservan como etiqueta accesible y tooltip. Mantienen sus acciones existentes y la animación de salida del selector. El cierre del panel de animaciones conserva su presentación.
 
 El selector entra en 260 ms con desvanecimiento, desplazamiento vertical de 10 px y escala de 0.97 a 1; sale en 180 ms. Cerrar, elegir un ave, el icono, Escape y el toque exterior usan la misma salida. El estado lógico y aria-expanded cambian inmediatamente; hidden se aplica al terminar la transición de opacidad. Durante la salida el contenido usa inert, mientras el contenedor consume toques para evitar acciones detrás del HUD. Reabrir a mitad de salida invierte la transición, sin clones ni temporizadores. Movimiento reducido produce cambios inmediatos; transición cancelada y dispose completan la limpieza. Referencias: [inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert) y [transitioncancel](https://developer.mozilla.org/en-US/docs/Web/API/Element/transitioncancel_event).
 
@@ -65,7 +65,7 @@ Validación del selector sobre dist/bundle.js en Edge con ECS simulado: entrada/
 
 En EXPLORAR se conserva exactamente la ruta de tap sobre el ave que el usuario comprobó físicamente: el controlador llama ui.openInfo y únicamente añade el punto del viewport que ya calculaba. Esa entrada ahora presenta el círculo. No se cambian listeners, hit del modelo, distinción de arrastre/pinch, coordenadas ni condiciones de estado. No se usa pulsación prolongada, temporizador de activación ni un nuevo reconocedor del ave.
 
-El círculo permanece al soltar y un segundo tap ejecuta una de las cuatro opciones. Ficha llama a openGuide, una función propia de la UI que conserva la guía, nota ilustrativa, fuente UAO, selector de referencias y Cerrar; no llama nuevamente a openInfo. Los sectores y los botones previos de la guía comparten el despachador de acciones, sin depender de RadialGesture.select ni de su fase. Tocar fuera, Escape o cancelar cierran el círculo sin ejecutar. El toque exterior, incluido su click residual, se consume incluso si cae sobre otro botón del HUD.
+El círculo permanece al soltar y un segundo tap ejecuta una de las cuatro opciones. Ficha llama a openGuide, que presenta la ficha específica del Colirufo y Cerrar; no llama nuevamente a openInfo. Los sectores y los botones de la ficha comparten el despachador de acciones, sin depender de RadialGesture.select ni de su fase. Tocar fuera, Escape o cancelar cierran el círculo sin ejecutar. El toque exterior, incluido su click residual, se consume incluso si cae sobre otro botón del HUD.
 
 Arrastre y pinch no abren el círculo ni la ficha. Los controles del HUD se filtran antes de manipular el ave. Reubicar conserva escala y giro y requiere un toque nuevo para elegir el punto; Cancelar conserva el anterior. Inicio, recuperación y reinicio durante carga/error siguen accesibles. El selector de aves continúa abajo a la izquierda.
 
@@ -75,7 +75,15 @@ La integración utiliza SCREEN_TOUCH_START/MOVE/END y GESTURE_START/MOVE/END de 
 
 Fuentes: [Input Events de 8th Wall](https://8thwall.org/docs/api/studio/events/input), [Pointer Events de MDN](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) y las definiciones locales del paquete ECS.
 
-Validación del nuevo flujo: 24 pruebas existentes aprobadas y compilación correcta con dos avisos previos de tamaño. En dist/bundle.js con World/ECS/raycast simulados pasaron círculo persistente, Ficha una sola vez, referencias, eventos residuales, cierre exterior sobre suelo/HUD, Escape/cancelación, giro/pinch sin menú, las otras tres opciones sin guía, reubicación con toque nuevo, cancelación, reinicio y selector. Se revisaron cuatro tamaños, cuatro taps fuera del centro en canvas reducido, sectores dentro del viewport, teclado, toque emulado y movimiento reducido. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico. La nueva presentación queda pendiente en Studio y Android/iPhone; la ruta previa de apertura directa sí fue confirmada por el usuario.
+Validación del flujo: 24 pruebas existentes aprobadas y compilación correcta con dos avisos previos de tamaño. En dist/bundle.js con World/ECS/raycast simulados pasaron círculo persistente, Ficha del Colirufo una sola vez, fotografía real, eventos residuales, cierre exterior, Escape/cancelación, giro/pinch, las otras tres opciones, reubicación con toque nuevo, cancelación, reinicio y selector. Se revisaron cuatro tamaños, cuatro taps en canvas reducido, teclado, toque emulado y movimiento reducido. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico. El usuario confirmó el funcionamiento del radial; la ficha renovada queda pendiente en Studio y Android/iPhone.
+
+## Ficha del Colibrí Colirufo
+
+El modelo existente representa al Colirufo por decisión del usuario. La ficha muestra «Colibrí Colirufo», Amazilia tzacatl en cursiva y Trochilidae como información secundaria. La fotografía aportada conserva su proporción 480×639, sin recorte, y se limita a 220 px de ancho para leerla en móvil. Su crédito indica que fue proporcionada por el usuario; la cita académica se refiere exclusivamente a la guía UAO, primera edición 2023, página 17.
+
+Descripción, Hábitat, Comportamiento y Rasgos de identificación se presentan con títulos de 15 px en negrita, verde de vegetación y una línea lateral discreta. La fuente se separa al pie y las acciones existentes permanecen accesibles mediante scroll. Se retiraron nota de especie no confirmada, selector de referencias, candidatas y fotografía pendiente. Los datos de otras fichas se archivan en REFERENCIAS_COLIBRIES.json para futuras etapas. Se mantienen rojo UAO, superficies claras, bordes suaves y sombras ligeras.
+
+La comprobación visual del bundle en 390×844, 320×568, 844×390 y 1100×1000 confirma fotografía cargada, proporción natural, subtítulos visibles, encabezado ajustado, scroll y acciones sin desbordamiento horizontal. Conserva ID colibri, ruta del GLB, clips y controles. No hay comprobación física de esta ficha todavía.
 
 ## Coordenadas de simulación
 

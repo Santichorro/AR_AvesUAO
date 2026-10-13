@@ -385,6 +385,6 @@ Esta ampliación es un plan de ejecución. No acredita que las tareas pendientes
 
 Se implementó la colocación directa de una sola ave, con estado independiente del motor, ficha de referencia desde JSON, seis clips reales, reubicación con cancelación y reinicio. Los recursos anteriores y las modificaciones previas de la escena se conservan. Ver [AVANCE_01.md](AVANCE_01.md) para archivos, comprobaciones y pruebas físicas pendientes.
 
-La especie del modelo no está identificada: la guía enumera seis colibríes (página 8), con tres fichas detalladas en páginas 17–18. El GLB piloto es una representación ilustrativa. Cantos, fotografías y licencia específica de redistribución siguen pendientes. Las cinco especies no se marcan como terminadas.
+El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). Su ficha usa la página 17 de la guía y la fotografía aportada; conserva ID colibri y el modelo original. Las referencias previas de otras especies se archivan para futuras etapas. Canto y créditos/licencias siguen pendientes. Las cinco especies no se marcan como terminadas.
 
 Se conservan los nombres reales de los clips aportados; no se afirma que existan clips sing, happy o no. El campus queda opcional. La vista 3D de escritorio sirve para inspección y no certifica tracking en Android/iPhone. El control de inicio habilita la colocación; el runtime administra los permisos de cámara.
