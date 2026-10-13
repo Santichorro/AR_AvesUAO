@@ -138,12 +138,13 @@
   right: calc(env(safe-area-inset-right, 0px) + 16px);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
   z-index: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr) 44px 32px;
   align-items: center;
-  gap: 9px;
+  gap: 6px;
   max-width: calc(100vw - 104px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-  min-height: 44px;
-  padding: 9px 14px;
+  min-height: 56px;
+  padding: 6px 8px;
   border: 1px solid var(--aves-line);
   border-radius: 18px;
   background: var(--aves-paper);
@@ -156,7 +157,7 @@
   transform: translateY(6px) scale(.97);
   transition: opacity 180ms var(--radial-close-ease), transform 180ms var(--radial-close-ease), visibility 0s 180ms;
 }
-.aves-listening.is-playing {
+.aves-listening.is-open {
   pointer-events: auto;
   opacity: 1;
   visibility: visible;
@@ -165,7 +166,13 @@
   transition-timing-function: var(--radial-open-ease);
   transition-delay: 0s;
 }
-.aves-listening svg { flex: 0 0 25px; width: 25px; height: 25px; color: var(--aves-red); }
+.aves-listening > svg { width: 25px; height: 25px; color: var(--aves-red); }
+.aves-listening > span { line-height: 1.35; }
+#aves-pilot .aves-listening button[data-audio] { display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 12px; border-radius: 12px; }
+.aves-listening button svg { display: block; width: 20px; height: 20px; }
+#aves-pilot .aves-listening button[data-audio="close"] { width: 32px; height: 32px; min-height: 32px; padding: 8px; color: var(--aves-muted); background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+#aves-pilot .aves-listening button[data-audio="close"]:hover:enabled, #aves-pilot .aves-listening button[data-audio="close"]:active:enabled { color: var(--aves-ink); background: transparent; box-shadow: none; }
+.aves-listening button[data-audio="close"] svg { width: 16px; height: 16px; }
 .aves-listening .aves-sound-wave { opacity: .4; }
 .aves-listening.is-playing .aves-sound-wave { animation: aves-listen-wave 1200ms ease-in-out infinite; }
 .aves-listening.is-playing .aves-sound-wave:last-child { animation-delay: 180ms; }

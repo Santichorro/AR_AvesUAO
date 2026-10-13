@@ -6,15 +6,15 @@ const modulePromise=import('data:text/javascript;base64,'+Buffer.from(source).to
 const flush=()=>new Promise(resolve=>setImmediate(resolve))
 async function fixture(url='assets/audio/colibri_canto.mp3') {
  const {createBirdAudio}=await modulePromise
- const media=new EventTarget(),states=[],errors=[],requests=[]
+ const media=new EventTarget(),states=[],phases=[],errors=[],requests=[]
  let instances=0
  Object.assign(media,{paused:true,ended:false,currentTime:0,plays:0,loads:0,
   pause(){this.paused=true},
   play(){this.plays++;this.paused=false;this.ended=false;return new Promise((resolve,reject)=>requests.push({resolve,reject}))},
   removeAttribute(name){delete this[name]},load(){this.loads++}})
- const player=createBirdAudio({url,onPlaying:value=>states.push(value),onError:reason=>errors.push(reason)},()=>{instances++;return media})
+ const player=createBirdAudio({url,onPlaying:value=>states.push(value),onState:value=>phases.push(value),onError:reason=>errors.push(reason)},()=>{instances++;return media})
  const emit=type=>media.dispatchEvent(new Event(type))
- return {player,media,states,errors,requests,emit,instances:()=>instances}
+ return {player,media,states,phases,errors,requests,emit,instances:()=>instances}
 }
 test('Canto inicia en la misma llamada y muestra escucha solo al reproducir',async()=>{
  const f=await fixture();f.player.play()
@@ -52,4 +52,29 @@ test('sin recurso no crea audio; destruir elimina listeners y aborta la carga',a
  f.media.paused=false;f.emit('playing');f.emit('error');f.requests[0].reject(new Error());await flush()
  f.player.play();f.player.dispose();assert.equal(f.media.plays,1);assert.equal(f.media.loads,1)
  assert.deepEqual(f.states,[true,false]);assert.deepEqual(f.errors,[])
+})
+test('pausar conserva la posición y continuar reutiliza el mismo audio',async()=>{
+ const f=await fixture();f.player.play();f.emit('playing');f.media.currentTime=7.5
+ f.player.pause();assert.equal(f.media.paused,true);assert.equal(f.media.currentTime,7.5)
+ assert.equal(f.phases.at(-1),'paused');assert.equal(f.states.at(-1),false)
+ f.emit('pause');f.emit('waiting');f.emit('playing');assert.equal(f.phases.at(-1),'paused')
+ f.requests[0].reject(Object.assign(new Error(),{name:'AbortError'}));await flush();assert.deepEqual(f.errors,[])
+ f.player.resume();assert.equal(f.media.plays,2);assert.equal(f.media.currentTime,7.5);assert.equal(f.instances(),1)
+ f.emit('pause');assert.equal(f.phases.at(-1),'loading','un pause anterior no cancela la continuación')
+ f.emit('playing');assert.equal(f.phases.at(-1),'playing');assert.equal(f.states.at(-1),true)
+ f.player.resume();assert.equal(f.media.plays,2,'continuar fuera de pausa no duplica reproducción')
+})
+test('cerrar estando pausado restaura tiempo y bloquea continuar o eventos tardíos',async()=>{
+ const f=await fixture();f.player.play();f.emit('playing');f.media.currentTime=5;f.player.pause();f.player.stop()
+ assert.equal(f.media.currentTime,0);assert.equal(f.phases.at(-1),'idle')
+ f.player.resume();f.emit('pause');f.emit('waiting');f.emit('playing');assert.equal(f.media.plays,1)
+ assert.equal(f.phases.at(-1),'idle');assert.deepEqual(f.states,[true,false])
+ f.player.play();f.emit('playing');assert.equal(f.media.currentTime,0);assert.equal(f.instances(),1)
+})
+test('pausar durante una carga invalida su rechazo sin mostrar error',async()=>{
+ const f=await fixture();f.player.play();f.player.pause();f.requests[0].reject(new Error());await flush()
+ assert.deepEqual(f.errors,[]);assert.equal(f.phases.at(-1),'paused')
+ f.player.resume();f.requests[1].reject(Object.assign(new Error(),{name:'NotAllowedError'}));await flush()
+ assert.deepEqual(f.errors,['blocked']);assert.equal(f.phases.at(-1),'idle')
+ f.player.pause();f.player.resume();assert.equal(f.media.plays,2)
 })

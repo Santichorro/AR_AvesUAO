@@ -10,6 +10,8 @@ const icons: Record<string, string> = {
   info: '<path d="M4 5h6l2 2 2-2h6v14h-6l-2 2-2-2H4Z"/><path d="M12 7v14M7 9h2m-2 4h2m6-4h2m-2 4h2"/>',
   animation: '<path d="M8 5v14l11-7Z"/><path d="M4 5v14"/>',
   song: '<path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4Z"/><path class="aves-sound-wave" d="M16 8a6 6 0 0 1 0 8"/><path class="aves-sound-wave" d="M19 5a10 10 0 0 1 0 14"/>',
+  audioPause: '<path fill="currentColor" stroke="none" d="M6 5h4v14H6Zm8 0h4v14h-4Z"/>',
+  audioPlay: '<path fill="currentColor" stroke="none" d="M8 5v14l11-7Z"/>',
   relocate: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
   reset: '<path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
@@ -46,7 +48,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       <button data-close="species">${icon('close')}</button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
     <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
     <p class="aves-preview"></p>
-    <div class="aves-listening" data-aves-ui role="status" aria-live="polite" aria-hidden="true">${icon('song')}<span></span></div>
+    <section class="aves-listening" data-aves-ui role="group" aria-hidden="true">${icon('song')}<span role="status" aria-live="polite" aria-atomic="true"></span><button data-audio="toggle" disabled>${icon('audioPause')}</button><button data-audio="close" disabled>${icon('close')}</button></section>
     <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
     <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title">
       <div class="aves-info-heading"><div><h2 id="aves-info-title"></h2><p class="aves-scientific"><em></em></p><p class="aves-family"></p></div><button data-close="info">${icon('close')}</button></div>
@@ -61,12 +63,29 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   const get = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!
   const listening = get('.aves-listening')
   const listeningText = get('.aves-listening span')
+  const audioToggle = get<HTMLButtonElement>('[data-audio="toggle"]')
+  const audioClose = get<HTMLButtonElement>('[data-audio="close"]')
+  let audioPaused = false
+  listening.setAttribute('aria-label', labels.panelCanto)
+  audioClose.setAttribute('aria-label', labels.cerrarCanto); audioClose.title = labels.cerrarCanto
+  Array.from(listening.children).forEach(child => child.setAttribute('inert', ''))
   const song = createBirdAudio({
     url: bird.audioCanto,
-    onPlaying(playing: boolean) {
-      listening.classList.toggle('is-playing', playing)
-      listening.setAttribute('aria-hidden', String(!playing))
-      if (playing) listeningText.textContent = labels.escuchaCanto
+    onState(state: string) {
+      const active = ['playing', 'paused', 'waiting'].includes(state) || (state === 'loading' && listening.classList.contains('is-open'))
+      audioPaused = state === 'paused'
+      if (!active && listening.contains(document.activeElement)) {
+        get<HTMLButtonElement>('[data-species-toggle]').focus({preventScroll: true})
+      }
+      listening.classList.toggle('is-open', active)
+      listening.classList.toggle('is-playing', state === 'playing')
+      listening.setAttribute('aria-hidden', String(!active))
+      Array.from(listening.children).forEach(child => child.toggleAttribute('inert', !active))
+      audioToggle.disabled = audioClose.disabled = !active
+      const actionLabel = audioPaused ? labels.reanudarCanto : labels.pausarCanto
+      audioToggle.innerHTML = icon(audioPaused ? 'audioPlay' : 'audioPause')
+      audioToggle.setAttribute('aria-label', actionLabel); audioToggle.title = actionLabel
+      if (active) listeningText.textContent = audioPaused ? labels.cantoPausado : state === 'playing' ? labels.escuchaCanto : labels.cantoCargando
     },
     onError(reason: string) {
       setStatusMessage(reason === 'blocked' ? labels.cantoBloqueado : reason === 'missing' ? labels.cantoPendiente : labels.errorCanto)
@@ -306,6 +325,13 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     }
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
+    if (button.dataset.audio) {
+      if (!listening.classList.contains('is-open')) return
+      if (button.dataset.audio === 'close') song.stop()
+      else if (audioPaused) song.resume()
+      else song.pause()
+      return
+    }
     if (animationClosing && animationPanel.contains(button)) return
     if (button.dataset.dismiss === 'status') { dismissStatus(); return }
     if (!speciesOpen && speciesPopover.contains(button)) return
