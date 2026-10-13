@@ -318,7 +318,7 @@ Actualmente cada toque válido crea un prefab con orientación aleatoria. La imp
 2. La detección muestra guía/retícula; no crea el ave hasta que el usuario toque el lugar.
 3. Ignorar toques sobre UI y bloquear una segunda operación durante creación/carga.
 4. Guardar posición y orientación elegidas. En el primer toque crear raíz y ave seleccionada; al reubicar mover la raíz existente.
-5. Ocultar retícula y pasar a EXPLORAR cuando el modelo esté listo.
+5. Ocultar retícula al colocar. En el piloto vigente, cargar pasa a ATERRIZANDO; EXPLORAR se habilita solo después de llegada y mezcla a reposo.
 6. Guardar la referencia de raíz y ave activa; no depender de buscar entidades logo.
 
 La posición de toque usada por la plantilla no demuestra que ya exista una retícula de detección continua. Verificar la API de hit-testing de la versión instalada antes de implementarla.
@@ -326,7 +326,7 @@ La posición de toque usada por la plantilla no demuestra que ya exista una ret�
 ### 6.3 Máquina de estados
 
 ```text
-INTRO -> PREPARANDO -> ESCANEO -> COLOCANDO -> EXPLORAR
+INTRO -> PREPARANDO -> ESCANEO -> COLOCANDO -> ATERRIZANDO -> EXPLORAR
 EXPLORAR -> CAMBIANDO_AVE -> EXPLORAR
 EXPLORAR -> REUBICAR -> EXPLORAR (confirmar o cancelar)
 EXPLORAR -> AVISTAMIENTO -> EXPLORAR
@@ -341,7 +341,8 @@ fallo recuperable -> ERROR -> recuperación controlada
 | INTRO | Comenzar, explicación y créditos | Retirar bienvenida |
 | PREPARANDO | Permisos, audio y recursos iniciales | Retirar carga finalizada |
 | ESCANEO | Retícula válida, selector y toque para colocar | Bloquear más colocaciones |
-| COLOCANDO | Crear ave elegida; entrada protegida | Pasar a explorar o mostrar error recuperable |
+| COLOCANDO | Crear ave elegida; entrada protegida | Tras cargar, comenzar ATERRIZANDO; fallo recuperable a ERROR |
+| ATERRIZANDO | Descenso y pose sincronizados; solo Reiniciar contextual | Mezclar a reposo y habilitar EXPLORAR; limpiar al cancelar |
 | EXPLORAR | Ave activa, ficha, canto, inspección, selector y reubicación | Cerrar ficha y detener audio antes de cambiar de modo |
 | CAMBIANDO_AVE | Cargar/reemplazar especie en el punto guardado | Activar solo la última selección vigente |
 | REUBICAR | Retícula, confirmar toque o cancelar | Confirmar punto nuevo o mantener el anterior |
@@ -353,6 +354,20 @@ fallo recuperable -> ERROR -> recuperación controlada
 | ERROR | Mensaje y recuperación aplicable | Retirar error al recuperar |
 
 La animación es independiente del estado de app: idle puede reproducirse durante EXPLORAR. Una animación de aparición no exige botón Iniciar llegada ni despliegue de cinco aves.
+
+### 6.3.1 Llegada vigente del Colirufo
+
+src/arrival-motion.js calcula el origen aleatorio, trayectoria y compensación sin motor. src/tap-to-place.ts usa tick de registerComponent y world.time.delta/1000. El destino se conserva en PlacementSession.position; loaded(generation) entra en ATERRIZANDO y arrived(generation) habilita EXPLORAR. El evento object-placed se emite una sola vez al terminar la mezcla, no al cargar. El tap funcional, arrastre y pinch conservan sus listeners y se bloquean mediante la fase existente de inspección. Reubicar mueve la misma raíz y no crea otro recorrido.
+
+Parámetros en aves.json → llegada: duración 2,25 s; mezcla a reposo 0,16 s; altura aleatoria 0,45–0,75; radio 0,35–0,65 en unidades de escena; exponente vertical 1,1. Se usa suavizado de quinto grado con velocidad nula en los extremos y diferente avance horizontal/vertical para curvar el descenso. El origen no se vuelve a sortear durante el movimiento.
+
+src/data/colibri-aterrizaje.json contiene duración real 2,5 s de 05_Landing, contacto visual a 2,25 s, 151 claves LINEAR del hueso root y referencia de root al iniciar 03_Perched_Idle_Loop. La curva fue extraída del GLB, identificado por SHA-256; si cambia el modelo, la prueba de integridad exige recalibrar. Las poses reales revisadas en Blender muestran alas plegadas hacia 2,25 s. Conservar rotaciones y articulación del clip: solo se compensa su traslación global de root en el hijo, escalada y rotada por giroY, relativa a la referencia de reposo. Al finalizar, la compensación es cero y se restaura posicionLocal sin salto.
+
+Durante descenso GltfModel mantiene timeScale=0 y el controlador asigna time con el mismo avance que la trayectoria. La pose final se presenta un fotograma antes de cambiar animationClip a reposo con timeScale=1 y crossFadeDuration=0.16. Ese fotograma evita que dos escrituras de time/clip se fusionen antes de la evaluación del motor. Se cuentan los 0,16 s de mezcla desde el cambio real de clip, incluso con un delta largo. No hay temporizador de aterrizaje ni dependencia del número de fotogramas. Perder seguimiento suspende el avance manual; reinicio/fallo/dispose cancelan la trayectoria y validan generaciones. Reiniciar permanece visible en COLOCANDO y ATERRIZANDO.
+
+Se conserva el offset local original y la escala: ancla del modelo y apoyo de patas son referencias diferentes. El reposo está diseñado para percha; posicionLocal.y=0.25 mantiene la altura de exhibición previa. El descenso termina exactamente en el ancla seleccionada, pero no se afirma que las patas toquen el suelo. Ajustar apoyo físico exige otra calibración de origen/pose; no se altera el GLB ni la altura anterior en esta tarea. La revisión en Blender valida recurso y trayectoria; ECS simulado valida lógica y limpieza. Studio/Android/iPhone quedan pendientes para la evaluación real de time/timeScale y la mezcla.
+
+Fuentes: [registerComponent y tick](https://8thwall.org/docs/api/studio/ecs), [world.time](https://8thwall.org/docs/api/studio/world/time), [GltfModel](https://8thwall.org/docs/api/studio/ecs/gltf-model), tipos locales node_modules/@8thwall/ecs/index.d.ts. Resultado: 43 pruebas unitarias y compilación aprobadas; dos avisos previos de tamaño. Se comprobaron regresiones de radial, guía, animaciones, inspección, reubicación y canto con pausa/cierre.
 
 ### 6.4 Cambiar especie sin duplicar el modelo
 

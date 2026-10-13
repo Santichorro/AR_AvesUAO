@@ -431,13 +431,13 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       status.classList.toggle('is-dismissible', start.hidden)
       start.textContent = phase === 'ERROR' ? labels.reintentar : labels.comenzar
       const messages: Record<string, string> = {INTRO: labels.intro, PREPARANDO: labels.preparando,
-        ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, EXPLORAR: labels.explorar,
+        ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, ATERRIZANDO: labels.aterrizando, EXPLORAR: labels.explorar,
         REUBICAR: labels.reubicando, ERROR: snapshot.message || labels.errorRecurso}
-      setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'EXPLORAR'].includes(phase) ? labels.seguimiento : messages[phase])
+      setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? labels.seguimiento : messages[phase])
       get('.aves-scan').hidden = !['ESCANEO', 'REUBICAR'].includes(phase)
       for (const action of ['idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
       get('[data-action="cancel"]').hidden = phase !== 'REUBICAR'
-      get('[data-action="reset"]').hidden = !['COLOCANDO','ERROR'].includes(phase)
+      get('[data-action="reset"]').hidden = !['COLOCANDO','ATERRIZANDO','ERROR'].includes(phase)
       get<HTMLButtonElement>('[data-action="reset"]').disabled = !snapshot.position && phase !== 'ERROR'
       if (!placed) { song.stop(); closePanels(); closeRadial() }
     },

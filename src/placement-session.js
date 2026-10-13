@@ -48,6 +48,10 @@ export class PlacementSession {
   }
   loaded(generation) {
     if (generation !== this.generation || this.phase !== 'COLOCANDO') return false
+    this.phase = 'ATERRIZANDO'; this.emit(); return true
+  }
+  arrived(generation) {
+    if (generation !== this.generation || this.phase !== 'ATERRIZANDO') return false
     this.phase = 'EXPLORAR'; this.emit(); return true
   }
   relocate() {

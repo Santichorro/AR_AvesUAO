@@ -4,8 +4,8 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 
 ## Implementado
 
-- Colocación de una sola ave con toque válido sobre Ground, sin isla ni mapa previo.
-- Estado INTRO, PREPARANDO, ESCANEO, COLOCANDO, EXPLORAR, REUBICAR y ERROR.
+- Colocación de una sola ave con toque válido sobre Ground, sin isla ni mapa previo. Tras cargar, llega desde un origen elevado aleatorio, aterriza y pasa a reposo antes de permitir explorar.
+- Estados INTRO, PREPARANDO, ESCANEO, COLOCANDO, ATERRIZANDO, EXPLORAR, REUBICAR y ERROR.
 - Seguimiento NORMAL requerido en móvil antes de colocar o reubicar; la detección no crea contenido automáticamente.
 - Una raíz de colocación y un modelo hijo; animaciones no cambian el punto elegido.
 - Doble toque bloqueado mientras carga o existe un modelo.
@@ -44,11 +44,11 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 1. Abrir la carpeta en Studio o compilar desde la raíz con npm run build.
 2. Para revisar en escritorio, servir dist/ y abrir localhost. Es una vista 3D; tocar el plano virtual del suelo coloca el ave.
 3. Pulsar Comenzar y esperar la carga del modelo. En móvil, permitir cámara y estabilizar el seguimiento sobre el suelo.
-4. Tocar el lugar elegido: debe aparecer una sola ave. Tocar de nuevo no debe duplicarla.
+4. Tocar el lugar elegido: se carga una sola ave y llega desde un origen elevado aleatorio durante 2,25 s. Debe plegar las alas y pasar a reposo con mezcla de 160 ms. Durante la llegada, tocar o hacer pinch no abre el radial ni duplica o escala el ave; Reiniciar permanece disponible.
 5. Tocar brevemente el ave: debe aparecer solo el círculo y permanecer al retirar el dedo. Tocar Ficha para abrir Colibrí Colirufo una sola vez. Comparar nombre, fotografía y cuatro secciones con página 17; no debe aparecer selector de referencias ni lista de especies. Cerrar permite volver a la vista AR.
 6. Tocar el ave y después Animaciones; recorrer los seis clips, pausar y volver a reposo.
 7. Elegir Reubicar en el círculo; un toque nuevo confirma otro punto. La selección del sector no confirma una ubicación. Cancelar conserva el anterior.
-8. Pulsar Reiniciar mientras carga y después de colocar; no debe reaparecer un modelo de una carga vieja.
+8. Pulsar Reiniciar mientras carga, durante descenso, en la transición a reposo y después de colocar; no debe reaparecer un modelo ni completar una llegada antigua.
 9. Repetir tres recorridos. Los botones y selects no deben colocar modelos detrás del HUD.
 10. Arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y sin abrir el círculo. Tocar suelo o HUD no abre el círculo. Tocar fuera con el círculo abierto solo lo cierra, también sobre otro control del HUD.
 11. Hacer pinch con dos dedos: la escala debe cambiar de forma uniforme, respetar los límites y conservar el punto de apoyo. Reubicar debe mantener giro y escala; Reiniciar debe restaurarlos para la siguiente colocación.
@@ -67,6 +67,20 @@ Sobre dist/bundle.js, Edge decodificó el MP3 real con progreso de currentTime y
 Pendiente en Studio, Android/Chrome e iPhone/Safari: reproducción desde el segundo tap, volumen y salida del dispositivo, interrupciones, regreso desde segundo plano, suavidad sobre cámara real y controles en áreas seguras. No se hizo push ni despliegue.
 
 ## Pruebas automatizadas
+
+### Llegada animada — 13 de octubre de 2026
+
+Flujo: COLOCANDO espera GLTF_MODEL_LOADED; ATERRIZANDO mueve una única raíz y controla el clip 05_Landing; EXPLORAR se habilita después de reposo. El destino es una copia del punto elegido; el origen se sortea una vez, 0,45–0,75 unidades por encima y 0,35–0,65 lateralmente. El pico se orienta hacia ese destino considerando el giro local del GLB. Reubicar no repite la llegada y conserva giro y escala.
+
+El GLB real contiene 05_Landing de 2,5 s y 151 claves de traslación LINEAR del hueso root. Se revisaron poses en Blender a 0, 0,75, 1,25, 1,5, 1,75, 2, 2,25 y 2,5 s, además de reposo. Las alas siguen abiertas entre 1,5 y 2 s y quedan plegadas hacia 2,25 s; la traslación final coincide con el inicio del reposo. colibri-aterrizaje.json conserva la curva exacta y el SHA-256 del modelo. aves.json centraliza duración, altura, radio, curva vertical y mezcla.
+
+El tick ECS usa world.time.delta en milisegundos, convertido a segundos. El mismo reloj determina la trayectoria y time del clip; timeScale=0 evita otro avance independiente. La raíz sigue una curva suave y el hijo cancela únicamente el desplazamiento root relativo al reposo, aplicando escala y giro local. Al llegar se restaura exactamente su posición local. Se presenta el tiempo 2,25 en un fotograma antes de cambiar a reposo, evitando fusionar ambas escrituras en un único tick. La mezcla dura 0,16 s desde su activación y mantiene ATERRIZANDO. Si se pierde seguimiento, el reloj del descenso se congela. Reset/dispose cancelan el movimiento y eliminan entidades/listeners; generaciones antiguas no pueden completar la colocación.
+
+Pasan 43 pruebas unitarias, sin omisiones: origen variable/acotado, curva y destino exactos, resultados a 15/30/60/120 fps, orientación, compensación, cancelación, estados y SHA del GLB. Build correcto con los dos avisos previos de tamaño. Sobre el bundle con ECS/carga/raycast simulados pasaron bloqueo de tap/pinch, doble toque, reloj/seguimiento, pose final independiente, reinicio durante carga/descenso/mezcla, carga tardía, evento de colocación único, reubicación/cancelación y dispose. Pasaron la regresión del menú, ficha, clips, giro/pinch y controles del MP3 real, incluida pausa/continuación/X, móvil y horizontal.
+
+Validación visual separada: Blender renderizó el GLB real con las posiciones y compensaciones calculadas por arrival-motion.js en ocho instantes del recorrido y reposo. Confirma alas abiertas durante aproximación y plegadas al finalizar, sin otro desplazamiento interno ni salto al reposo. No valida la evaluación del clip ni la mezcla del runtime ECS real. Pendiente en Studio y Android/iPhone: comprobar time/timeScale, mezcla real, suavidad, visibilidad del origen respecto de la cámara y seguimiento.
+
+**Límite del apoyo:** se conserva posicionLocal=(0,0.25,0) y escala 0,25 del proyecto. El ancla termina exactamente en el punto tocado, pero el GLB está diseñado para una percha y esa altura de exhibición mantiene las patas por encima de la superficie. Esta entrega no certifica apoyo de patas en el suelo ni elimina esa separación previa: requiere otra calibración del apoyo/pose, independiente de sincronizar el aterrizaje. El GLB y las escenas no se modificaron.
 
 Ejecutar npm test (o node --test tests/*.test.cjs). Pasan las 24 pruebas de colocación, inspección, recursos de interacción y coordenadas. Las pruebas unitarias de RadialGesture comprueban ese recurso aislado; no demuestran por sí solas el flujo actual, cuya apertura y selección se presentan en la UI.
 

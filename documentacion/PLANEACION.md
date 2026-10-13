@@ -10,6 +10,8 @@ Una aplicación WebAR educativa sobre cinco aves del campus UAO: **pechirrojo, a
 
 **Flujo vigente:** detectar el plano habilita la colocación; el ave aparece solo después de tocar un área válida. Durante exploración hay una sola ave activa. Cambiar de especie reemplaza la anterior, y Reubicar permite seleccionar otro punto.
 
+En el piloto actual del Colirufo, COLOCANDO espera la carga y ATERRIZANDO coordina una llegada desde arriba antes de habilitar EXPLORAR. El clip y la trayectoria se calibran contra el GLB real; Reubicar conserva su comportamiento inmediato. Se mantiene el offset local de exhibición existente: el ancla termina en el punto elegido, pero el apoyo de patas en el suelo requiere una calibración distinta porque el modelo está diseñado para percha. Ver AVANCE_01.md y TECNICO.md para parámetros, validación y límites.
+
 La información académica procede de la base de datos de aves de la UAO. Los nombres comunes todavía deben asociarse a especies y nombres científicos exactos. No se inventarán datos para llenar fichas o formular preguntas.
 
 El campus low poly se conserva como recurso opcional para una vista independiente. No se coloca una isla, estación ni hábitat previo: la experiencia principal muestra directamente el ave sobre la superficie. Su representación es estilizada, no un plano de navegación ni un levantamiento arquitectónico.

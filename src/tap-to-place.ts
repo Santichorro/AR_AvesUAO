@@ -6,10 +6,12 @@ import {createPilotUi} from './pilot-ui'
 import {InspectionControls, normalizedScreenPosition} from './inspection-controls'
 import {RadialGesture} from './radial-gesture'
 import {screenToViewport, viewportToScreen} from './screen-coordinates'
+import {ArrivalMotion} from './arrival-motion'
+import landingCalibration from './data/colibri-aterrizaje.json'
 
 // Se conserva el evento de la plantilla para no romper componentes ajenos.
 const OBJECT_PLACED_EVENT = 'object-placed'
-const controllers = new Map<ecs.Eid, () => void>()
+const controllers = new Map<ecs.Eid, {tick: () => void; dispose: () => void}>()
 const bird = catalog.aves.find(b => b.id === 'colibri')!
 
 function attach(world: ecs.World, ground: ecs.Eid) {
@@ -25,6 +27,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let paused = false
   let activeClip = bird.animaciones.reposo
   let ui: ReturnType<typeof createPilotUi>
+  const arrival = new ArrivalMotion(bird.llegada, landingCalibration)
+  let landingFrameApplied = false
   const inspection = new InspectionControls({
     escalaBase: bird.escalaExhibicion,
     escalaMinima: bird.inspeccion?.escalaMinima,
@@ -56,6 +60,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (model !== null) world.setScale(model, inspection.scale, inspection.scale, inspection.scale)
   }
   const destroy = () => {
+    arrival.cancel()
+    landingFrameApplied = false
     clearLoadTimer()
     if (model !== null) {
       if (loadedListener) world.events.removeListener(model, ecs.events.GLTF_MODEL_LOADED, loadedListener)
@@ -77,7 +83,43 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     const clip = bird.clips.find(c => c.nombre === name)
     if (!clip) { ui.showMessage(labels.errorAnimacion); return }
     activeClip = name; paused = false
-    ecs.GltfModel.set(world, model, {animationClip: name, loop: clip.bucle, paused: false, time: 0, crossFadeDuration: 0.12})
+    ecs.GltfModel.set(world, model, {animationClip: name, loop: clip.bucle, paused: false, time: 0, timeScale: 1, crossFadeDuration: 0.12})
+  }
+  const applyArrivalPose = (pose: ReturnType<ArrivalMotion['sample']>) => {
+    if (root === null || model === null) return
+    world.getEntity(root).setLocalPosition(pose.position)
+    world.getEntity(model).setLocalPosition(pose.localPosition)
+    inspection.yaw = pose.yaw
+    applyInspection()
+  }
+  const tickArrival = () => {
+    if (root === null || model === null || session.phase !== 'ATERRIZANDO' || !session.trackingReady) return
+    try {
+      const pose = arrival.advance(world.time.delta / 1000, session.generation)
+      if (!pose) return
+      applyArrivalPose(pose)
+      if (!pose.landed) {
+        // Un reloj para pose y trayectoria. time salta a segundos; timeScale=0
+        // impide que el motor añada avance por su cuenta entre esos saltos.
+        ecs.GltfModel.set(world, model, {time: pose.clipTime, timeScale: 0})
+      } else if (arrival.phase === 'approach') {
+        ecs.GltfModel.set(world, model, {time: landingCalibration.contactoSegundos, timeScale: 0})
+        // Presentar la pose de contacto un fotograma antes de cambiar de clip.
+        // Dos escrituras de time/clip en el mismo tick pueden quedar fusionadas.
+        if (!landingFrameApplied) { landingFrameApplied = true; return }
+        arrival.beginBlend()
+        activeClip = bird.animaciones.reposo
+        ecs.GltfModel.set(world, model, {animationClip: activeClip, loop: true, paused: false,
+          time: 0, timeScale: 1, crossFadeDuration: bird.llegada.mezclaReposoSegundos})
+      } else if (pose.finished) {
+        const generation = session.generation
+        arrival.cancel()
+        if (session.arrived(generation)) world.events.dispatch(ground, OBJECT_PLACED_EVENT)
+      }
+    } catch (error) {
+      console.error('Llegada del ave:', error)
+      session.fail(labels.errorLlegada)
+    }
   }
   const session = new PlacementSession({
     destroy,
@@ -86,6 +128,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     },
     spawn(position: {x: number; y: number; z: number}, generation: number) {
       inspection.reset()
+      landingFrameApplied = false
       root = world.createEntity()
       world.getEntity(root).setLocalPosition(position)
       model = world.createEntity()
@@ -93,12 +136,13 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       world.getEntity(model).setLocalPosition(bird.transformacion.posicionLocal)
       world.getEntity(model).set(ecs.Quaternion, ecs.math.quat.yRadians(bird.transformacion.giroY))
       applyInspection()
+      const initialPose = arrival.begin(position, generation, inspection.scale, bird.transformacion.giroY, bird.transformacion.posicionLocal)
+      applyArrivalPose(initialPose)
       const currentModel = model
       loadedListener = (event: any) => {
         if (model !== currentModel || !session.loaded(generation)) return
         clearLoadTimer()
-        activeClip = bird.animaciones.reposo
-        world.events.dispatch(ground, OBJECT_PLACED_EVENT)
+        activeClip = bird.animaciones.aterrizaje
       }
       finishedListener = (event: any) => {
         if (model === currentModel && session.phase === 'EXPLORAR' && event.data.name === activeClip) {
@@ -111,7 +155,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       loadTimer = setTimeout(() => {
         if (session.generation === generation && session.phase === 'COLOCANDO') session.fail(labels.errorRecurso)
       }, 30000)
-      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: bird.animaciones.reposo, loop: true})
+      activeClip = bird.animaciones.aterrizaje
+      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: false, paused: false, time: 0, timeScale: 0})
     },
   }, snapshot => {
     if (snapshot.phase !== 'EXPLORAR' || !snapshot.trackingReady) {
@@ -311,9 +356,9 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }, 45000)
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
-    model: model?.toString() ?? null, activeClip, paused, desktop, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot()})
+    model: model?.toString() ?? null, activeClip, paused, desktop, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot()})
   ;(window as any).__AR_AVES_DEBUG__ = debug
-  return () => {
+  return {tick: tickArrival, dispose: () => {
     ++fetchGeneration
     fetchController?.abort()
     if (startupTimer) clearTimeout(startupTimer)
@@ -338,14 +383,15 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     world.events.removeListener(world.events.globalId, ecs.events.REALITY_TRACKING_STATUS, tracking)
     if ((window as any).__AR_AVES_DEBUG__ === debug) delete (window as any).__AR_AVES_DEBUG__
     ui.dispose()
-  }
+  }}
 }
 
 ecs.registerComponent({
   name: 'tap-to-place',
   schema: {prefab: 'eid'}, // Compatibilidad con el prefab conservado en Studio.
   add: (world, {eid}) => { controllers.set(eid, attach(world, eid)) },
-  remove: (_world, {eid}) => { controllers.get(eid)?.(); controllers.delete(eid) },
+  tick: (_world, {eid}) => { controllers.get(eid)?.tick() },
+  remove: (_world, {eid}) => { controllers.get(eid)?.dispose(); controllers.delete(eid) },
 })
 
 // Conserva campus y controles de plantilla en la escena, fuera del recorrido piloto.

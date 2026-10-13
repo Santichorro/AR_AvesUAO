@@ -134,6 +134,15 @@
         "habitat": "Prefiere los bordes del bosque, la vegetación secundaria y los jardines de algunas áreas.",
         "comportamiento": "Se alimenta a distintas alturas, desde niveles bajos hasta altos, y suele visitar comederos.",
         "rasgos": "Cola con una amplia zona de color canela, sin forma horquetada, y vientre gris con aspecto manchado."
+      },
+      "llegada": {
+        "duracionSegundos": 2.25,
+        "mezclaReposoSegundos": 0.16,
+        "alturaMinima": 0.45,
+        "alturaMaxima": 0.75,
+        "radioMinimo": 0.35,
+        "radioMaximo": 0.65,
+        "exponenteVertical": 1.1
       }
     }
   ]

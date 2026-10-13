@@ -18,6 +18,8 @@
   "preparando": "Preparando el modelo y la cámara…",
   "escaneo": "Apunta al suelo y toca el lugar donde quieres que aparezca el Colibrí Colirufo.",
   "colocando": "Cargando el Colibrí Colirufo en el punto elegido…",
+  "aterrizando": "El Colibrí Colirufo está aterrizando en el lugar elegido…",
+  "errorLlegada": "No se pudo completar la llegada del ave. Reinicia para volver a colocarla.",
   "explorar": "Toca el ave para abrir el menú y después toca una opción. Arrastra para girarla o usa dos dedos para cambiar su tamaño.",
   "reubicando": "Toca otro lugar del suelo. Cancelar conserva la ubicación anterior.",
   "seguimiento": "Mueve el celular lentamente para recuperar el seguimiento antes de colocar.",
