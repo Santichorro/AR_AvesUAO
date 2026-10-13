@@ -1,5 +1,6 @@
 import labels from './data/interfaz.json'
 import {RADIAL_CONFIG, RADIAL_ACTIONS, radialLayout} from './radial-gesture'
+import {createBirdAudio} from './bird-audio'
 
 type Controls = {start: () => void; reset: () => void; relocate: () => void;
   cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void; dismiss: () => void; radial: (action: string) => void}
@@ -8,18 +9,21 @@ const icons: Record<string, string> = {
   species: '<g fill="currentColor" stroke="none"><path d="M9.4 5.4C10.3 3.7 11.1 3 12 3s1.7.7 2.6 2.4C13.5 6.5 12.6 7.6 12 8.8c-.6-1.2-1.5-2.3-2.6-3.4Z"/><path d="M5.3 11.2C4.7 8.5 5.4 5.2 7.5 5.6c1.7.3 4 3.2 3.7 6.1-2.3 0-4.3-.2-5.9-.5Zm13.4 0c.6-2.7-.1-6-2.2-5.6-1.7.3-4 3.2-3.7 6.1 2.3 0 4.3-.2 5.9-.5Z"/><path d="M4.2 7.8C1.9 8.8 1 9.8 1 10.7c0 1.5 2 2.9 5.9 3.7.6.1.8.6.6 1-.1.5-.6.6-1.1.5-1.9-.4-3.4-.9-4.4-1.3-.8-.4-1.1.4-.5 1.2 1.8 2.2 6.7 2.6 11.4 1.2.5-.2.9 0 1 .4.2.5-.1.8-.6 1-3.1 1-6.7 1.3-9.5.6C5.6 21 8.7 22 12 22s6.4-1 8.2-3c-.6.2-1.4.4-2.2.5-.6.1-1-.3-1-.7 0-.4.3-.7.8-.8 3.3-.5 5.2-2.1 5.2-3.3 0-.3-.3-.5-.7-.4-1.3.7-3.1 1.3-4.6 1.6-.5.1-1-.1-1.1-.6-.1-.5.2-.8.7-.9 3.8-.8 5.7-2.2 5.7-3.7 0-.9-.9-1.9-3.2-2.9l.2 1.8c1 .4 1.5.9 1.5 1.2 0 1-4.3 2-9.5 2s-9.5-1-9.5-2c0-.3.5-.8 1.5-1.2Z"/></g>',
   info: '<path d="M4 5h6l2 2 2-2h6v14h-6l-2 2-2-2H4Z"/><path d="M12 7v14M7 9h2m-2 4h2m6-4h2m-2 4h2"/>',
   animation: '<path d="M8 5v14l11-7Z"/><path d="M4 5v14"/>',
+  song: '<path d="M4 9h4l5-4v14l-5-4H4Z"/><path class="aves-sound-wave" d="M16 8a6 6 0 0 1 0 8"/><path class="aves-sound-wave" d="M19 5a10 10 0 0 1 0 14"/>',
   relocate: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
   reset: '<path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
 }
 const icon = (name: string) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[name]}</svg>`
-const radialText: Record<string, string> = {info: labels.radialFicha, animation: labels.radialAnimaciones, relocate: labels.radialReubicar, reset: labels.radialReiniciar}
+const radialText: Record<string, string> = {info: labels.radialFicha, animation: labels.radialAnimaciones, song: labels.radialCanto, relocate: labels.radialReubicar, reset: labels.radialReiniciar}
 function radialMarkup() {
   const inner = 144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius
   const polar = (r: number, deg: number) => { const a = deg * Math.PI / 180; return {x: 160 + r * Math.cos(a), y: 160 + r * Math.sin(a)} }
   return RADIAL_ACTIONS.map((action: string, index: number) => {
-    const angle = -90 + index * 90
-    const a = polar(144, angle - 43), b = polar(144, angle + 43), c = polar(inner, angle + 43), d = polar(inner, angle - 43)
+    const sectorAngle = 360 / RADIAL_ACTIONS.length
+    const angle = -90 + index * sectorAngle
+    const half = sectorAngle / 2 - 2
+    const a = polar(144, angle - half), b = polar(144, angle + half), c = polar(inner, angle + half), d = polar(inner, angle - half)
     const point = polar(94, angle)
     return `<g class="aves-radial-sector" data-radial="${action}" role="button" tabindex="-1">
       <path d="M${a.x} ${a.y} A144 144 0 0 1 ${b.x} ${b.y} L${c.x} ${c.y} A${inner} ${inner} 0 0 0 ${d.x} ${d.y} Z"/>
@@ -42,6 +46,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       <button data-close="species">${icon('close')}</button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
     <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
     <p class="aves-preview"></p>
+    <div class="aves-listening" data-aves-ui role="status" aria-live="polite" aria-hidden="true">${icon('song')}<span></span></div>
     <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
     <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title">
       <div class="aves-info-heading"><div><h2 id="aves-info-title"></h2><p class="aves-scientific"><em></em></p><p class="aves-family"></p></div><button data-close="info">${icon('close')}</button></div>
@@ -54,6 +59,19 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       <div class="aves-actions"><button data-action="idle"></button><button data-action="pause"></button></div></section>`
   document.body.append(root)
   const get = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!
+  const listening = get('.aves-listening')
+  const listeningText = get('.aves-listening span')
+  const song = createBirdAudio({
+    url: bird.audioCanto,
+    onPlaying(playing: boolean) {
+      listening.classList.toggle('is-playing', playing)
+      listening.setAttribute('aria-hidden', String(!playing))
+      if (playing) listeningText.textContent = labels.escuchaCanto
+    },
+    onError(reason: string) {
+      setStatusMessage(reason === 'blocked' ? labels.cantoBloqueado : reason === 'missing' ? labels.cantoPendiente : labels.errorCanto)
+    },
+  })
   get('h1').replaceChildren(...labels.titulo.split(/(\bUAO\b)/).map(part => {
     if (part !== 'UAO') return document.createTextNode(part)
     const accent = document.createElement('span')
@@ -194,6 +212,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   const closeRadial = () => {
     pressedSector = null
     menu.classList.remove('is-open'); menu.setAttribute('aria-hidden', 'true')
+    root.classList.remove('has-radial')
     highlightRadial(null)
     root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.setAttribute('tabindex', '-1'))
   }
@@ -206,6 +225,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     menu.style.left = layout.x + 'px'; menu.style.top = layout.y + 'px'
     menu.style.width = menu.style.height = (layout.radius * 320 / 144) + 'px'
     menu.setAttribute('aria-hidden', 'false'); menu.classList.add('is-open')
+    root.classList.add('has-radial')
     root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.setAttribute('tabindex', '0'))
   }
   const openInfo = (point?: {x: number; y: number} | null) => {
@@ -216,8 +236,9 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     closeRadial(); closePanels()
     if (action === 'info') openGuide()
     if (action === 'animation') openAnimation()
-    if (action === 'relocate') controls.relocate()
-    if (action === 'reset') controls.reset()
+    if (action === 'song' && root.dataset.phase === 'EXPLORAR') song.play()
+    if (action === 'relocate') { song.stop(); controls.relocate() }
+    if (action === 'reset') { song.stop(); controls.reset() }
   }
   const status = get('.aves-status')
   const statusDismiss = get<HTMLButtonElement>('[data-dismiss="status"]')
@@ -294,7 +315,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       if (open) openSpecies()
       return
     }
-    if (button.dataset.species) { closeSpecies(); return }
+    if (button.dataset.species) { song.stop(); closeSpecies(); return }
     if (button.dataset.close === 'species') { closeSpecies(); return }
     if (button.dataset.close === 'animation') { closeAnimation(); return }
     if (button.dataset.close) { closePanels(); return }
@@ -364,7 +385,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   document.addEventListener('keydown', escape)
   const dismissMenu = () => closeRadial()
-  const hiddenDocument = () => { if (document.hidden) closeRadial() }
+  const hiddenDocument = () => { if (document.hidden) { closeRadial(); song.stop() } }
   window.addEventListener('blur', dismissMenu)
   window.addEventListener('resize', dismissMenu)
   document.addEventListener('visibilitychange', hiddenDocument)
@@ -392,9 +413,10 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       get('[data-action="cancel"]').hidden = phase !== 'REUBICAR'
       get('[data-action="reset"]').hidden = !['COLOCANDO','ERROR'].includes(phase)
       get<HTMLButtonElement>('[data-action="reset"]').disabled = !snapshot.position && phase !== 'ERROR'
-      if (!placed) { closePanels(); closeRadial() }
+      if (!placed) { song.stop(); closePanels(); closeRadial() }
     },
     dispose() {
+      song.dispose()
       closeAnimation(true)
       animationMotion.removeEventListener('change', reduceAnimationExit)
       closeSpecies(true)

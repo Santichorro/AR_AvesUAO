@@ -32,7 +32,12 @@
       "especieAsignada": "Amazilia tzacatl",
       "tipoRepresentacion": "ilustrativa",
       "modelo": "assets/models/colibri.glb",
-      "audioCanto": null,
+      "audioCanto": "assets/audio/colibri_canto.mp3",
+      "creditoAudio": {
+        "origen": "Archivo colirufoSound.mp3 proporcionado por el usuario para el Colibrí Colirufo",
+        "autor": null,
+        "licencia": null
+      },
       "imagen": "assets/img/colirufo.jpg",
       "escalaExhibicion": 0.25,
       "inspeccion": {
@@ -106,7 +111,7 @@
         "consulta": "2026-10-12"
       },
       "pendientes": [
-        "Incorporar canto documentado",
+        "Registrar autoría y licencia del canto aportado",
         "Registrar autoría y licencia de la fotografía aportada",
         "Confirmar licencia de redistribución del modelo antes de publicar"
       ],

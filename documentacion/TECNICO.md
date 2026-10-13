@@ -389,7 +389,7 @@ Reiniciar detiene audio, cancela movimientos/cargas pendientes, invalida solicit
 
 1. Mantener ID seleccionado, ID del ave activa, entidad del modelo y catálogo por ID. Durante exploración solo hay una entidad de ave activa.
 2. Preparar zonas de toque suficientemente grandes, comprobando collider/raycast con la versión de Studio.
-3. Resolver el gesto según el estado: en EXPLORAR se conserva la ruta funcional tap sobre el ave → ui.openInfo(point), pero la UI presenta el círculo persistente. Un segundo tap ejecuta Ficha, Animaciones, Reubicar o Reiniciar directamente desde la UI. Ficha llama a openGuide para mostrar la guía existente, sin volver a abrir el círculo. Arrastre y pinch no cuentan como tap. Tocar fuera o Escape cancela el círculo; sus eventos no actúan detrás del HUD. AVISTAMIENTO registra objetivo; QUIZ_CANTO contesta tocando una tarjeta RA de especie.
+3. Resolver el gesto según el estado: en EXPLORAR se conserva la ruta funcional tap sobre el ave → ui.openInfo(point), pero la UI presenta el círculo persistente. Un segundo tap ejecuta Ficha, Animaciones, Canto, Reubicar o Reiniciar directamente desde la UI. Ficha llama a openGuide para mostrar la guía existente, sin volver a abrir el círculo. Arrastre y pinch no cuentan como tap. Tocar fuera o Escape cancela el círculo; sus eventos no actúan detrás del HUD. AVISTAMIENTO registra objetivo; QUIZ_CANTO contesta tocando una tarjeta RA de especie.
 4. Ignorar toques de aves cuando está activo un control superpuesto o no corresponde al modo.
 5. Mostrar el nombre del ave activa y permitir cambiarla con el selector. Bloquear ese selector durante quiz, búsqueda o carga de reemplazo.
 
@@ -428,6 +428,10 @@ ecs.Audio.set(world, audioEid, {
 La entidad de audio debe estar asociada a la posición buscada y la escala de la escena. Probar que movimiento de cámara y fuente produce cambios audibles. Fuente: [Audio](https://8thwall.org/docs/api/studio/ecs/audio).
 
 ### 7.3 Política de audio
+
+**Implementación vigente de exploración (13 de octubre de 2026):** src/bird-audio.js controla una instancia HTMLAudioElement no espacial. pilot-ui.ts la activa directamente al seleccionar Canto, quinta opción de 72° del círculo. No se modifican listeners de tap ni APIs ECS. La ruta assets/audio/colibri_canto.mp3 y crédito del archivo aportado están en aves.json; las etiquetas y errores en interfaz.json. El canto del reto espacial descrito arriba continúa siendo trabajo futuro.
+
+play() se invoca dentro del click, sin await previo ni temporizador de cierre. playing habilita el indicador; waiting lo retira hasta recuperar reproducción; pause y ended detienen la sesión. Una generación descarta promesas antiguas al repetir, detener o destruir; repetir pausa y vuelve a tiempo cero sobre el mismo elemento. Los errores de carga y NotAllowedError muestran mensajes distintos. Cambio de fase fuera de EXPLORAR, elección del selector, reubicación, reinicio y pestaña oculta detienen; dispose retira listeners, src y carga. Autor y licencia del MP3 no proporcionados se mantienen null. Fuentes: [HTMLMediaElement.play](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play), [playing](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playing_event) y [load](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/load).
 
 1. Activar/inicializar el sistema desde Comenzar o un botón de reproducción.
 2. Detener el canto anterior al seleccionar otra ave.

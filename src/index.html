@@ -132,6 +132,49 @@
 .aves-radial-center { fill: #f5f7f2ed; stroke: #ffffff; }
 .aves-radial-hint { fill: var(--aves-ink); font-size: 11px; font-weight: 700; }
 .aves-radial-subhint { fill: var(--aves-muted); font-size: 7px; }
+.aves-listening {
+  position: absolute;
+  pointer-events: auto;
+  right: calc(env(safe-area-inset-right, 0px) + 16px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: calc(100vw - 104px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid var(--aves-line);
+  border-radius: 18px;
+  background: var(--aves-paper);
+  color: var(--aves-ink);
+  box-shadow: var(--aves-shadow);
+  font-size: 12px;
+  font-weight: 550;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px) scale(.97);
+  transition: opacity 180ms var(--radial-close-ease), transform 180ms var(--radial-close-ease), visibility 0s 180ms;
+}
+.aves-listening.is-playing {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  transition-duration: 240ms, 240ms, 0s;
+  transition-timing-function: var(--radial-open-ease);
+  transition-delay: 0s;
+}
+.aves-listening svg { flex: 0 0 25px; width: 25px; height: 25px; color: var(--aves-red); }
+.aves-listening .aves-sound-wave { opacity: .4; }
+.aves-listening.is-playing .aves-sound-wave { animation: aves-listen-wave 1200ms ease-in-out infinite; }
+.aves-listening.is-playing .aves-sound-wave:last-child { animation-delay: 180ms; }
+.has-radial .aves-listening { opacity: 0; visibility: hidden; pointer-events: none; }
+.has-radial .aves-listening .aves-sound-wave { animation-play-state: paused; }
+@keyframes aves-listen-wave {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
+}
 .aves-header { display: flex; align-items: center; gap: 12px; align-self: flex-start; max-width: 100%; padding: 12px 18px 12px 12px; border-radius: 24px; }
 .aves-header > div { min-width: 0; }
 .aves-brand { display: block; width: 44px; height: 44px; flex: 0 0 44px; object-fit: contain; padding: 3px; }

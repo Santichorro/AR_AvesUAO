@@ -27,7 +27,7 @@ Contrastes calculados con luminancia sRGB sobre superficies sólidas: bosque/sup
 - Se elimina el morado del foco, las notas y los textos auxiliares.
 - Se reemplaza el brillo táctil del navegador por una pulsación rosa/roja y un foco rojo visible con teclado.
 - Se usan sombras suaves, borde superior claro y gradiente discreto para conservar el relieve de la referencia.
-- Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. El círculo ofrece Ficha, Animaciones, Reubicar y Reiniciar. Los controles ya existentes dentro de la ficha se conservan.
+- Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. El círculo ofrece Ficha, Animaciones, Canto, Reubicar y Reiniciar. Los controles ya existentes dentro de la ficha se conservan.
 - Se mantiene la zona central libre para observar y manipular el ave. El HUD conserva su comportamiento de eventos.
 - El colibrí del encabezado aparece directamente sobre la tarjeta, sin recuadro rosa ni borde rojo. Su espacio exterior de 44 px se conserva y el padding baja de 7 a 3 px para ampliar la ilustración sin desplazar el texto.
 - En el título «Aves UAO», solo «UAO» usa rojo UAO (#ed1d24), como el colibrí; «Aves» conserva el verde bosque. El texto completo continúa procediendo de interfaz.json.
@@ -68,7 +68,7 @@ Validación del selector sobre dist/bundle.js en Edge con ECS simulado: entrada/
 
 En EXPLORAR se conserva exactamente la ruta de tap sobre el ave que el usuario comprobó físicamente: el controlador llama ui.openInfo y únicamente añade el punto del viewport que ya calculaba. Esa entrada ahora presenta el círculo. No se cambian listeners, hit del modelo, distinción de arrastre/pinch, coordenadas ni condiciones de estado. No se usa pulsación prolongada, temporizador de activación ni un nuevo reconocedor del ave.
 
-El círculo permanece al soltar y un segundo tap ejecuta una de las cuatro opciones. Ficha llama a openGuide, que presenta la ficha específica del Colirufo y Cerrar; no llama nuevamente a openInfo. Los sectores y los botones de la ficha comparten el despachador de acciones, sin depender de RadialGesture.select ni de su fase. Tocar fuera, Escape o cancelar cierran el círculo sin ejecutar. El toque exterior, incluido su click residual, se consume incluso si cae sobre otro botón del HUD.
+El círculo permanece al soltar y un segundo tap ejecuta una de las cinco opciones. Ficha llama a openGuide, que presenta la ficha específica del Colirufo y Cerrar; no llama nuevamente a openInfo. Los sectores y los botones de la ficha comparten el despachador de acciones, sin depender de RadialGesture.select ni de su fase. Tocar fuera, Escape o cancelar cierran el círculo sin ejecutar. El toque exterior, incluido su click residual, se consume incluso si cae sobre otro botón del HUD.
 
 Arrastre y pinch no abren el círculo ni la ficha. Los controles del HUD se filtran antes de manipular el ave. Reubicar conserva escala y giro y requiere un toque nuevo para elegir el punto; Cancelar conserva el anterior. Inicio, recuperación y reinicio durante carga/error siguen accesibles. El selector de aves continúa abajo a la izquierda.
 
@@ -91,6 +91,18 @@ El modelo existente representa al Colirufo por decisión del usuario. La ficha m
 Descripción, Hábitat, Comportamiento y Rasgos de identificación se presentan con títulos de 15 px en negrita, verde de vegetación y una línea lateral discreta. La fuente se separa al pie y las acciones existentes permanecen accesibles mediante scroll. Se retiraron nota de especie no confirmada, selector de referencias, candidatas y fotografía pendiente. Los datos de otras fichas se archivan en REFERENCIAS_COLIBRIES.json para futuras etapas. Se mantienen rojo UAO, superficies claras, bordes suaves y sombras ligeras.
 
 La comprobación visual del bundle en 390×844, 320×568, 844×390 y 1100×1000 confirma fotografía cargada, proporción natural, subtítulos visibles, encabezado ajustado, scroll y acciones sin desbordamiento horizontal. Conserva ID colibri, ruta del GLB, clips y controles. No hay comprobación física de esta ficha todavía.
+
+## Canto e indicador de escucha — 13 de octubre de 2026
+
+El círculo tiene cinco sectores de 72°: Ficha, Animaciones, Canto, Reubicar y Reiniciar. Se mantienen separaciones de 4°, radio, centro, iconos de las opciones previas, ajuste de bordes, tap funcional y segundo tap independiente. Canto usa un altavoz; el círculo conserva salida de 160 ms y el audio se inicia en la misma interacción, sin esperar una transición ni activar pulsación prolongada.
+
+Un distintivo de escucha se sitúa abajo a la derecha, separado del selector inferior izquierdo y de los paneles superiores. Superficie clara, texto bosque de 12 px y altavoz rojo UAO de 25 px; altura mínima 44 px. «Escucha el canto» aparece cuando el audio emite playing; waiting, pause, ended o error retiran la indicación. Dos ondas varían opacidad en 1200 ms, con desfase de 180 ms. El distintivo entra en 240 ms con desaceleración y sale en 180 ms con aceleración, desplazamiento de 6 px y escala 0.97. No añade botones. Su zona consume contactos de HUD; no gira ni coloca el ave detrás.
+
+Al abrir el radial, el distintivo se aparta visualmente para no solaparse con sectores, sin detener el canto. Al cerrar el círculo reaparece si la reproducción continúa. Movimiento reducido elimina ondas y transiciones. aria-live y aria-hidden informan el estado sin anunciar cada ciclo de ondas. Los mensajes de error y la etiqueta proceden de interfaz.json; audio y crédito proceden de aves.json.
+
+Validación: 31 pruebas unitarias aprobadas y build generado. Revisión visual de los cinco sectores y distintivo en 390×844, 320×568 y 844×390, sin solapamiento con el selector ni overflow. Edge decodificó el MP3 real y comprobó inicio, repetición, fin y limpieza; también se probaron errores, movimiento reducido y canvas desplazado. ECS y raycast simulados, navegador headless silenciado; pendiente la percepción del canto y suavidad en Studio, Android e iPhone. CSS e inline permanecen idénticos.
+
+Fuentes de implementación web: [play() y su promesa](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play), [evento playing](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playing_event) y [load() para liberar la carga](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/load).
 
 ## Coordenadas de simulación
 

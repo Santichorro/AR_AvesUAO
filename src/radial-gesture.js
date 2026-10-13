@@ -2,7 +2,7 @@
 export const RADIAL_CONFIG = Object.freeze({
   radius: 144, deadRadius: 44, moveThreshold: 10, edgePadding: 12, visualScale: 1.08,
 })
-export const RADIAL_ACTIONS = Object.freeze(['info', 'animation', 'relocate', 'reset'])
+export const RADIAL_ACTIONS = Object.freeze(['info', 'animation', 'song', 'relocate', 'reset'])
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 
@@ -28,9 +28,10 @@ export function radialSector(point, layout) {
   if (r <= layout.deadRadius || r > layout.radius) return null
   const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360
   // 4° de separación visual en cada límite; la geometría no cambia al resaltar.
-  const offset = (angle + 45) % 90
-  if (offset < 2 || offset > 88) return null
-  return RADIAL_ACTIONS[Math.floor(((angle + 45) % 360) / 90)]
+  const sectorAngle = 360 / RADIAL_ACTIONS.length
+  const offset = (angle + sectorAngle / 2) % sectorAngle
+  if (offset < 2 || offset > sectorAngle - 2) return null
+  return RADIAL_ACTIONS[Math.floor(((angle + sectorAngle / 2) % 360) / sectorAngle)]
 }
 
 export class RadialGesture {

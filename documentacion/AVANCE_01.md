@@ -19,10 +19,11 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Vista 3D de escritorio para probar sin cámara. No es una simulación certificada de RA.
 - Interfaz natural con tarjetas claras, relieve suave, textos verde bosque y rojo UAO. Foco y pulsación sin morado; controles de al menos 48 px. Ver [DISENO_UI.md](DISENO_UI.md) para paleta y criterio visual.
 - Selector compacto con icono de ave abajo a la izquierda: muestra las cinco opciones, solo colibrí habilitado. Se cierra al elegir, tocar fuera o pulsar Cerrar.
-- Un tap breve sobre el ave abre el menú circular y este permanece abierto al retirar el dedo. Un segundo tap ejecuta Ficha, Animaciones, Reubicar o Reiniciar y cierra el círculo. Tocar fuera o pulsar Escape lo cierra sin acciones.
+- Un tap breve sobre el ave abre el menú circular y este permanece abierto al retirar el dedo. Un segundo tap ejecuta Ficha, Animaciones, Canto, Reubicar o Reiniciar y cierra el círculo. Tocar fuera o pulsar Escape lo cierra sin acciones.
 - La ruta de tap que el usuario comprobó físicamente se conserva: tap sobre el modelo → ui.openInfo(point). Solo se pasa el punto del viewport que ya calculaba el controlador. La UI presenta el círculo; openGuide presenta la ficha del Colirufo únicamente al elegir Ficha, conservando Cerrar y las acciones anteriores. Se retiraron selector de referencias, candidatas y avisos de modelo genérico.
 - Arrastre y pinch no abren el círculo ni la ficha. Se mantienen listeners, hit del modelo, condiciones de estado, limpieza y conversión canvas/viewport. No se activa el reconocedor RadialGesture para abrir o elegir: los sectores usan directamente las mismas acciones de los botones. Un nuevo pointerdown en el sector es necesario para aceptar su click; los eventos residuales de apertura o cancelación se ignoran sin temporizadores de activación.
 - Cancelar reubicación permanece visible fuera del radial. Reiniciar durante carga/error y Comenzar/Reintentar conservan acceso contextual.
+- Canto es la quinta opción del círculo: cierra el menú e inicia el MP3 aportado desde ese mismo click. Un altavoz rojo con ondas y «Escucha el canto» indica reproducción real, con entrada/salida suave. Repetir reinicia una única instancia; fin, pausa, errores, reubicación, selección de ave, cambio de fase, pestaña oculta y dispose detienen o retiran el indicador según corresponda.
 
 ## Recursos y fuentes
 
@@ -33,6 +34,8 @@ Se ocultan en la copia las mallas Prop_Perch, Prop_TrumpetFlower y Prop_TrumpetF
 Fuente académica vigente de esta ficha: GUIA AVES UAO FINAL.pdf, primera edición 2023, página 17, revisada visualmente. Autores indicados en página 2: Germán Morales Zuñiga y Natalia Lenis Sánchez. La sección Colibrí Colirufo respalda hábitat, alimentación a distintas alturas, visita a comederos, cola canela no horquetada y vientre gris manchado; la ilustración muestra plumaje verde. No se añaden dieta, medidas o distribución no especificadas. La asignación del modelo al Colirufo es una decisión del usuario para el proyecto.
 
 Fotografía: src/assets/img/colirufo.jpg, copia íntegra del archivo aportado (480×639, 28.096 bytes). El original permanece en Downloads. La imagen se muestra completa, proporcional, con alt descriptivo y crédito «Fotografía proporcionada por el usuario», independiente de la cita académica. Autor y licencia no se inventan. Las referencias previas de otras especies se conservan en REFERENCIAS_COLIBRIES.json, fuera de la ficha y del bundle activo.
+
+Canto: src/assets/audio/colibri_canto.mp3, copia íntegra de colirufoSound.mp3 aportado por el usuario para el Colirufo (484.891 bytes; duración decodificada en Edge: 30,296 s). Ruta y procedencia en aves.json; autor y licencia no proporcionados, registrados como null. No se atribuye al PDF ni se añade una animación vocal inexistente al GLB. El original de Downloads permanece sin cambios. Este avance usa audio de exploración no espacial; el audio espacial del reto sigue pendiente.
 
 Autoría del modelo según metadatos: animalanimator.com. No se encontró una licencia en los archivos aportados. Registrar la licencia real y la atribución necesaria antes de publicar externamente este asset.
 
@@ -51,6 +54,15 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 11. Hacer pinch con dos dedos: la escala debe cambiar de forma uniforme, respetar los límites y conservar el punto de apoyo. Reubicar debe mantener giro y escala; Reiniciar debe restaurarlos para la siguiente colocación.
 12. Probar un tap sobre el ave fuera del centro y con canvas reducido/desplazado: debe abrir el círculo ajustado a la pantalla. Repetir en horizontal y con áreas seguras. La ficha abierta desde su sector debe permitir scroll.
 13. Repetir apertura/cierre, Escape, scroll de la ficha, animación, reubicación/cancelación y reinicio. El tap inicial, una liberación residual y pointercancel no deben seleccionar sectores. El HUD no debe modificar el ave por gestos detrás de los paneles.
+14. Elegir Canto: el círculo sale suavemente y el audio empieza sin esperar su salida. Durante reproducción aparece «Escucha el canto» con ondas; al finalizar desaparece suavemente. Repetir Canto reinicia sin superponer. Reubicar, Reiniciar, seleccionar un ave y ocultar la pestaña detienen el audio. El indicador queda apartado al abrir el círculo para evitar solapamientos y vuelve al cerrarlo si el canto sigue sonando.
+
+### Validación de Canto — 13 de octubre de 2026
+
+Pasan las 31 pruebas unitarias existentes/adaptadas, incluidas cinco nuevas de instancia única, activación síncrona, eventos de reproducción, carreras entre solicitudes, bloqueos, errores y dispose. La geometría prueba los cinco centros y sus separaciones. Compilación correcta con dos avisos de tamaño; el MP3 añade 474 KiB a los assets señalados por webpack. El MP3 original, src y dist tienen el mismo SHA-256; CSS e inline sincronizados.
+
+Sobre dist/bundle.js, Edge decodificó el MP3 real con progreso de currentTime y evento ended en 390×844, 320×568 y 844×390. Se comprobaron cinco sectores accesibles, color rojo, ondas, indicador, una instancia, repetición, fin, reubicación/cancelación, selección y reinicio, sin errores de página. En canvas reducido se verificaron bloqueo de permisos simulado, error por URL inexistente, movimiento reducido, pestaña oculta y eliminación del controlador con limpieza del audio. Pasó también la regresión de ficha, seis clips, tap, eventos residuales, giro/pinch, reubicación y reinicio, teclado, toque emulado y áreas seguras. World/ECS/raycast son simulados; el navegador decodifica audio real pero la ejecución headless está silenciada: no se ha verificado escucha física, volumen, cámara ni tracking.
+
+Pendiente en Studio, Android/Chrome e iPhone/Safari: reproducción desde el segundo tap, volumen y salida del dispositivo, interrupciones, regreso desde segundo plano, suavidad sobre cámara real y controles en áreas seguras. No se hizo push ni despliegue.
 
 ## Pruebas automatizadas
 
@@ -67,7 +79,7 @@ Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). Devuelv
 - El usuario confirmó la ruta de tap y el funcionamiento del menú circular. La nueva ficha del Colirufo requiere comprobación en Studio, Android/Chrome e iPhone/Safari: carga de fotografía, scroll, legibilidad, cierre, subtítulos y botones sin acciones detrás del HUD. Revisar también giro/pinch, permisos, tracking, apoyo, áreas seguras, horizontal y rendimiento.
 - El hit de la plantilla se calcula sobre Ground con tracking activo; no ofrece selección de múltiples planos físicos como ARKit/ARCore. Comprobar el apoyo real en el suelo con dispositivos.
 - El aro del HUD orienta el escaneo; no afirma ser una retícula proyectada con hit-test continuo.
-- Incorporar canto documentado y registrar autoría/licencia de fotografía y modelo. La representación del Colirufo ya está definida por el usuario.
+- Canto aportado integrado; registrar autoría/licencia de audio, fotografía y modelo. La representación del Colirufo ya está definida por el usuario.
 - Incorporar cuatro modelos y sus fichas completas en etapas siguientes.
 - Quizzes y avistamiento no se implementan en este avance.
 - Confirmar Pages y despliegue real tras revisión por PR; no se ha publicado ni hecho push.

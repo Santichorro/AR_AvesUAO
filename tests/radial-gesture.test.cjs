@@ -55,9 +55,15 @@ test('dos dedos con menú abierto cancelan hasta retirar ambos',async()=>{
  f.gesture.release(3);assert.equal(f.gesture.phase,'idle')
 })
 test('sectores angulares y límites conservan su geometría',async()=>{
- const {radialSector}=await modulePromise;const l={x:200,y:300,radius:144,deadRadius:44}
- for(const [p,a] of [[{x:200,y:200},'info'],[{x:300,y:300},'animation'],[{x:200,y:400},'relocate'],[{x:100,y:300},'reset']])assert.equal(radialSector(p,l),a)
- for(const p of [{x:200,y:300},{x:244,y:300},{x:400,y:300},{x:270,y:230}])assert.equal(radialSector(p,l),null)
+ const {radialSector,RADIAL_ACTIONS}=await modulePromise;const l={x:200,y:300,radius:144,deadRadius:44}
+ assert.deepEqual([...RADIAL_ACTIONS],['info','animation','song','relocate','reset'])
+ for(let i=0;i<RADIAL_ACTIONS.length;i++) {
+  const angle=(-90+i*72)*Math.PI/180
+  assert.equal(radialSector({x:l.x+100*Math.cos(angle),y:l.y+100*Math.sin(angle)},l),RADIAL_ACTIONS[i])
+  const gap=(angle+36*Math.PI/180)
+  assert.equal(radialSector({x:l.x+100*Math.cos(gap),y:l.y+100*Math.sin(gap)},l),null)
+ }
+ for(const p of [{x:200,y:300},{x:244,y:300},{x:400,y:300}])assert.equal(radialSector(p,l),null)
 })
 test('ajuste de esquinas mantiene sectores dentro de la pantalla',async()=>{
  const {radialLayout}=await modulePromise
