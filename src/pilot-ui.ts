@@ -10,6 +10,7 @@ const icons: Record<string, string> = {
   animation: '<path d="M8 5v14l11-7Z"/><path d="M4 5v14"/>',
   relocate: '<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
   reset: '<path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/>',
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
 }
 const icon = (name: string) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[name]}</svg>`
 const radialText: Record<string, string> = {info: labels.radialFicha, animation: labels.radialAnimaciones, relocate: labels.radialReubicar, reset: labels.radialReiniciar}
@@ -38,7 +39,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     <div class="aves-scan" aria-hidden="true"><span></span></div>
     <button class="aves-species-trigger" data-aves-ui data-species-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="aves-species-popover">${icon('species')}</button>
     <aside class="aves-species-popover" id="aves-species-popover" data-aves-ui role="dialog" aria-labelledby="aves-species-title" aria-hidden="true" hidden>
-      <button data-close="species"></button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
+      <button data-close="species">${icon('close')}</button><h2 id="aves-species-title"></h2><div id="aves-species"></div></aside>
     <div class="aves-context-controls"><button data-action="cancel" hidden></button><button data-action="reset" hidden></button></div>
     <p class="aves-preview"></p>
     <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
@@ -131,7 +132,9 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   root.querySelectorAll<HTMLButtonElement>('button').forEach(b => {
     b.type = 'button'
     if (b.dataset.action) b.textContent = buttonLabels[b.dataset.action]
-    if (b.dataset.close) b.textContent = labels.cerrar
+    if (b.dataset.close === 'species') {
+      b.setAttribute('aria-label', labels.cerrar); b.title = labels.cerrar
+    } else if (b.dataset.close) b.textContent = labels.cerrar
   })
   const speciesPopover = get('#aves-species-popover')
   let speciesOpen = false

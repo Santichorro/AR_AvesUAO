@@ -84,7 +84,8 @@
   transition-timing-function: cubic-bezier(.16, 1, .3, 1);
 }
 .aves-species-popover h2 { font-size: 15px; margin: 10px 0 18px; }
-#aves-pilot .aves-species-popover > button { float: right; font-size: 12px; padding: 8px 10px; min-height: 44px; }
+#aves-pilot .aves-species-popover > button { float: right; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 10px; border-radius: 50%; }
+.aves-species-popover > button svg { display: block; width: 100%; height: 100%; }
 #aves-species { display: grid; gap: 8px; clear: both; }
 #aves-species button { text-align: left; }
 #aves-species button[aria-pressed="true"] { background: var(--aves-sage); border-color: #a6bca5; }
