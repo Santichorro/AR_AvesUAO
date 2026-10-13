@@ -28,6 +28,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let activeClip = bird.animaciones.reposo
   let ui: ReturnType<typeof createPilotUi>
   const arrival = new ArrivalMotion(bird.llegada, landingCalibration)
+  const landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
   let landingFrameApplied = false
   const inspection = new InspectionControls({
     escalaBase: bird.escalaExhibicion,
@@ -98,14 +99,10 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       const pose = arrival.advance(world.time.delta / 1000, session.generation)
       if (!pose) return
       applyArrivalPose(pose)
-      if (!pose.landed) {
-        // Un reloj para pose y trayectoria. time salta a segundos; timeScale=0
-        // impide que el motor añada avance por su cuenta entre esos saltos.
-        ecs.GltfModel.set(world, model, {time: pose.clipTime, timeScale: 0})
-      } else if (arrival.phase === 'approach') {
-        ecs.GltfModel.set(world, model, {time: landingCalibration.contactoSegundos, timeScale: 0})
-        // Presentar la pose de contacto un fotograma antes de cambiar de clip.
-        // Dos escrituras de time/clip en el mismo tick pueden quedar fusionadas.
+      // El motor reproduce el clip con velocidad positiva, usando el mismo delta
+      // ECS que la trayectoria. timeScale=0 también congela las poses al hacer seek.
+      if (pose.landed && arrival.phase === 'approach') {
+        // Mantener un fotograma de contacto antes de mezclar con reposo.
         if (!landingFrameApplied) { landingFrameApplied = true; return }
         arrival.beginBlend()
         activeClip = bird.animaciones.reposo
@@ -143,6 +140,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
         if (model !== currentModel || !session.loaded(generation)) return
         clearLoadTimer()
         activeClip = bird.animaciones.aterrizaje
+        ecs.GltfModel.set(world, currentModel, {time: 0, timeScale: landingRate, paused: !session.trackingReady})
       }
       finishedListener = (event: any) => {
         if (model === currentModel && session.phase === 'EXPLORAR' && event.data.name === activeClip) {
@@ -156,9 +154,12 @@ function attach(world: ecs.World, ground: ecs.Eid) {
         if (session.generation === generation && session.phase === 'COLOCANDO') session.fail(labels.errorRecurso)
       }, 30000)
       activeClip = bird.animaciones.aterrizaje
-      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: false, paused: false, time: 0, timeScale: 0})
+      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: false, paused: true, time: 0, timeScale: landingRate})
     },
   }, snapshot => {
+    if (model !== null && snapshot.phase === 'ATERRIZANDO') {
+      ecs.GltfModel.set(world, model, {paused: !snapshot.trackingReady})
+    }
     if (snapshot.phase !== 'EXPLORAR' || !snapshot.trackingReady) {
       radial.cancel()
       inspectionTouch = null
