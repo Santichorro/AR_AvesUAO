@@ -78,7 +78,7 @@ APK, cuentas, ranking en servidor, reconocimiento automático de aves reales con
 3. **Escaneo:** guía para mover el celular y localizar una superficie válida.
 4. **Selección y colocación:** el usuario elige un ave y toca un área válida del plano; aparece esa especie directamente en el punto elegido.
 5. **Cambio de especie:** el selector reemplaza el ave visible por otra en el mismo punto. Solo queda una ave activa.
-6. **Exploración:** toca el ave activa para abrir directamente su ficha y la guía; consulta sus datos y reproduce su canto cuando esté integrado. La ficha permanece asociada a la escena y ofrece Animaciones, Reubicar y Reiniciar.
+6. **Exploración:** toca el ave activa para abrir el menú circular y después toca una opción: Ficha, Animaciones, Reubicar o Reiniciar. Ficha abre la guía existente; consulta sus datos y reproduce su canto cuando esté integrado. Tocar fuera o Escape cierra el círculo sin acciones.
 7. **Inspección:** rota o escala el ave seleccionada dentro de límites útiles y puede restaurarla.
 8. **Reubicación y avistamiento:** puede elegir otro punto de colocación. En el reto busca el ave activa guiándose por el sonido y la toca para registrarla.
 9. **Quiz:** identifica cantos tocando tarjetas de especies en RA y responde preguntas relacionadas con las fichas.

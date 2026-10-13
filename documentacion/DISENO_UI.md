@@ -27,7 +27,7 @@ Contrastes calculados con luminancia sRGB sobre superficies sólidas: bosque/sup
 - Se elimina el morado del foco, las notas y los textos auxiliares.
 - Se reemplaza el brillo táctil del navegador por una pulsación rosa/roja y un foco rojo visible con teclado.
 - Se usan sombras suaves, borde superior claro y gradiente discreto para conservar el relieve de la referencia.
-- Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. Las acciones de Animaciones, Reubicar y Reiniciar se presentan dentro de la ficha.
+- Botones de al menos 48 px y cerrar de 44 px; icono de selección de 56 px. El círculo ofrece Ficha, Animaciones, Reubicar y Reiniciar. Los controles ya existentes dentro de la ficha se conservan.
 - Se mantiene la zona central libre para observar y manipular el ave. El HUD conserva su comportamiento de eventos.
 - Se contemplan celulares estrechos, escritorio, modo horizontal y preferencia de movimiento reducido.
 - La selección de aves usa ahora un popover de botones propio; cuatro especies siguen deshabilitadas. El selector de fichas de referencia conserva su menú nativo.
@@ -46,23 +46,23 @@ Validación realizada el 12 de octubre de 2026: HUD real renderizado en Edge sin
 
 Queda pendiente revisar con cámara real en Android/Chrome e iPhone/Safari: lectura al sol y frente a fondos claros/oscuros, safe areas, selector nativo y pulsación táctil. Las vistas de navegador sin motor verifican el HUD, no el seguimiento AR.
 
-## Guía directa y selector compacto
+## Menú circular por tap y selector compacto
 
 La tarjeta inferior permanente se sustituye por el icono de ave abajo a la izquierda. Abre las cinco especies y se cierra al seleccionar, tocar fuera o usar Cerrar. El toque exterior se consume para que no coloque ni manipule el modelo.
 
-Se recupera la ruta anterior a los cambios de menú circular: en EXPLORAR, un tap sobre el ave abre directamente Ficha del colibrí. Conserva la nota del modelo ilustrativo, fuente UAO, selector de referencias y contenido de la guía. Cerrar o Escape cierra el panel. No se requiere hold ni selección intermedia.
+En EXPLORAR se conserva exactamente la ruta de tap sobre el ave que el usuario comprobó físicamente: el controlador llama ui.openInfo y únicamente añade el punto del viewport que ya calculaba. Esa entrada ahora presenta el círculo. No se cambian listeners, hit del modelo, distinción de arrastre/pinch, coordenadas ni condiciones de estado. No se usa pulsación prolongada, temporizador de activación ni un nuevo reconocedor del ave.
 
-El panel mantiene superficies claras, bordes suaves, salvia y rojo UAO, scroll y tamaños móviles. Los botones Probar animaciones, Reubicar y Reiniciar se colocan dentro de la ficha para mantener esas funciones accesibles. El selector de aves sigue abajo a la izquierda.
+El círculo permanece al soltar y un segundo tap ejecuta una de las cuatro opciones. Ficha llama a openGuide, una función propia de la UI que conserva la guía, nota ilustrativa, fuente UAO, selector de referencias y Cerrar; no llama nuevamente a openInfo. Los sectores y los botones previos de la guía comparten el despachador de acciones, sin depender de RadialGesture.select ni de su fase. Tocar fuera, Escape o cancelar cierran el círculo sin ejecutar. El toque exterior, incluido su click residual, se consume incluso si cae sobre otro botón del HUD.
 
-Arrastre y pinch no abren la ficha. Los controles del HUD se filtran antes de manipular el ave. Reubicar conserva escala y giro y requiere un toque nuevo para elegir el punto; Cancelar conserva el anterior. Inicio, recuperación y reinicio durante carga/error siguen accesibles.
+Arrastre y pinch no abren el círculo ni la ficha. Los controles del HUD se filtran antes de manipular el ave. Reubicar conserva escala y giro y requiere un toque nuevo para elegir el punto; Cancelar conserva el anterior. Inicio, recuperación y reinicio durante carga/error siguen accesibles. El selector de aves continúa abajo a la izquierda.
 
-El recurso radial y sus pruebas permanecen en el proyecto, pero ya no se activa desde el ave. El flujo actual es tap → guía. Se conserva el estilo y la preferencia de movimiento reducido.
+Se reutilizan geometría e iconos radiales, ajuste de bordes y áreas seguras, superficies claras, bosque, salvia y rojo UAO. Apertura de 240 ms con desaceleración, cierre de 160 ms con aceleración y resaltado de 140 ms con escala 1.08. La UI ilumina el sector al pasar o tocar; acepta su click solo después de un nuevo pointerdown sobre ese mismo sector. Así el tap que abre no elige accidentalmente una opción bajo el dedo, sin retrasos arbitrarios. Enter/Espacio también ejecutan una opción enfocada. Se respeta movimiento reducido. pilot.css y el bloque de index.html permanecen idénticos y sin cambios.
 
 La integración utiliza SCREEN_TOUCH_START/MOVE/END y GESTURE_START/MOVE/END de ECS para resolver el ave y sus gestos. Pointer Events del navegador complementa contactos sobre HUD, pointercancel y liberación; blur, resize y visibilitychange limpian interacciones. No se inventa un evento SCREEN_TOUCH_CANCEL.
 
 Fuentes: [Input Events de 8th Wall](https://8thwall.org/docs/api/studio/events/input), [Pointer Events de MDN](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) y las definiciones locales del paquete ECS.
 
-Validación de la guía restaurada: 24 pruebas existentes aprobadas y compilación correcta. En dist/bundle.js con World/ECS/raycast simulados pasaron guía directa, cambio de referencia, cierre, suelo sin ficha, giro/pinch sin panel, animaciones, reubicación/cancelación, reinicio y selector. Se revisaron cuatro tamaños de pantalla y cuatro taps fuera del centro en canvas reducido. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico.
+Validación del nuevo flujo: 24 pruebas existentes aprobadas y compilación correcta con dos avisos previos de tamaño. En dist/bundle.js con World/ECS/raycast simulados pasaron círculo persistente, Ficha una sola vez, referencias, eventos residuales, cierre exterior sobre suelo/HUD, Escape/cancelación, giro/pinch sin menú, las otras tres opciones sin guía, reubicación con toque nuevo, cancelación, reinicio y selector. Se revisaron cuatro tamaños, cuatro taps fuera del centro en canvas reducido, sectores dentro del viewport, teclado, toque emulado y movimiento reducido. Estas pruebas no incluyen cámara, raycast real del GLB ni tracking físico. La nueva presentación queda pendiente en Studio y Android/iPhone; la ruta previa de apertura directa sí fue confirmada por el usuario.
 
 ## Coordenadas de simulación
 

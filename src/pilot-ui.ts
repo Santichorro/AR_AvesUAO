@@ -20,7 +20,7 @@ function radialMarkup() {
     const angle = -90 + index * 90
     const a = polar(144, angle - 43), b = polar(144, angle + 43), c = polar(inner, angle + 43), d = polar(inner, angle - 43)
     const point = polar(94, angle)
-    return `<g class="aves-radial-sector" data-radial="${action}" role="button" tabindex="0">
+    return `<g class="aves-radial-sector" data-radial="${action}" role="button" tabindex="-1">
       <path d="M${a.x} ${a.y} A144 144 0 0 1 ${b.x} ${b.y} L${c.x} ${c.y} A${inner} ${inner} 0 0 0 ${d.x} ${d.y} Z"/>
       <g transform="translate(${point.x},${point.y})"><svg x="-14" y="-24" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${icons[action]}</svg><text y="22" text-anchor="middle"></text></g>
     </g>`
@@ -130,24 +130,56 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   })
   const closeSpecies = () => { get('#aves-species-popover').hidden = true; speciesTrigger.setAttribute('aria-expanded', 'false') }
   const closePanels = () => { closeSpecies(); root.querySelectorAll<HTMLElement>('.aves-panel').forEach(p => p.hidden = true) }
-  const openInfo = () => { closePanels(); get('#aves-info').hidden = false }
+  // La entrada utilizada por el tap ECS conserva su nombre; ahora presenta el círculo.
+  // La guía tiene una función propia para que Ficha no vuelva a abrir el menú.
+  const openGuide = () => { closePanels(); get('#aves-info').hidden = false }
   let gestureBlocked = false
-  const closeRadial = () => { get('.aves-radial').classList.remove('is-open'); get('.aves-radial').setAttribute('aria-hidden', 'true'); root.querySelectorAll('[data-radial]').forEach(s => s.classList.remove('is-highlighted')) }
+  let pressedSector: string | null = null
+  let dismissedOutside = false
+  const menu = get('.aves-radial')
+  const highlightRadial = (action: string | null) => root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.classList.toggle('is-highlighted', s.dataset.radial === action))
+  const closeRadial = () => {
+    pressedSector = null
+    menu.classList.remove('is-open'); menu.setAttribute('aria-hidden', 'true')
+    highlightRadial(null)
+    root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.setAttribute('tabindex', '-1'))
+  }
+  const layoutAt = (point: {x: number; y: number}) => {
+    const style = getComputedStyle(root)
+    return radialLayout(point, {width: innerWidth, height: innerHeight}, {left: parseFloat(style.paddingLeft), right: parseFloat(style.paddingRight), top: parseFloat(style.paddingTop), bottom: parseFloat(style.paddingBottom)})
+  }
+  const showRadial = (layout: {x: number; y: number; radius: number}) => {
+    closePanels(); pressedSector = null; highlightRadial(null)
+    menu.style.left = layout.x + 'px'; menu.style.top = layout.y + 'px'
+    menu.style.width = menu.style.height = (layout.radius * 320 / 144) + 'px'
+    menu.setAttribute('aria-hidden', 'false'); menu.classList.add('is-open')
+    root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.setAttribute('tabindex', '0'))
+  }
+  const openInfo = (point?: {x: number; y: number} | null) => {
+    showRadial(layoutAt(point || {x: innerWidth / 2, y: innerHeight / 2}))
+  }
   const runRadialAction = (action: string) => {
-    closePanels()
-    if (action === 'info') openInfo()
+    if (!RADIAL_ACTIONS.includes(action)) return
+    closeRadial(); closePanels()
+    if (action === 'info') openGuide()
     if (action === 'animation') get('#aves-animation').hidden = false
     if (action === 'relocate') controls.relocate()
     if (action === 'reset') controls.reset()
   }
   root.addEventListener('click', (e) => {
     const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
-    if (sector) { controls.radial(sector.dataset.radial!); return }
+    if (sector) {
+      // El click sintetizado después del tap de apertura no tiene un nuevo pointerdown.
+      const action = sector.dataset.radial!
+      if (menu.classList.contains('is-open') && pressedSector === action) runRadialAction(action)
+      pressedSector = null
+      return
+    }
     const button = (e.target as Element).closest<HTMLButtonElement>('button')
     if (!button || button.disabled) return
     if (button.hasAttribute('data-species-toggle')) {
       const open = get('#aves-species-popover').hidden
-      closePanels(); controls.dismiss()
+      closeRadial(); closePanels(); controls.dismiss()
       get('#aves-species-popover').hidden = !open
       speciesTrigger.setAttribute('aria-expanded', String(open))
       return
@@ -157,10 +189,10 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     if (button.dataset.close) { closePanels(); return }
     switch (button.dataset.action) {
       case 'start': controls.start(); break
-      case 'animation': closePanels(); get('#aves-animation').hidden = false; break
-      case 'relocate': closePanels(); controls.relocate(); break
+      case 'animation': runRadialAction('animation'); break
+      case 'relocate': runRadialAction('relocate'); break
       case 'cancel': controls.cancel(); break
-      case 'reset': closePanels(); controls.reset(); break
+      case 'reset': runRadialAction('reset'); break
       case 'idle': controls.idle(); break
       case 'pause': controls.pause(); break
     }
@@ -180,11 +212,16 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
   }
   for (const event of ['pointerdown','pointerup','touchstart','touchend','click','contextmenu']) root.addEventListener(event, block, {capture: true, passive: false})
   const outside = (e: PointerEvent) => {
-    if (get('.aves-radial').classList.contains('is-open') && !(e.target as Element).closest('.aves-radial')) {
-      controls.dismiss()
-      if (!(e.target as Element).closest('#aves-pilot button,#aves-pilot select,#aves-pilot .aves-panel,[data-aves-ui]')) {
+    dismissedOutside = false
+    if (menu.classList.contains('is-open')) {
+      if (!(e.target as Element).closest('.aves-radial')) {
+        dismissedOutside = true
+        closeRadial(); controls.dismiss()
+        // El toque exterior solo cierra, incluso si cae sobre otro control del HUD.
         e.preventDefault(); e.stopPropagation(); return
       }
+      pressedSector = (e.target as Element).closest<HTMLElement>('[data-radial]')?.dataset.radial || null
+      highlightRadial(pressedSector)
     }
     if (get('#aves-species-popover').hidden || (e.target as Element).closest('[data-species-toggle],#aves-species-popover')) return
     closeSpecies()
@@ -192,27 +229,32 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     e.preventDefault(); e.stopPropagation()
   }
   document.addEventListener('pointerdown', outside, true)
+  const consumeOutsideClick = (e: MouseEvent) => {
+    if (!dismissedOutside) return
+    dismissedOutside = false
+    e.preventDefault(); e.stopImmediatePropagation()
+  }
+  document.addEventListener('click', consumeOutsideClick, true)
+  menu.addEventListener('pointermove', (e) => {
+    if (menu.classList.contains('is-open')) highlightRadial((e.target as Element).closest<HTMLElement>('[data-radial]')?.dataset.radial || null)
+  })
+  menu.addEventListener('pointerleave', () => highlightRadial(null))
+  menu.addEventListener('pointercancel', () => { closeRadial(); controls.dismiss() })
   const escape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') { closePanels(); controls.dismiss() }
+    if (e.key === 'Escape') { closeRadial(); closePanels(); controls.dismiss() }
     const sector = (e.target as Element).closest<HTMLElement>('[data-radial]')
-    if (sector && ['Enter',' '].includes(e.key)) { e.preventDefault(); controls.radial(sector.dataset.radial!) }
+    if (sector && menu.classList.contains('is-open') && ['Enter',' '].includes(e.key)) { e.preventDefault(); runRadialAction(sector.dataset.radial!) }
   }
   document.addEventListener('keydown', escape)
+  const dismissMenu = () => closeRadial()
+  const hiddenDocument = () => { if (document.hidden) closeRadial() }
+  window.addEventListener('blur', dismissMenu)
+  window.addEventListener('resize', dismissMenu)
+  document.addEventListener('visibilitychange', hiddenDocument)
   return {
     root, openInfo, closePanels, closeRadial, runRadialAction,
     setGestureBlocked(blocked: boolean) { gestureBlocked = blocked },
-    radialLayout(point: {x: number; y: number}) {
-      const style = getComputedStyle(root)
-      return radialLayout(point, {width: innerWidth, height: innerHeight}, {left: parseFloat(style.paddingLeft), right: parseFloat(style.paddingRight), top: parseFloat(style.paddingTop), bottom: parseFloat(style.paddingBottom)})
-    },
-    showRadial(layout: {x: number; y: number; radius: number}) {
-      closePanels()
-      const menu = get('.aves-radial')
-      menu.style.left = layout.x + 'px'; menu.style.top = layout.y + 'px'
-      menu.style.width = menu.style.height = (layout.radius * 320 / 144) + 'px'
-      menu.setAttribute('aria-hidden', 'false'); menu.classList.add('is-open')
-    },
-    highlightRadial(action: string | null) { root.querySelectorAll<HTMLElement>('[data-radial]').forEach(s => s.classList.toggle('is-highlighted', s.dataset.radial === action)) },
+    radialLayout: layoutAt, showRadial, highlightRadial,
     showMessage(message: string) { get('.aves-status p').textContent = message },
     update(snapshot: any) {
       const phase = snapshot.phase
@@ -232,6 +274,11 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
       get<HTMLButtonElement>('[data-action="reset"]').disabled = !snapshot.position && phase !== 'ERROR'
       if (!placed) { closePanels(); closeRadial() }
     },
-    dispose() { document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape); root.remove() },
+    dispose() {
+      document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape)
+      document.removeEventListener('click', consumeOutsideClick, true)
+      window.removeEventListener('blur', dismissMenu); window.removeEventListener('resize', dismissMenu)
+      document.removeEventListener('visibilitychange', hiddenDocument); root.remove()
+    },
   }
 }

@@ -19,9 +19,9 @@ Fecha: 12 de octubre de 2026. Rama de trabajo: juandate.
 - Vista 3D de escritorio para probar sin cámara. No es una simulación certificada de RA.
 - Interfaz natural con tarjetas claras, relieve suave, textos verde bosque y rojo UAO. Foco y pulsación sin morado; controles de al menos 48 px. Ver [DISENO_UI.md](DISENO_UI.md) para paleta y criterio visual.
 - Selector compacto con icono de ave abajo a la izquierda: muestra las cinco opciones, solo colibrí habilitado. Se cierra al elegir, tocar fuera o pulsar Cerrar.
-- Restaurado el flujo anterior: un tap breve sobre el ave abre directamente Ficha del colibrí con guía, datos y selector de referencias. No se abre el menú circular ni se exige pulsación prolongada.
-- Animaciones, Reubicar y Reiniciar quedan disponibles como botones dentro de la ficha. Cerrar y Escape cierran el panel; el selector compacto de aves permanece abajo a la izquierda.
-- Arrastre y pinch no abren la ficha. Se mantiene la conversión correcta entre coordenadas del canvas y el viewport, incluso en una vista de simulación reducida.
+- Un tap breve sobre el ave abre el menú circular y este permanece abierto al retirar el dedo. Un segundo tap ejecuta Ficha, Animaciones, Reubicar o Reiniciar y cierra el círculo. Tocar fuera o pulsar Escape lo cierra sin acciones.
+- La ruta de tap que el usuario comprobó físicamente se conserva: tap sobre el modelo → ui.openInfo(point). Solo se pasa el punto del viewport que ya calculaba el controlador. La UI presenta ahora el círculo; su función privada openGuide presenta la guía existente únicamente al elegir Ficha, conservando datos, referencias, Cerrar y los botones anteriores.
+- Arrastre y pinch no abren el círculo ni la ficha. Se mantienen listeners, hit del modelo, condiciones de estado, limpieza y conversión canvas/viewport. No se activa el reconocedor RadialGesture para abrir o elegir: los sectores usan directamente las mismas acciones de los botones. Un nuevo pointerdown en el sector es necesario para aceptar su click; los eventos residuales de apertura o cancelación se ignoran sin temporizadores de activación.
 - Cancelar reubicación permanece visible fuera del radial. Reiniciar durante carga/error y Comenzar/Reintentar conservan acceso contextual.
 
 ## Recursos y fuentes
@@ -40,29 +40,29 @@ Autoría del modelo según metadatos: animalanimator.com. No se encontró una li
 2. Para revisar en escritorio, servir dist/ y abrir localhost. Es una vista 3D; tocar el plano virtual del suelo coloca el ave.
 3. Pulsar Comenzar y esperar la carga del modelo. En móvil, permitir cámara y estabilizar el seguimiento sobre el suelo.
 4. Tocar el lugar elegido: debe aparecer una sola ave. Tocar de nuevo no debe duplicarla.
-5. Tocar brevemente el ave: debe aparecer directamente Ficha del colibrí. Elegir una referencia y comparar datos con páginas 17–18. Cerrar permite volver a la vista AR.
-6. Abrir la ficha y pulsar Probar animaciones; recorrer los seis clips, pausar y volver a reposo.
-7. Pulsar Reubicar dentro de la ficha; un toque nuevo confirma otro punto. Cancelar conserva el anterior.
+5. Tocar brevemente el ave: debe aparecer solo el círculo y permanecer al retirar el dedo. Tocar Ficha para abrir la guía una sola vez. Elegir una referencia y comparar datos con páginas 17–18. Cerrar permite volver a la vista AR.
+6. Tocar el ave y después Animaciones; recorrer los seis clips, pausar y volver a reposo.
+7. Elegir Reubicar en el círculo; un toque nuevo confirma otro punto. La selección del sector no confirma una ubicación. Cancelar conserva el anterior.
 8. Pulsar Reiniciar mientras carga y después de colocar; no debe reaparecer un modelo de una carga vieja.
 9. Repetir tres recorridos. Los botones y selects no deben colocar modelos detrás del HUD.
-10. Arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y sin abrir la ficha. Un tap sobre el ave abre la guía; tocar suelo o HUD no debe abrirla.
+10. Arrastrar horizontalmente sobre el área AR: debe rotar sobre su eje Y sin abrir el círculo. Tocar suelo o HUD no abre el círculo. Tocar fuera con el círculo abierto solo lo cierra, también sobre otro control del HUD.
 11. Hacer pinch con dos dedos: la escala debe cambiar de forma uniforme, respetar los límites y conservar el punto de apoyo. Reubicar debe mantener giro y escala; Reiniciar debe restaurarlos para la siguiente colocación.
-12. Probar un tap sobre el ave fuera del centro y con canvas reducido/desplazado: debe abrir la ficha. El panel debe permanecer dentro de pantalla y permitir scroll.
-13. Repetir apertura/cierre, cambio de referencia, animación, reubicación/cancelación y reinicio. Los controles de la ficha no deben modificar el ave por gestos detrás del HUD.
+12. Probar un tap sobre el ave fuera del centro y con canvas reducido/desplazado: debe abrir el círculo ajustado a la pantalla. Repetir en horizontal y con áreas seguras. La ficha abierta desde su sector debe permitir scroll.
+13. Repetir apertura/cierre, Escape, cambio de referencia, animación, reubicación/cancelación y reinicio. El tap inicial, una liberación residual y pointercancel no deben seleccionar sectores. El HUD no debe modificar el ave por gestos detrás de los paneles.
 
 ## Pruebas automatizadas
 
-Ejecutar npm test (o node --test tests/*.test.cjs). Se conservan las 24 pruebas de colocación, inspección, recursos de interacción y coordenadas. El recurso radial permanece en el código, pero el flujo actual del ave utiliza apertura directa de la guía.
+Ejecutar npm test (o node --test tests/*.test.cjs). Pasan las 24 pruebas de colocación, inspección, recursos de interacción y coordenadas. Las pruebas unitarias de RadialGesture comprueban ese recurso aislado; no demuestran por sí solas el flujo actual, cuya apertura y selección se presentan en la UI.
 
-La revisión del build con World/ECS/raycast simulados comprueba guía directa por tap, cambio de referencias, Cerrar, ausencia de ficha al tocar suelo/arrastrar/pinchar, animaciones, reubicación/cancelación, reinicio, selector y cuatro taps con canvas reducido. Tamaños: 390×844, 320×568, 844×390 y 1100×800. Este entorno no usa cámara, carga real del GLB ni tracking; no acredita compatibilidad física.
+La revisión de dist/bundle.js en Edge con World/ECS/raycast simulados comprueba tap → círculo → segundo tap en Ficha, una sola apertura de guía, referencias y Cerrar. También comprueba clicks/liberaciones residuales, cancelación, cierre exterior sobre suelo/HUD, Escape, giro y pinch sin menú, las otras tres opciones sin ficha, clips/pausa, reubicación con toque nuevo conservando entidad/giro/escala, cancelación, reinicio y selector. Tamaños: 390×844, 320×568, 844×390 y 1100×800; cuatro taps con canvas 330×680 en (30,80), teclado, toque emulado del navegador y movimiento reducido. El resaltado aplica escala 1.08 y rosa tenue. Sin errores de JavaScript. Webpack compila con los dos avisos previos de tamaño; CSS y estilos inline siguen idénticos y sin modificaciones. Este entorno no usa cámara, carga real del GLB ni tracking; no acredita compatibilidad física.
 
 Se reprodujo una cancelación incorrecta del tap con un canvas reducido (330×680, desplazado 30 px a la derecha y 80 px abajo dentro de una ventana 390×844): el controlador mezclaba posiciones normalizadas respecto del canvas con píxeles de toda la ventana. La corrección utiliza el rectángulo de world.three.renderer.domElement para convertir en ambas direcciones. Pasaron cuatro taps fuera del centro y la selección de Ficha en ese canvas, además de las pruebas anteriores. Falta comprobar la sesión real de Studio y teléfonos.
 
-Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). Devuelve fase, posición, raíz/modelo, clip, giro/escala y estado del radial. No permite introducir posiciones falsas ni forzar tracking.
+Para inspeccionar el estado sin modificarlo: window.__AR_AVES_DEBUG__(). Devuelve fase, posición, raíz/modelo, clip, giro/escala y estado del reconocedor radial anterior. Ese estado permanece idle durante el menú presentado por la UI; no indica si el círculo está visible. La clase is-open y aria-hidden de .aves-radial describen su visibilidad. El diagnóstico no permite introducir posiciones falsas ni forzar tracking.
 
 ## Pendiente físico y de contenido
 
-- Studio, Android/Chrome e iPhone/Safari: comprobar que un tap sobre el hit real del GLB abre directamente la guía, que los datos y controles responden y que arrastre/pinch no abren paneles. Revisar también permisos, tracking, apoyo, safe areas y rendimiento.
+- El usuario confirmó físicamente la ruta previa de tap → guía. La nueva presentación tap → círculo → Ficha todavía requiere comprobación en Studio, Android/Chrome e iPhone/Safari: hit real del GLB, segundo toque, cierre exterior y opciones sin acciones detrás del HUD. Revisar también giro/pinch, permisos, tracking, apoyo, áreas seguras, horizontal y rendimiento.
 - El hit de la plantilla se calcula sobre Ground con tracking activo; no ofrece selección de múltiples planos físicos como ARKit/ARCore. Comprobar el apoyo real en el suelo con dispositivos.
 - El aro del HUD orienta el escaneo; no afirma ser una retícula proyectada con hit-test continuo.
 - Confirmar especie representada, canto, fotografía y licencia del modelo.
