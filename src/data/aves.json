@@ -8,18 +8,18 @@
       "modelo": "assets/models/martin_pescador_configurado.glb",
       "audioCanto": "assets/audio/martin_pescador_canto.mp3",
       "imagen": "assets/img/martin_pescador.jpg",
-      "escalaExhibicion": 0.18,
+      "escalaExhibicion": 0.200385,
       "inspeccion": {
-        "escalaMinima": 0.09,
-        "escalaMaxima": 0.45,
+        "escalaMinima": 0.160308,
+        "escalaMaxima": 0.40077,
         "sensibilidadGiro": 6.283185307179586,
         "umbralArrastre": 0.015
       },
       "transformacion": {
         "posicionLocal": {
-          "x": 0,
-          "y": -0.1066,
-          "z": 0
+          "x": 0.0,
+          "y": -0.118672,
+          "z": 0.0
         },
         "giroY": 0
       },
@@ -149,6 +149,17 @@
         "autor": null,
         "licencia": null,
         "sha256": "36fa8e0a08daacf1e9ccc45c9f85124fb34fd91b9ceedbbe28e6d8a5a9d0a471"
+      },
+      "referenciaEscala": {
+        "longitudObjetivoMetros": 0.35,
+        "longitudModeloReposo": 1.7466376884724075,
+        "ejeMedicion": "z",
+        "rangoRealCentimetros": [
+          28,
+          35
+        ],
+        "fuente": "https://www.allaboutbirds.org/guide/Ringed_Kingfisher/id",
+        "criterio": "Extensión longitudinal del GLB con alas plegadas; aproximación para modelos ilustrativos."
       }
     },
     {
@@ -159,18 +170,18 @@
       "modelo": "assets/models/paloma_configurada.glb",
       "audioCanto": "assets/audio/paloma_canto.mp3",
       "imagen": "assets/img/paloma.jpg",
-      "escalaExhibicion": 1.2,
+      "escalaExhibicion": 1.659502,
       "inspeccion": {
-        "escalaMinima": 0.6,
-        "escalaMaxima": 3,
+        "escalaMinima": 1.269031,
+        "escalaMaxima": 3.319004,
         "sensibilidadGiro": 6.283185307179586,
         "umbralArrastre": 0.015
       },
       "transformacion": {
         "posicionLocal": {
-          "x": 0,
-          "y": 0.001,
-          "z": 0
+          "x": 0.0,
+          "y": 0.001383,
+          "z": 0.0
         },
         "giroY": -1.5707963267948966
       },
@@ -262,6 +273,17 @@
         "autor": null,
         "licencia": null,
         "sha256": "af13bfac774819af705134bfffc42863e44de19225e9930ece3098e22452e6f4"
+      },
+      "referenciaEscala": {
+        "longitudObjetivoMetros": 0.34,
+        "longitudModeloReposo": 0.20488071181063616,
+        "ejeMedicion": "x",
+        "rangoRealCentimetros": [
+          30,
+          36
+        ],
+        "fuente": "https://www.allaboutbirds.org/guide/rock_pigeon/id",
+        "criterio": "Extensión longitudinal del GLB con alas plegadas; aproximación para modelos ilustrativos."
       }
     },
     {
@@ -292,18 +314,18 @@
         "autor": null,
         "licencia": null
       },
-      "escalaExhibicion": 0.6,
+      "escalaExhibicion": 0.637788,
       "inspeccion": {
-        "escalaMinima": 0.3,
-        "escalaMaxima": 1.5,
+        "escalaMinima": 0.485274,
+        "escalaMaxima": 1.275577,
         "sensibilidadGiro": 6.283185307179586,
         "umbralArrastre": 0.015
       },
       "transformacion": {
         "posicionLocal": {
-          "x": 0,
-          "y": 0.0048,
-          "z": 0
+          "x": 0.0,
+          "y": 0.005102,
+          "z": 0.0
         },
         "giroY": -1.5707963267948966
       },
@@ -411,6 +433,17 @@
         "autor": null,
         "licencia": null,
         "sha256": "0ba461a646f6f82068bff2978c69999b5ee7012a7fc68f59a2e7c385b852c23f"
+      },
+      "referenciaEscala": {
+        "longitudObjetivoMetros": 0.46,
+        "longitudModeloReposo": 0.7212423796932113,
+        "ejeMedicion": "x",
+        "rangoRealCentimetros": [
+          46,
+          49
+        ],
+        "fuente": "https://www.papouscizoo.cz/ara-maly",
+        "criterio": "Extensión longitudinal del GLB con alas plegadas; aproximación para modelos ilustrativos."
       }
     },
     {
@@ -428,18 +461,18 @@
         "licencia": null
       },
       "imagen": "assets/img/colirufo.jpg",
-      "escalaExhibicion": 0.25,
+      "escalaExhibicion": 0.079094,
       "inspeccion": {
-        "escalaMinima": 0.12,
-        "escalaMaxima": 0.6,
+        "escalaMinima": 0.063275,
+        "escalaMaxima": 0.158187,
         "sensibilidadGiro": 6.283185307179586,
         "umbralArrastre": 0.015
       },
       "transformacion": {
         "posicionLocal": {
-          "x": 0,
-          "y": 0.25,
-          "z": 0
+          "x": 0.0,
+          "y": 0.079094,
+          "z": 0.0
         },
         "giroY": -1.5707963267948966
       },
@@ -533,7 +566,19 @@
         "radioMaximo": 0.65,
         "exponenteVertical": 1.1
       },
-      "animacionesNota": "Controles del modelo piloto. Las animaciones de alimentación no incluyen una flor en esta escena."
+      "animacionesNota": "Controles del modelo piloto. Las animaciones de alimentación no incluyen una flor en esta escena.",
+      "referenciaEscala": {
+        "longitudObjetivoMetros": 0.15,
+        "longitudModeloReposo": 1.8964867045050027,
+        "ejeMedicion": "x",
+        "rangoRealCentimetros": [
+          8,
+          11
+        ],
+        "fuente": "https://animaldiversity.org/accounts/Amazilia_tzacatl/",
+        "criterio": "Extensión longitudinal del GLB con alas plegadas; aproximación para modelos ilustrativos.",
+        "visibilidad": "Se exhibe a unos 15 cm, algo mayor que los 8–11 cm de referencia, para facilitar su inspección."
+      }
     }
   ]
 }

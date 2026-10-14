@@ -40,9 +40,9 @@ test('compensación cancela la traslación interna del root en toda la llegada',
  const {rootTranslationAt}=await modulePromise,f=await fixture()
  for(let i=0;i<=135;i++) {
   const p=f.motion.sample(),root=rootTranslationAt(calibration.traslacionRoot,p.clipTime)
-  const dx=(root.x-calibration.rootReposo.x)*.25,dz=(root.z-calibration.rootReposo.z)*.25,yaw=bird.transformacion.giroY
+  const dx=(root.x-calibration.rootReposo.x)*bird.escalaExhibicion,dz=(root.z-calibration.rootReposo.z)*bird.escalaExhibicion,yaw=bird.transformacion.giroY
   near(p.localPosition.x+Math.cos(yaw)*dx+Math.sin(yaw)*dz,bird.transformacion.posicionLocal.x)
-  near(p.localPosition.y+(root.y-calibration.rootReposo.y)*.25,bird.transformacion.posicionLocal.y)
+  near(p.localPosition.y+(root.y-calibration.rootReposo.y)*bird.escalaExhibicion,bird.transformacion.posicionLocal.y)
   near(p.localPosition.z-Math.sin(yaw)*dx+Math.cos(yaw)*dz,bird.transformacion.posicionLocal.z)
   f.motion.advance(1/60,7)
  }

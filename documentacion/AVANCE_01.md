@@ -186,3 +186,27 @@ Pendiente en Studio, Android/Chrome e iPhone/Safari: escucha y volumen de los tr
 Verificación 3D adicional sobre el bundle generado y ECS 3.2.0 real: las cuatro llegadas terminaron en EXPLORAR con sus reposos y ancla final exacta. Guacamaya produjo 27 muestras de aproximación; el hueso BN_Wing_L_01 cambió de rotación durante el aterrizaje. El modelo mostró alas abiertas durante aproximación y plegadas al final en las poses inspeccionadas. Sin errores de página. La escena de prueba usa cámara 3D temporal, sin SLAM ni cambios de escena del proyecto. Los modelos, las cuatro fotografías y los cuatro cantos de dist son idénticos a src.
 
 Archivos de esta integración: src/data/aves.json y loro-aterrizaje.json; src/tap-to-place.ts, pilot-ui.ts, pilot.css e index.html; tests/bird-catalog.test.cjs; documentacion/AVANCE_01.md, TECNICO.md y DISENO_UI.md; Guacamaya.glb original y guacamaya_configurada.glb; guacamaya_cariseca.jpg; guacamaya_cariseca_canto.mp3, paloma_canto.mp3 y martin_pescador_canto.mp3. No se modifica .expanse.json ni el motor.
+
+
+## Escalas proporcionadas al tamaño real · 13 de octubre de 2026
+
+Se midieron los cuatro GLB con ECS real, escala uniforme 1 y su clip de reposo, incluyendo transformaciones de ancestros y deformación del esqueleto. Se usa la extensión longitudinal X (Colirufo, Paloma, Guacamaya) o Z (Martín), con alas plegadas. No se confunde el multiplicador del GLB con su tamaño en centímetros. Las poses y proporciones son ilustrativas: esta medición es una aproximación longitudinal, no una medición anatómica exacta.
+
+| Ave | Extensión longitudinal antes | Objetivo inicial | Multiplicador nuevo | Rango de inspección aproximado |
+|---|---|---|---|---|
+| Martín Pescador | 31.4 cm | 35 cm | 0.200385 | 28–70 cm |
+| Paloma Doméstica | 24.6 cm | 34 cm | 1.659502 | 26–68 cm |
+| Guacamaya Cariseca | 43.3 cm | 46 cm | 0.637788 | 35–92 cm |
+| Colibrí Colirufo | 47.4 cm | 15 cm | 0.079094 | 12–30 cm |
+
+El Colirufo se mantiene algo ampliado: referencia biológica 8–11 cm, exhibición 15 cm para visibilidad. Paloma, Martín y Guacamaya siguen referencias cercanas al rango real. Las fuentes y criterios quedan en referenciaEscala del catálogo y no añaden textos técnicos a las fichas. El pinch permite ampliar; Reiniciar restaura la base de la especie y Reubicar conserva la escala elegida. Se ajustan proporcionalmente los offsets locales previos para conservar la relación del modelo con su ancla; no se cambian clips, compensaciones, materiales ni archivos GLB.
+
+La cámara de la escena ahora declara camera.xr.world.scale='absolute', conforme a XrWorldConfig de los tipos locales y la API pública Camera. El modo responsive dependía de la altura inicial de cámara y no garantizaba tamaños métricos. Se conserva el resto de la escena y la detección; no se activa VPS. La estimación métrica y el contacto de patas quedan pendientes de validación con SLAM real en Android/iPhone. La simulación 3D no acredita tamaño físico.
+
+Fuentes de referencia:
+- Colirufo: https://animaldiversity.org/accounts/Amazilia_tzacatl/
+- Paloma: https://www.allaboutbirds.org/guide/rock_pigeon/id
+- Martín: https://www.allaboutbirds.org/guide/Ringed_Kingfisher/id
+- Guacamaya: https://www.papouscizoo.cz/ara-maly
+- Escala métrica del motor: https://8thwall.org/docs/api/studio/ecs/camera
+Validación del ajuste: 58 pruebas aprobadas, TypeScript sin errores y build con los dos avisos previos de tamaño. La prueba de compensación usa ahora la escala del catálogo en lugar de asumir 0,25. Con el bundle y ECS real las cuatro llegadas conservaron poses variables, reposo final y ancla exacta; sin errores de página. La nueva prueba comprueba base por especie, límites de pinch y restauración, incluido el Colirufo por debajo del mínimo genérico anterior. Falta comprobar escala absoluta y visibilidad a distintas distancias sobre SLAM real. Sin push ni despliegue.
