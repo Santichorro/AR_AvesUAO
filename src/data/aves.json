@@ -297,7 +297,8 @@
         "escalaMinima": 0.3,
         "escalaMaxima": 1.5,
         "sensibilidadGiro": 6.283185307179586,
-        "umbralArrastre": 0.015
+        "umbralArrastre": 0.015,
+        "actualizarLimitesAnimados": true
       },
       "transformacion": {
         "posicionLocal": {

@@ -7,6 +7,7 @@ import {InspectionControls, normalizedScreenPosition} from './inspection-control
 import {RadialGesture} from './radial-gesture'
 import {screenToViewport, viewportToScreen} from './screen-coordinates'
 import {ArrivalMotion} from './arrival-motion'
+import {refreshAnimatedBounds} from './animated-bounds'
 import colibriCalibration from './data/colibri-aterrizaje.json'
 import martinCalibration from './data/martin_pescador-aterrizaje.json'
 import palomaCalibration from './data/paloma-aterrizaje.json'
@@ -385,7 +386,12 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
     model: model?.toString() ?? null, activeClip, paused, desktop, birdId: bird.id, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot()})
   ;(window as any).__AR_AVES_DEBUG__ = debug
-  return {tick: tickArrival, dispose: () => {
+  return {tick: () => {
+    tickArrival()
+    if (model !== null && bird.inspeccion?.actualizarLimitesAnimados) {
+      refreshAnimatedBounds(world.three.entityToObject.get(model))
+    }
+  }, dispose: () => {
     ++fetchGeneration
     fetchController?.abort()
     if (startupTimer) clearTimeout(startupTimer)
