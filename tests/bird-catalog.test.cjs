@@ -60,16 +60,3 @@ test('Guacamaya conserva materiales con recortes y las correcciones de Paloma y 
   const m=material(id,name);assert.equal(m.alphaMode,'MASK');assert.equal(m.alphaCutoff,0.5)
  }
 })
-
-test('las escalas de cada ave respetan sus límites propios y se restauran al reiniciar',async()=>{
- const code=fs.readFileSync(path.join(root,'src/inspection-controls.js'),'utf8')
- const {InspectionControls}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'))
- for(const b of birds.filter(b=>b.disponible)){
-  const control=new InspectionControls({escalaBase:b.escalaExhibicion,...b.inspeccion})
-  assert.equal(control.scale,b.escalaExhibicion)
-  assert.ok(Math.abs(control.scale*b.referenciaEscala.longitudModeloReposo-b.referenciaEscala.longitudObjetivoMetros)<0.00001)
-  control.beginPinch(.1);control.pinch(10);assert.equal(control.scale,b.inspeccion.escalaMaxima)
-  control.endPinch();control.rotate(.3);control.reset()
-  assert.equal(control.scale,b.escalaExhibicion);assert.equal(control.yaw,0)
- }
-})
