@@ -1,0 +1,264 @@
+{
+  "preguntas": [
+    {
+      "id": "q01",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es el nombre científico de la Paloma Doméstica?",
+      "opciones": [
+        "Columba livia",
+        "Ara severus",
+        "Colibri coruscans",
+        "Megaceryle torquata"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "paloma"
+    },
+    {
+      "id": "q02",
+      "tipo": "informacion",
+      "pregunta": "¿A qué familia pertenece la Paloma Doméstica?",
+      "opciones": [
+        "Columbidae",
+        "Psittacidae",
+        "Trochilidae",
+        "Alcedinidae"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "paloma"
+    },
+    {
+      "id": "q03",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es una característica del plumaje típico de la Paloma Doméstica?",
+      "opciones": [
+        "Es gris azulado con iridiscencias verdes o moradas en el cuello",
+        "Es predominantemente verde con frente castaño-rojiza",
+        "Es verde brillante con orejas violetas",
+        "Es principalmente azul con pecho rufo"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "paloma"
+    },
+    {
+      "id": "q04",
+      "tipo": "informacion",
+      "pregunta": "¿Dónde es especialmente común encontrar la Paloma Doméstica?",
+      "opciones": [
+        "En zonas urbanas asociadas a la presencia humana",
+        "Únicamente en bosques húmedos sin presencia humana",
+        "Únicamente en ríos y quebradas",
+        "Exclusivamente en jardines de montaña"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "paloma"
+    },
+    {
+      "id": "q05",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es el nombre científico de la Guacamaya Cariseca?",
+      "opciones": [
+        "Ara severus",
+        "Columba livia",
+        "Colibri coruscans",
+        "Megaceryle torquata"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "loro"
+    },
+    {
+      "id": "q06",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es una característica de la Guacamaya Cariseca?",
+      "opciones": [
+        "Es predominantemente verde y tiene la frente castaño-rojiza",
+        "Es gris azulada con iridiscencias en el cuello",
+        "Tiene orejas violetas a los lados de la cabeza",
+        "Tiene cabeza grande y pico largo asociado a cuerpos de agua"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "loro"
+    },
+    {
+      "id": "q07",
+      "tipo": "informacion",
+      "pregunta": "¿Dónde anida normalmente la Guacamaya Cariseca?",
+      "opciones": [
+        "En huecos de árboles grandes",
+        "En repisas de edificios urbanos",
+        "En pequeños nidos construidos con musgo y telarañas",
+        "En taludes de tierra cercanos al agua"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "loro"
+    },
+    {
+      "id": "q08",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es el nombre científico del Colibrí Colirufo?",
+      "opciones": [
+        "Colibri coruscans",
+        "Columba livia",
+        "Ara severus",
+        "Megaceryle torquata"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "colibri"
+    },
+    {
+      "id": "q09",
+      "tipo": "informacion",
+      "pregunta": "¿A qué familia pertenece el Colibrí Colirufo?",
+      "opciones": [
+        "Trochilidae",
+        "Columbidae",
+        "Psittacidae",
+        "Alcedinidae"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "colibri"
+    },
+    {
+      "id": "q10",
+      "tipo": "informacion",
+      "pregunta": "¿Qué característica permite identificar al Colibrí Colirufo?",
+      "opciones": [
+        "Tiene orejas violetas a los lados de la cabeza",
+        "Tiene una frente castaño-rojiza",
+        "Tiene un cuello con iridiscencias verdes o moradas",
+        "Tiene un pico largo y recto para capturar peces"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "colibri"
+    },
+    {
+      "id": "q11",
+      "tipo": "informacion",
+      "pregunta": "¿De qué se alimenta principalmente el Colibrí Colirufo?",
+      "opciones": [
+        "Néctar de flores y pequeños insectos",
+        "Semillas y granos",
+        "Peces pequeños",
+        "Nueces y corteza exclusivamente"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "colibri"
+    },
+    {
+      "id": "q12",
+      "tipo": "informacion",
+      "pregunta": "¿Qué comportamiento caracteriza al Colibrí Colirufo?",
+      "opciones": [
+        "Defiende territorialmente las flores productivas",
+        "Forma grandes bandadas y camina frecuentemente en el suelo",
+        "Excava nidos en taludes de tierra",
+        "Anida principalmente en huecos de árboles grandes"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "colibri"
+    },
+    {
+      "id": "q13",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es el nombre científico del Martín Pescador Mayor?",
+      "opciones": [
+        "Megaceryle torquata",
+        "Columba livia",
+        "Ara severus",
+        "Colibri coruscans"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "martin_pescador"
+    },
+    {
+      "id": "q14",
+      "tipo": "informacion",
+      "pregunta": "¿Qué característica tiene el Martín Pescador?",
+      "opciones": [
+        "Tiene cabeza grande, pico largo y recto y patas cortas",
+        "Tiene orejas violetas y plumaje verde brillante",
+        "Tiene frente castaño-rojiza y es predominantemente verde",
+        "Tiene cabeza pequeña y pico corto"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "martin_pescador"
+    },
+    {
+      "id": "q15",
+      "tipo": "informacion",
+      "pregunta": "¿Cómo captura sus presas el Martín Pescador?",
+      "opciones": [
+        "Se lanza desde una percha hacia el agua para capturarlas",
+        "Las recoge directamente de las flores",
+        "Las encuentra caminando sobre el suelo",
+        "Rompe frutos duros con el pico"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "martin_pescador"
+    },
+    {
+      "id": "q16",
+      "tipo": "informacion",
+      "pregunta": "¿Dónde excava sus nidos el Martín Pescador?",
+      "opciones": [
+        "En taludes de tierra cercanos al agua",
+        "En huecos de árboles grandes",
+        "En repisas y cornisas de edificios",
+        "En pequeños arbustos con flores"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "martin_pescador"
+    },
+    {
+      "id": "q17",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál de estas aves pertenece a la familia Columbidae?",
+      "opciones": [
+        "Paloma Doméstica",
+        "Guacamaya Cariseca",
+        "Colibrí Colirufo",
+        "Martín Pescador"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "paloma"
+    },
+    {
+      "id": "q18",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál de estas aves pertenece a la familia Psittacidae?",
+      "opciones": [
+        "Guacamaya Cariseca",
+        "Paloma Doméstica",
+        "Colibrí Colirufo",
+        "Martín Pescador"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "loro"
+    },
+    {
+      "id": "q19",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál de estas aves pertenece a la familia Trochilidae?",
+      "opciones": [
+        "Colibrí Colirufo",
+        "Paloma Doméstica",
+        "Guacamaya Cariseca",
+        "Martín Pescador"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "colibri"
+    },
+    {
+      "id": "q20",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál de estas aves pertenece a la familia Alcedinidae?",
+      "opciones": [
+        "Martín Pescador",
+        "Paloma Doméstica",
+        "Guacamaya Cariseca",
+        "Colibrí Colirufo"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "martin_pescador"
+    }
+  ]
+}
