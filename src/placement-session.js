@@ -12,6 +12,8 @@ export class PlacementSession {
     this.position = null
     this.message = ''
     this.generation = 0
+    this.pendingReplacement = false
+    this.replacing = false
   }
   emit() { this.changed(this.snapshot()) }
   snapshot() {
@@ -20,6 +22,11 @@ export class PlacementSession {
       assetReady: this.assetReady, message: this.message, generation: this.generation}
   }
   prepare() {
+    if (this.pendingReplacement && this.started && this.assetReady && this.trackingReady) {
+      this.pendingReplacement = false
+      this.spawnAt(this.position, true)
+      return
+    }
     if (['INTRO', 'PREPARANDO', 'ESCANEO'].includes(this.phase)) {
       this.phase = !this.started ? 'INTRO' : this.assetReady && this.trackingReady ? 'ESCANEO' : 'PREPARANDO'
     }
@@ -39,16 +46,30 @@ export class PlacementSession {
       this.emit()
       return true
     }
+    this.spawnAt(next, false)
+    return true
+  }
+  spawnAt(next, replacing) {
     this.phase = 'COLOCANDO' // Se bloquea antes de invocar el motor: evita doble toque.
+    this.replacing = replacing
     this.position = next
     const generation = ++this.generation
     this.emit()
-    try { this.actions.spawn(next, generation) } catch (e) { this.fail(String(e)) }
-    return true
+    try { this.actions.spawn(next, generation, {arrival: !replacing}) } catch (e) { this.fail(String(e)) }
+  }
+  changeSpecies() {
+    ++this.generation
+    this.actions.destroy()
+    this.assetReady = false
+    this.pendingReplacement = this.started && validPosition(this.position)
+    this.replacing = false
+    this.message = ''
+    this.phase = this.started ? 'PREPARANDO' : 'INTRO'
+    this.prepare()
   }
   loaded(generation) {
     if (generation !== this.generation || this.phase !== 'COLOCANDO') return false
-    this.phase = 'ATERRIZANDO'; this.emit(); return true
+    this.phase = this.replacing ? 'EXPLORAR' : 'ATERRIZANDO'; this.emit(); return true
   }
   arrived(generation) {
     if (generation !== this.generation || this.phase !== 'ATERRIZANDO') return false
@@ -66,6 +87,7 @@ export class PlacementSession {
     ++this.generation
     this.actions.destroy()
     this.position = null
+    this.pendingReplacement = this.replacing = false
     this.phase = 'ERROR'
     this.message = message
     this.emit()
@@ -74,6 +96,7 @@ export class PlacementSession {
     ++this.generation // Invalida callbacks de modelos eliminados.
     this.actions.destroy()
     this.position = null
+    this.pendingReplacement = this.replacing = false
     this.message = ''
     this.phase = 'INTRO'
     this.prepare()

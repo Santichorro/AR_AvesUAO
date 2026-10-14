@@ -34,8 +34,8 @@ export class ArrivalMotion {
     const height = c.alturaMinima + this.random() * (c.alturaMaxima - c.alturaMinima)
     this.target = copy(target)
     this.origin = {x: target.x + Math.cos(angle) * radius, y: target.y + height, z: target.z + Math.sin(angle) * radius}
-    // El pico del GLB apunta a +X; considerar la rotación local del modelo.
-    this.yaw = Math.atan2(target.x - this.origin.x, target.z - this.origin.z) - (Math.PI / 2 + modelYaw)
+    // Cada modelo declara su dirección frontal en el plano XZ.
+    this.yaw = Math.atan2(target.x - this.origin.x, target.z - this.origin.z) - ((c.anguloFrente ?? Math.PI / 2) + modelYaw)
     this.modelYaw = modelYaw
     this.scale = scale
     this.localPosition = copy(localPosition)
@@ -55,7 +55,7 @@ export class ArrivalMotion {
     }
     const clipTime = u * this.calibration.contactoSegundos
     const translation = rootTranslationAt(this.calibration.traslacionRoot, clipTime)
-    const reference = this.calibration.rootReposo
+    const reference = this.calibration.rootContacto ?? this.calibration.rootReposo
     const dx = (translation.x - reference.x) * this.scale, dz = (translation.z - reference.z) * this.scale
     const cosine = Math.cos(this.modelYaw), sine = Math.sin(this.modelYaw)
     const localPosition = landed ? copy(this.localPosition) : {

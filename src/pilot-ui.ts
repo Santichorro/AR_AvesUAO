@@ -4,7 +4,7 @@ import { createBirdAudio } from './bird-audio'
 import { createUiSounds } from './ui-sounds'
 
 type Controls = {
-    start: () => void; reset: () => void; relocate: () => void;
+    species: (id: string) => void; start: () => void; reset: () => void; relocate: () => void;
     cancel: () => void; clip: (name: string) => void; pause: () => void; idle: () => void; dismiss: () => void; radial: (action: string) => void
 }
 
@@ -74,7 +74,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     listening.setAttribute('aria-label', labels.panelCanto)
     audioClose.setAttribute('aria-label', labels.cerrarCanto); audioClose.title = labels.cerrarCanto
     Array.from(listening.children).forEach(child => child.setAttribute('inert', ''))
-    const song = createBirdAudio({
+    const makeSong = () => createBirdAudio({
         url: bird.audioCanto,
         onState(state: string) {
             const active = ['playing', 'paused', 'waiting'].includes(state) || (state === 'loading' && listening.classList.contains('is-open'))
@@ -99,13 +99,15 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             setStatusMessage(reason === 'blocked' ? labels.cantoBloqueado : reason === 'missing' ? labels.cantoPendiente : labels.errorCanto)
         },
     })
+    let song = makeSong()
+    const birdText = (text: string) => text.replace(/\{ave\}/g, () => bird.nombre)
     get('h1').replaceChildren(...labels.titulo.split(/(\bUAO\b)/).map(part => {
         if (part !== 'UAO') return document.createTextNode(part)
         const accent = document.createElement('span')
         accent.className = 'aves-title-uao'; accent.textContent = part
         return accent
     }))
-    get('header p').textContent = labels.subtitulo
+    get('header p').textContent = birdText(labels.subtitulo)
     get('#aves-species-title').textContent = labels.catalogo
     const speciesTrigger = get<HTMLButtonElement>('[data-species-toggle]')
     speciesTrigger.setAttribute('aria-label', labels.seleccionarAve)
@@ -127,21 +129,6 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         get(`[data-radial="${action}"]`).setAttribute('aria-label', radialText[action])
     }
     get('.aves-preview').textContent = desktop ? labels.preview : ''
-    get('#aves-info-title').textContent = bird.nombre
-    get('.aves-scientific em').textContent = bird.nombreCientifico
-    get('.aves-family').textContent = bird.familia
-    const photo = get<HTMLImageElement>('.aves-bird-photo img')
-    photo.src = bird.imagen; photo.alt = bird.imagenAlt
-    get('.aves-bird-photo figcaption').textContent = bird.creditoImagen.origen
-    get('.aves-source').textContent = `${labels.guia} · ${labels.pagina} ${bird.fuente.paginas[0]}`
-    const facts = get('.aves-facts')
-    for (const [key, label] of [['descripcion', labels.descripcion], ['habitat', labels.habitat], ['comportamiento', labels.comportamiento], ['rasgos', labels.rasgos]]) {
-        if (!bird.ficha[key]) continue
-        const section = document.createElement('section')
-        const heading = document.createElement('h3'); heading.textContent = label
-        const text = document.createElement('p'); text.textContent = bird.ficha[key]
-        section.append(heading, text); facts.append(section)
-    }
     get('#aves-animation-title').textContent = labels.animaciones
     get('#aves-animation > p').textContent = labels.animacionesNota
     const animationPanel = get('#aves-animation')
@@ -178,17 +165,42 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     animationPanel.addEventListener('animationcancel', finishAnimationExit)
     const reduceAnimationExit = () => { if (animationMotion.matches && animationClosing) finishAnimationClose() }
     animationMotion.addEventListener('change', reduceAnimationExit)
-    for (const clip of bird.clips) {
-        const button = document.createElement('button'); button.type = 'button'
-        button.textContent = clip.etiqueta
-        button.dataset.clip = clip.nombre
-        button.title = `${clip.nombre} · ${clip.duracionSegundos}s`
-        button.addEventListener('click', () => {
-            if (animationClosing || animationPanel.hidden) return
-            sfx.play('clip')
-            controls.clip(clip.nombre); closeAnimation(false, true)
-        })
-        get('.aves-clips').append(button)
+    const renderBird = () => {
+        get('header p').textContent = birdText(labels.subtitulo)
+        root.querySelectorAll<HTMLElement>('[data-species]').forEach(option => option.setAttribute('aria-pressed', String(option.dataset.species === bird.id)))
+        get('#aves-info-title').textContent = bird.nombre
+        get('.aves-scientific em').textContent = bird.nombreCientifico || ''
+        get('.aves-scientific').hidden = !bird.nombreCientifico
+        get('.aves-family').textContent = bird.familia
+        const photo = get<HTMLImageElement>('.aves-bird-photo img')
+        get('.aves-bird-photo').hidden = !bird.imagen
+        if (bird.imagen) { photo.src = bird.imagen; photo.alt = bird.imagenAlt || bird.nombre }
+        else photo.removeAttribute('src')
+        get('.aves-bird-photo figcaption').textContent = bird.creditoImagen?.origen || ''
+        get('.aves-source').textContent = bird.fuente?.paginas?.length ? `${labels.guia} · ${labels.pagina} ${bird.fuente.paginas.join(', ')}` : labels.fuentePendiente
+        const facts = get('.aves-facts'); facts.replaceChildren()
+        if (bird.fichaNota) { const note = document.createElement('p'); note.textContent = bird.fichaNota; facts.append(note) }
+        for (const [key, label] of [['descripcion', labels.descripcion], ['habitat', labels.habitat], ['comportamiento', labels.comportamiento], ['rasgos', labels.rasgos]]) {
+            if (!bird.ficha?.[key]) continue
+            const section = document.createElement('section')
+            const heading = document.createElement('h3'); heading.textContent = label
+            const text = document.createElement('p'); text.textContent = bird.ficha?.[key]
+            section.append(heading, text); facts.append(section)
+        }
+        get('.aves-clips').replaceChildren()
+        get('#aves-animation > p').textContent = bird.animacionesNota || labels.animacionesNota
+        for (const clip of bird.clips) {
+            const button = document.createElement('button'); button.type = 'button'
+            button.textContent = clip.etiqueta
+            button.dataset.clip = clip.nombre
+            button.title = `${clip.nombre} · ${clip.duracionSegundos}s`
+            button.addEventListener('click', () => {
+                if (animationClosing || animationPanel.hidden) return
+                sfx.play('clip')
+                controls.clip(clip.nombre); closeAnimation(false, true)
+            })
+            get('.aves-clips').append(button)
+        }
     }
     const buttonLabels: Record<string, string> = {
         start: labels.comenzar, info: labels.ficha,
@@ -374,7 +386,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             if (open) openSpecies()
             return
         }
-        if (button.dataset.species) { song.stop(); closeSpecies(); return }
+        if (button.dataset.species) { closeSpecies(); controls.species(button.dataset.species); return }
         if (button.dataset.close === 'species') { closeSpecies(); return }
         if (button.dataset.close === 'animation') { closeAnimation(); return }
         if (button.dataset.close) { closePanels(); return }
@@ -451,7 +463,12 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     // Para detectar transiciones de fase y disparar los sonidos de colocación.
     let lastPhase: string | null = null
     let lastPositionKey = ''
+    renderBird()
     return {
+        setBird(next: any) {
+            song.dispose(); closePanels(true); closeRadial(true); controls.dismiss()
+            bird = next; song = makeSong(); renderBird()
+        },
         root, openInfo, closePanels, closeRadial, runRadialAction,
         setGestureBlocked(blocked: boolean) { gestureBlocked = blocked },
         radialLayout: layoutAt, showRadial, highlightRadial,
@@ -480,7 +497,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
                 ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, ATERRIZANDO: labels.aterrizando, EXPLORAR: labels.explorar,
                 REUBICAR: labels.reubicando, ERROR: snapshot.message || labels.errorRecurso
             }
-            setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? labels.seguimiento : messages[phase])
+            setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? labels.seguimiento : birdText(messages[phase]))
             get('.aves-scan').hidden = !['ESCANEO', 'REUBICAR'].includes(phase)
             for (const action of ['idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
             get('[data-action="cancel"]').hidden = phase !== 'REUBICAR'

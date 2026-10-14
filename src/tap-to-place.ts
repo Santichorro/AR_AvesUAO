@@ -7,15 +7,20 @@ import {InspectionControls, normalizedScreenPosition} from './inspection-control
 import {RadialGesture} from './radial-gesture'
 import {screenToViewport, viewportToScreen} from './screen-coordinates'
 import {ArrivalMotion} from './arrival-motion'
-import landingCalibration from './data/colibri-aterrizaje.json'
+import colibriCalibration from './data/colibri-aterrizaje.json'
+import martinCalibration from './data/martin_pescador-aterrizaje.json'
+import palomaCalibration from './data/paloma-aterrizaje.json'
+import {availableBird} from './bird-catalog'
 
 // Se conserva el evento de la plantilla para no romper componentes ajenos.
 const OBJECT_PLACED_EVENT = 'object-placed'
 const controllers = new Map<ecs.Eid, {tick: () => void; dispose: () => void}>()
-const bird = catalog.aves.find(b => b.id === 'colibri')!
+const calibrations = {colibri: colibriCalibration, martin_pescador: martinCalibration, paloma: palomaCalibration}
 
 function attach(world: ecs.World, ground: ecs.Eid) {
   const desktop = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !('ontouchend' in document && navigator.maxTouchPoints > 1)
+  let bird = availableBird(catalog.aves, 'colibri')!
+  let landingCalibration = calibrations[bird.id]
   let root: ecs.Eid | null = null
   let model: ecs.Eid | null = null
   let loadedListener: any = null
@@ -27,10 +32,10 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let paused = false
   let activeClip = bird.animaciones.reposo
   let ui: ReturnType<typeof createPilotUi>
-  const arrival = new ArrivalMotion(bird.llegada, landingCalibration)
-  const landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
+  let arrival = new ArrivalMotion(bird.llegada, landingCalibration)
+  let landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
   let landingFrameApplied = false
-  const inspection = new InspectionControls({
+  let inspection = new InspectionControls({
     escalaBase: bird.escalaExhibicion,
     escalaMinima: bird.inspeccion?.escalaMinima,
     escalaMaxima: bird.inspeccion?.escalaMaxima,
@@ -123,7 +128,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     move(position: {x: number; y: number; z: number}) {
       if (root !== null) world.getEntity(root).setLocalPosition(position)
     },
-    spawn(position: {x: number; y: number; z: number}, generation: number) {
+    spawn(position: {x: number; y: number; z: number}, generation: number, options: {arrival: boolean}) {
       inspection.reset()
       landingFrameApplied = false
       root = world.createEntity()
@@ -133,14 +138,16 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       world.getEntity(model).setLocalPosition(bird.transformacion.posicionLocal)
       world.getEntity(model).set(ecs.Quaternion, ecs.math.quat.yRadians(bird.transformacion.giroY))
       applyInspection()
-      const initialPose = arrival.begin(position, generation, inspection.scale, bird.transformacion.giroY, bird.transformacion.posicionLocal)
-      applyArrivalPose(initialPose)
+      if (options.arrival) {
+        const initialPose = arrival.begin(position, generation, inspection.scale, bird.transformacion.giroY, bird.transformacion.posicionLocal)
+        applyArrivalPose(initialPose)
+      }
       const currentModel = model
       loadedListener = (event: any) => {
         if (model !== currentModel || !session.loaded(generation)) return
         clearLoadTimer()
-        activeClip = bird.animaciones.aterrizaje
-        ecs.GltfModel.set(world, currentModel, {time: 0, timeScale: landingRate, paused: !session.trackingReady})
+        activeClip = options.arrival ? bird.animaciones.aterrizaje : bird.animaciones.reposo
+        ecs.GltfModel.set(world, currentModel, {time: 0, timeScale: options.arrival ? landingRate : 1, paused: options.arrival && !session.trackingReady})
       }
       finishedListener = (event: any) => {
         if (model === currentModel && session.phase === 'EXPLORAR' && event.data.name === activeClip) {
@@ -153,8 +160,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       loadTimer = setTimeout(() => {
         if (session.generation === generation && session.phase === 'COLOCANDO') session.fail(labels.errorRecurso)
       }, 30000)
-      activeClip = bird.animaciones.aterrizaje
-      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: false, paused: true, time: 0, timeScale: landingRate})
+      activeClip = options.arrival ? bird.animaciones.aterrizaje : bird.animaciones.reposo
+      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: !options.arrival, paused: true, time: 0, timeScale: options.arrival ? landingRate : 1})
     },
   }, snapshot => {
     if (model !== null && snapshot.phase === 'ATERRIZANDO') {
@@ -169,23 +176,41 @@ function attach(world: ecs.World, ground: ecs.Eid) {
 
   const prepareAsset = async () => {
     const generation = ++fetchGeneration
+    const requestedBird = bird
     fetchController?.abort()
     fetchController = new AbortController()
     const controller = fetchController
     const timeout = setTimeout(() => controller.abort(), 30000)
     session.setAsset(false)
     try {
-      const response = await fetch(bird.modelo, {signal: controller.signal, cache: 'force-cache'})
+      const response = await fetch(requestedBird.modelo, {signal: controller.signal, cache: 'force-cache'})
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const bytes = new Uint8Array(await response.arrayBuffer())
       if (bytes.length < 20 || String.fromCharCode(...bytes.slice(0, 4)) !== 'glTF') throw new Error('No es un GLB válido; comprobar Git LFS')
-      if (generation === fetchGeneration) session.setAsset(true)
+      if (generation === fetchGeneration && bird === requestedBird) session.setAsset(true)
     } catch (error) {
       if (generation === fetchGeneration) session.fail(labels.errorRecurso)
       console.error('Carga del GLB:', error)
     } finally { clearTimeout(timeout) }
   }
+  const selectSpecies = (id: string) => {
+    const next = availableBird(catalog.aves, id)
+    if (!next || next.id === bird.id) return
+    ++fetchGeneration
+    fetchController?.abort()
+    session.changeSpecies()
+    bird = next
+    landingCalibration = calibrations[bird.id]
+    arrival = new ArrivalMotion(bird.llegada, landingCalibration)
+    landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
+    inspection = new InspectionControls({escalaBase: bird.escalaExhibicion, ...bird.inspeccion})
+    activeClip = bird.animaciones.reposo
+    ui.setBird(bird)
+    session.emit()
+    if (session.started) void prepareAsset()
+  }
   ui = createPilotUi(catalog.aves, bird, {
+    species: selectSpecies,
     start() {
       session.reset(); session.start()
       if (!session.assetReady) void prepareAsset()
@@ -357,7 +382,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }, 45000)
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
-    model: model?.toString() ?? null, activeClip, paused, desktop, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot()})
+    model: model?.toString() ?? null, activeClip, paused, desktop, birdId: bird.id, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot()})
   ;(window as any).__AR_AVES_DEBUG__ = debug
   return {tick: tickArrival, dispose: () => {
     ++fetchGeneration

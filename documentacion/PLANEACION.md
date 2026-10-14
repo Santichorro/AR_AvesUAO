@@ -1,12 +1,14 @@
 # Planeación ampliada — AR_AvesUAO
 
 **Parcial 2 · Fundamentos de Realidad Virtual · Universidad Autónoma de Occidente**  
-**Revisión:** 12 de octubre de 2026.  
+**Revisión:** 13 de octubre de 2026.
 **Propósito:** orientar todas las tareas necesarias para completar y presentar el proyecto. La implementación paso a paso se desarrolla en [TECNICO.md](TECNICO.md).
 
 ## 1. Qué construiremos
 
-Una aplicación WebAR educativa sobre cinco aves del campus UAO: **pechirrojo, azulejo, paloma, loro y colibrí**. El usuario abre un enlace en el celular, elige una especie, detecta una superficie y toca el lugar donde quiere que aparezca directamente esa ave. Explora su información y canto, cambia de especie en el mismo punto, participa en un reto de avistamiento y responde dos rondas de quiz dentro de la experiencia RA.
+Una aplicación WebAR educativa sobre aves del catálogo vigente del campus UAO: **Martín Pescador, Paloma Doméstica, Loro y Colibrí Colirufo**. El usuario abre un enlace en el celular, elige una especie, detecta una superficie y toca el lugar donde quiere que aparezca directamente esa ave. Explora su información y canto, cambia de especie en el mismo punto, participa en un reto de avistamiento y responde dos rondas de quiz dentro de la experiencia RA.
+
+Actualmente se habilitan Martín Pescador, Paloma Doméstica y Colibrí Colirufo. Loro permanece pendiente. Ver AVANCE_01.md para modelos, validación y recursos faltantes.
 
 **Flujo vigente:** detectar el plano habilita la colocación; el ave aparece solo después de tocar un área válida. Durante exploración hay una sola ave activa. Cambiar de especie reemplaza la anterior, y Reubicar permite seleccionar otro punto.
 
@@ -49,15 +51,15 @@ La revisión de archivos del 12 de octubre muestra lo siguiente. Es una inspecci
 
 La copia del campus dentro del proyecto pesa 2.937.376 bytes y difiere de la exportación de 2.001.344 bytes generada en esta conversación. No se reemplazará automáticamente: primero se decide cuál versión conservar y se prueba. La mera existencia del archivo no significa que la escena lo use.
 
-En `AGENTS.md` y `README.md` aún aparece la lista antigua con Pellares. **La selección vigente del usuario prevalece:** `pechirrojo`, `azulejo`, `paloma`, `loro`, `colibri`. La tarea de alineación documental forma parte del plan.
+En `AGENTS.md` y `README.md` aún aparece la lista antigua con Pellares. **La selección vigente del usuario prevalece:** `martin_pescador`, `paloma`, `loro`, `colibri`. La tarea de alineación documental forma parte del plan.
 
 ## 3. Alcance y prioridades
 
 ### 3.1 Primera versión completa
 
-- Cinco aves con información verificable, representación 3D y canto correcto.
+- Aves del catálogo vigente con información verificable, representación 3D y canto correcto.
 - Una ave colocada directamente sobre la superficie y estable al mover el celular.
-- Cambio entre las cinco especies, exploración, inspección, reubicación y reto de avistamiento.
+- Cambio entre las especies del catálogo vigente, exploración, inspección, reubicación y reto de avistamiento.
 - Seis interacciones demostrables, contando acciones reales del usuario.
 - Quiz de canto y quiz de información, retroalimentación y resultados.
 - Reinicio sin duplicación de aves, audio, puntaje o eventos.
@@ -69,7 +71,7 @@ Mayor detalle del campus, video educativo, transiciones más elaboradas y variac
 
 ### 3.3 Fuera del alcance
 
-APK, cuentas, ranking en servidor, reconocimiento automático de aves reales con la cámara, GPS, rutas de navegación por el campus, modelos adicionales a las cinco especies y servicios de pago. Los registros de avistamiento serán de la actividad virtual durante la sesión; no se presentarán como observaciones biológicas reales.
+APK, cuentas, ranking en servidor, reconocimiento automático de aves reales con la cámara, GPS, rutas de navegación por el campus, modelos adicionales a las especies del catálogo vigente y servicios de pago. Los registros de avistamiento serán de la actividad virtual durante la sesión; no se presentarán como observaciones biológicas reales.
 
 ## 4. Experiencia y diseño de interacciones
 
@@ -93,7 +95,7 @@ Durante preguntas o búsquedas, la aplicación bloquea acciones de otros modos q
 | ID | Acción del usuario | Respuesta esperada | Cómo demostrarla |
 |---|---|---|---|
 | I1 | Tocar un área válida del plano | Aparece directamente el ave seleccionada | Colocar y rodearla sin que se creen copias |
-| I2 | Cambiar de especie | El ave visible se reemplaza en el mismo punto | Cambiar entre las cinco especies y comprobar que solo queda una |
+| I2 | Cambiar de especie | El ave visible se reemplaza en el mismo punto | Cambiar entre las especies del catálogo vigente y comprobar que solo queda una |
 | I3 | Tocar un ave y su control de canto | Ficha, selección visual y canto de esa especie | Comparar dos aves y sus datos |
 | I4 | Rotar o escalar el ave seleccionada | Cambia la inspección sin deformar el modelo | Llevarla a dos tamaños, girarla y restaurarla |
 | I5 | Buscar y tocar el ave del reto | Registro de la especie buscada y fin del reto | Un toque fuera del ave no registra; tocar el objetivo sí |
@@ -101,19 +103,18 @@ Durante preguntas o búsquedas, la aplicación bloquea acciones de otros modos q
 
 La aparición o animación breve de aterrizaje es una respuesta a I1 y no se cuenta además como interacción independiente. I2 exige cambiar activamente la especie. Reubicar es un control adicional. Las seis acciones deben demostrarse; este conteo no acredita por sí mismo la aprobación del docente.
 
-## 5. Contenido de las cinco aves
+## 5. Contenido de las aves del catálogo vigente
 
 | ID | Nombre común | Nombre científico | Datos y fuentes | GLB y clips | Canto y licencia | Preguntas |
 |---|---|---|---|---|---|---|
-| `pechirrojo` | Pechirrojo | Por confirmar con UAO | Pendiente | Pendiente | Pendiente | Pendiente |
-| `azulejo` | Azulejo | Por confirmar con UAO | Pendiente | Pendiente | Pendiente | Pendiente |
-| `paloma` | Paloma | Por confirmar con UAO | Pendiente | Pendiente | Pendiente | Pendiente |
+| `martin_pescador` | Martín Pescador | Megaceryle torquata (referencia del índice UAO) | Índice p. 9; ficha detallada pendiente | GLB configurado; 10 clips | Pendiente | Pendiente |
+| `paloma` | Paloma Doméstica | Columba livia | Ficha e ilustración p. 15 | GLB configurado; 3 recortes de Take 001 | Pendiente | Pendiente |
 | `loro` | Loro | Por confirmar con UAO | Pendiente | Pendiente | Pendiente | Pendiente |
-| `colibri` | Colibrí | Por confirmar con UAO | Pendiente | Pendiente | Pendiente | Pendiente |
+| `colibri` | Colibrí Colirufo | Amazilia tzacatl | Ficha p. 17 y fotografía aportada | GLB y 6 clips originales | Canto aportado; crédito pendiente | Pendiente |
 
 Cada ficha contendrá nombre común y científico, fotografía, descripción, alimentación, hábitat, ubicación de avistamiento cuando esté documentada, canto y un dato reconocible que pueda evaluarse. Incluir conservación solo si hay una fuente apropiada. Registrar autoría, referencia y licencia por recurso.
 
-Propuesta de contenido mínimo: **tres preguntas verificadas por especie**, para un banco de quince. No son hechos biológicos todavía ni un requisito del profesor. La persona que revisa debe encontrar la respuesta de cada pregunta en la ficha o en la fuente registrada. Se descartan opciones ambiguas o preguntas cuya respuesta no se haya enseñado.
+Propuesta de contenido mínimo: **tres preguntas verificadas por especie**, para un banco cuyo tamaño dependa del catálogo habilitado. No son hechos biológicos todavía ni un requisito del profesor. La persona que revisa debe encontrar la respuesta de cada pregunta en la ficha o en la fuente registrada. Se descartan opciones ambiguas o preguntas cuya respuesta no se haya enseñado.
 
 ## 6. Organización del equipo
 
@@ -126,7 +127,7 @@ Las ramas existentes son `tello`, `sam`, `meli` y `juandate`; `main` es la rama 
 | R3: contenido y experiencia | Datos UAO, fichas, preguntas y interfaz | JSON, audio, fichas y quiz | Revisión biológica cruzada con R4 |
 | R4: calidad y publicación | Git, Pages, pruebas, evidencias y pitch | URL, matriz de pruebas y demo | Prueba cambios de todos y revisa PR |
 
-El quiz requiere trabajo compartido: R3 define contenido e interfaz, R1 integra la selección RA y R4 prueba el puntaje. Los cinco modelos pueden repartirse entre integrantes; R2 asegura convenciones comunes. Cada tarea tendrá una persona responsable y otra revisora. No cargar a una sola persona con arte, integración y publicación.
+El quiz requiere trabajo compartido: R3 define contenido e interfaz, R1 integra la selección RA y R4 prueba el puntaje. Los modelos del catálogo vigente pueden repartirse entre integrantes; R2 asegura convenciones comunes. Cada tarea tendrá una persona responsable y otra revisora. No cargar a una sola persona con arte, integración y publicación.
 
 ### 6.1 Rutina de trabajo
 
@@ -144,7 +145,7 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 
 1. Confirmar fecha de entrega, equipos disponibles y repositorio remoto.
 2. Asignar los cuatro roles y acordar quién edita la escena primero.
-3. Alinear los nombres de las cinco aves en los documentos y el README.
+3. Alinear los nombres de las aves del catálogo vigente en los documentos y el README.
 4. Verificar Node, npm, Git LFS, Studio y la rama personal.
 5. Instalar dependencias y compilar la plantilla actual.
 6. Configurar Pages y publicar una versión inicial mediante PR a `main`.
@@ -158,7 +159,7 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 **Depende de:** fuente UAO. Puede avanzar junto a P0. **Responsable:** R3/R2.
 
 1. Obtener la base o fichas UAO y guardar las referencias.
-2. Asociar los cinco nombres comunes a especies científicas exactas.
+2. Asociar los nombres comunes vigentes a especies científicas exactas.
 3. Preparar textos breves y fotografías correctas por especie.
 4. Obtener cantos distinguibles con permisos de uso y recortarlos sin alterar la identificación.
 5. Redactar y revisar las quince preguntas propuestas.
@@ -166,7 +167,7 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 7. Completar el JSON, manteniendo la estructura acordada.
 8. Revisar datos y preguntas entre dos personas.
 
-**Entregable:** cinco fichas, banco de preguntas, inventario y JSON validado. **Salida:** todas las preguntas tienen una respuesta respaldada y cada recurso corresponde a su especie.
+**Entregable:** fichas del catálogo vigente, banco de preguntas, inventario y JSON validado. **Salida:** todas las preguntas tienen una respuesta respaldada y cada recurso corresponde a su especie.
 
 ### P2. Producir y revisar los modelos
 
@@ -176,20 +177,20 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 2. Modelar primero una ave piloto con proporciones y rasgos reconocibles.
 3. Preparar rig y los clips `idle`, `fly`, `land`, `sing`, `happy`, `no`.
 4. Exportar GLB, reimportarlo y comprobar materiales y animaciones.
-5. Probar la ave piloto en Studio antes de repetir el trabajo cinco veces.
+5. Probar la ave piloto en Studio antes de repetir el trabajo para cada ave vigente.
 6. Crear las otras cuatro usando el mismo contrato de entrega.
 7. Conservar el campus como recurso opcional; revisar su versión si se desarrollará esa vista.
-8. Preparar el origen de apoyo y comprobar que las cinco aves se colocan en el mismo punto sin flotar ni hundirse.
+8. Preparar el origen de apoyo y comprobar que las aves del catálogo vigente se colocan en el mismo punto sin flotar ni hundirse.
 9. Registrar peso, triángulos, clips y problemas de cada archivo.
 
-**Entregable:** cinco modelos revisados y preparados para colocación directa. **Salida:** la especie piloto carga y anima en Studio; los cinco archivos cumplen las convenciones. Un placeholder permite programar, pero no reemplaza el recurso final en la aceptación.
+**Entregable:** modelos del catálogo vigente revisados y preparados para colocación directa. **Salida:** la especie piloto carga y anima en Studio; los archivos de las especies vigentes cumplen las convenciones. Un placeholder permite programar, pero no reemplaza el recurso final en la aceptación.
 
 ### P3. Implementar colocación directa y cambio de especie
 
 **Depende de:** P0, un modelo piloto y datos estructurados. **Responsable:** R1.
 
 1. Adaptar el prefab de ejemplo a una raíz de colocación que contenga una sola ave.
-2. Crear selector de las cinco especies, disponible antes de colocar; configurar una especie inicial si el usuario aún no elige.
+2. Crear selector de las especies del catálogo vigente, disponible antes de colocar; configurar una especie inicial si el usuario aún no elige.
 3. Mostrar guía y retícula en un plano válido. Detectarlo no crea automáticamente el modelo.
 4. Al tocar el área elegida, guardar posición/orientación, crear el ave seleccionada y pasar a exploración.
 5. Impedir duplicados por doble toque y bloquear nuevas colocaciones fuera de ESCANEO o REUBICAR.
@@ -197,7 +198,7 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 7. Añadir Reubicar: esperar otro toque válido y mover la raíz existente; cancelar conserva la ubicación previa.
 8. Manejar carga lenta, selecciones rápidas y errores; reiniciar limpia entidades, sonidos, temporizadores y puntaje.
 
-**Entregable:** ave colocable, intercambiable entre las cinco especies y reubicable. **Salida:** detectar sin tocar no crea contenido; colocar, cambiar rápidamente, reubicar y reiniciar no genera duplicados.
+**Entregable:** ave colocable, intercambiable entre las especies del catálogo vigente y reubicable. **Salida:** detectar sin tocar no crea contenido; colocar, cambiar rápidamente, reubicar y reiniciar no genera duplicados.
 
 ### P4. Completar exploración e inspección
 
@@ -207,12 +208,12 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 2. Mostrar ficha, fotografía y nombre científico correctos.
 3. Reproducir solo el canto seleccionado y activar su animación.
 4. Añadir rotación, escala limitada y botón de restaurar.
-5. Mantener tocable el ave activa de cualquiera de las cinco especies: ampliar zonas de toque sin modificar sus proporciones.
+5. Mantener tocable el ave activa de cualquiera de las especies del catálogo vigente: ampliar zonas de toque sin modificar sus proporciones.
 6. Evitar que tocar el selector o un botón coloque otra ave, la reubique o seleccione algo detrás.
 7. Añadir pausa/silencio, cierre de ficha y retorno a exploración.
 8. Revisar lectura sobre la cámara y accesibilidad básica de los controles.
 
-**Entregable:** cinco fichas y manipulación funcional. **Salida:** seleccionar las cinco especies siempre muestra los datos y sonidos correspondientes; la escala no deforma el modelo.
+**Entregable:** fichas del catálogo vigente y manipulación funcional. **Salida:** seleccionar las especies del catálogo vigente siempre muestra los datos y sonidos correspondientes; la escala no deforma el modelo.
 
 ### P5. Implementar el reto de avistamiento
 
@@ -234,17 +235,17 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 **Depende de:** P1 y selección RA de P4. **Responsable:** R3/R1.
 
 1. Cerrar fichas, detener otros audios y guardar la especie activa y su transformación de exploración.
-2. Crear la ronda de canto con cinco preguntas, una por especie sin repetir.
-3. Mostrar cinco tarjetas de especies en RA cerca del punto elegido; ocultar temporalmente el ave de exploración y resolver tocando una tarjeta.
+2. Crear la ronda de canto con preguntas para las especies con canto disponible, sin repetir especie.
+3. Mostrar tarjetas de las especies habilitadas en RA cerca del punto elegido; ocultar temporalmente el ave de exploración y resolver tocando una tarjeta.
 4. Bloquear una segunda respuesta hasta terminar la retroalimentación.
-5. Crear la ronda informativa con cinco preguntas del banco, una por ave.
+5. Crear la ronda informativa con preguntas del banco para las especies con ficha completa.
 6. Mostrar enunciado y opciones en un panel asociado a la escena RA.
 7. Explicar la respuesta correcta después de un error y reproducir feedback coherente.
 8. Mostrar aciertos por ronda y puntaje total sobre diez.
 9. Añadir repetir quiz y volver a explorar, restaurando el ave elegida en su punto; diferenciarlos de reiniciar la colocación.
 10. Probar todo correcto, todo incorrecto, doble toque, cancelación y repetición.
 
-**Entregable:** quiz completo y resultados. **Salida:** máximo diez puntos; cada pregunta se puntúa una sola vez; repetir empieza desde cero. Cinco más cinco preguntas es una configuración inicial propuesta, modificable mediante datos.
+**Entregable:** quiz completo y resultados. **Salida:** máximo calculado según la sesión; cada pregunta se puntúa una sola vez; repetir empieza desde cero. La cantidad de preguntas se configura mediante datos y depende de los recursos disponibles.
 
 ### P7. Integrar, optimizar y publicar la versión final
 
@@ -252,7 +253,7 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 
 1. Integrar PR por funcionalidad y comprobar que no se pierdan assets.
 2. Sustituir placeholders; verificar nombres, cantos, clips, rutas y licencias.
-3. Medir carga de las cinco especies y rendimiento con una ave activa; probar por separado las tarjetas del quiz y el campus si se añade como vista opcional.
+3. Medir carga de las especies del catálogo vigente y rendimiento con una ave activa; probar por separado las tarjetas del quiz y el campus si se añade como vista opcional.
 4. Reducir peso, materiales, sombras o animaciones secundarias según mediciones.
 5. Revisar clipping, superficies próximas y geometría visible desde todos los ángulos.
 6. Compilar y desplegar la versión candidata en Pages.
@@ -283,7 +284,7 @@ Los códigos P0–P8 se utilizan también en el documento técnico. Se puede pro
 |---|---|---|
 | H0 | Plantilla publicada | Cámara y colocación en un celular real |
 | H1 | Ave piloto integrada | Datos, modelo, clip y canto conectados |
-| H2 | Cinco especies explorables, una a la vez | Cambio de especie, fichas, audio e inspección |
+| H2 | Especies del catálogo vigente explorables, una a la vez | Cambio de especie, fichas, audio e inspección |
 | H3 | Experiencia educativa completa | Avistamiento y dos quizzes con resultados |
 | H4 | Candidato de entrega | Pruebas móviles, assets finales y Pages |
 | H5 | Sustentación preparada | Pitch ensayado y video de respaldo |
@@ -307,7 +308,7 @@ Este calendario distribuye el trabajo en **diez sesiones**, no fija fechas ni pr
 | 9 | H4: candidato y pruebas completas | Video y ensayo |
 | 10 | Correcciones de entrega y H5 | Verificación final de enlace y respaldo |
 
-Si queda poco tiempo, reducir mejoras visuales y complejidad de trayectorias. Mantener contenido correcto, cinco aves, interacciones requeridas, quiz RA y demo estable. No ocultar recursos faltantes detrás de placeholders en la entrega final.
+Si queda poco tiempo, reducir mejoras visuales y complejidad de trayectorias. Mantener contenido correcto, aves del catálogo vigente, interacciones requeridas, quiz RA y demo estable. No ocultar recursos faltantes detrás de placeholders en la entrega final.
 
 ## 10. Riesgos y respuesta
 
@@ -330,9 +331,9 @@ No se considera funcionamiento sin conexión como garantía: el HTML actual carg
 
 | Comprobación | Evidencia requerida | Estado |
 |---|---|---|
-| Cinco especies correctas | JSON y revisión de fuentes | Pendiente |
+| Especies del catálogo vigente correctas | JSON y revisión de fuentes | Pendiente |
 | Colocación única y estable | Prueba física y video | Pendiente |
-| Cinco especies disponibles, una ave activa con su modelo y canto | Inventario, inspección en Studio y demo | Pendiente |
+| Especies del catálogo vigente disponibles, una ave activa con su modelo y canto | Inventario, inspección en Studio y demo | Pendiente |
 | Seis interacciones | Recorrido que muestre cada acción I1–I6 | Pendiente |
 | Quiz dentro de RA | Video de las dos rondas | Pendiente |
 | Puntaje y repetición | Casos de diez, cero, doble toque y reinicio | Pendiente |
@@ -387,6 +388,6 @@ Esta ampliación es un plan de ejecución. No acredita que las tareas pendientes
 
 Se implementó la colocación directa de una sola ave, con estado independiente del motor, ficha de referencia desde JSON, seis clips reales, reubicación con cancelación y reinicio. Los recursos anteriores y las modificaciones previas de la escena se conservan. Ver [AVANCE_01.md](AVANCE_01.md) para archivos, comprobaciones y pruebas físicas pendientes.
 
-El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). Su ficha usa la página 17 de la guía y la fotografía aportada; conserva ID colibri y el modelo original. Las referencias previas de otras especies se archivan para futuras etapas. Canto y créditos/licencias siguen pendientes. Las cinco especies no se marcan como terminadas.
+El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). Su ficha usa la página 17 de la guía y la fotografía aportada; conserva ID colibri y el modelo original. Las referencias previas de otras especies se archivan para futuras etapas. Canto y créditos/licencias siguen pendientes. Las especies del catálogo vigente no se marcan como terminadas.
 
 Se conservan los nombres reales de los clips aportados; no se afirma que existan clips sing, happy o no. El campus queda opcional. La vista 3D de escritorio sirve para inspección y no certifica tracking en Android/iPhone. El control de inicio habilita la colocación; el runtime administra los permisos de cámara.

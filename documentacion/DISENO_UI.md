@@ -109,3 +109,12 @@ Controles de canto verificados en el bundle: 34 pruebas unitarias, revisión de 
 ## Coordenadas de simulación
 
 Los eventos ECS normalizan respecto del canvas; Pointer Events, elementFromPoint y el menú DOM trabajan en coordenadas del viewport. src/screen-coordinates.js centraliza la conversión usando getBoundingClientRect de world.three.renderer.domElement. Usar innerWidth/innerHeight para comparar ambos producía un desplazamiento falso al liberar, que cancelaba un tap cuando el canvas estaba reducido o desplazado. El fallo se reprodujo antes de corregirlo y ahora pasan cuatro taps fuera del centro y apertura de Ficha con un canvas de 330×680 situado en (30,80). Las pruebas previas de pantalla completa no cubrían este caso.
+
+
+## Selección compartida de aves · 13 de octubre de 2026
+
+El nido abre el mismo selector: Martín Pescador, Paloma Doméstica y Colibrí Colirufo están habilitados; Loro sigue pendiente. Pechirrojo y Azulejo dejan de presentarse como opciones del recorrido. aria-pressed indica la especie actual y el subtítulo y mensajes utilizan su nombre. Cambiar de especie cierra paneles y canto, conserva el punto de colocación y actualiza la ficha y clips en la misma UI.
+
+Se mantienen las cinco opciones del círculo y las transiciones existentes. La Paloma muestra una ilustración de la guía, página 15, con crédito separado; Martín conserva título, identificación del índice y un mensaje claro de ficha detallada pendiente, sin reutilizar fotografía ni texto del Colirufo. Cuando no existe canto, se informa mediante el mensaje de estado y no aparece el indicador de escucha.
+
+No se modificó CSS ni la geometría de los sectores. Revisión con bundle y ECS simulado: selección, fichas y 6/10/3 botones de clips, giro/pinch, cambio rápido sin duplicados y cierre del panel al elegir un clip. El canto real del Colirufo conserva pausa/continuación/X en 390×844, 320×568 y 844×390. Pendiente validar percepción de animaciones, tacto, fotos y textos con Studio y dispositivos físicos.

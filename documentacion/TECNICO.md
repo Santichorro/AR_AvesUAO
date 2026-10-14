@@ -1,6 +1,6 @@
 # Guía técnica ampliada — AR_AvesUAO
 
-**Revisión:** 12 de octubre de 2026.  
+**Revisión:** 13 de octubre de 2026.
 **Objetivo:** ejecutar todas las tareas del plan hasta una versión WebAR publicable. Complementa [PLANEACION.md](PLANEACION.md). Las rutas nuevas y los nombres de componentes propuestos no son archivos existentes ni APIs de Studio.
 
 ## 1. Alcance técnico y estado comprobado
@@ -13,12 +13,12 @@
 | Entrada | `app.js` configura LandingPage y webpack inicializa la escena | Inicio personalizado, permisos y audio |
 | Compilación | `npm run build`, salida `dist/` | Compilación de cada versión integrada |
 | Datos | TypeScript permite `resolveJsonModule` | Crear y validar `src/data/aves.json` |
-| Recursos | Ejemplo GLB, preview y campus ya copiado | Cinco aves, fotografías, cantos y efectos finales |
+| Recursos | Ejemplo GLB, preview y campus ya copiado | Aves del catálogo vigente, fotografías, cantos y efectos finales |
 | Publicación | Actions construye y despliega desde `main` | Configuración remota y ejecución exitosa |
 
 La inspección actual confirma archivos, configuración y referencias. El documento anterior reportaba una compilación exitosa: se conserva como antecedente, no como resultado de esta revisión. No se ejecutó un build ni una prueba física para escribir esta ampliación.
 
-La selección actual es `pechirrojo`, `azulejo`, `paloma`, `loro`, `colibri`. Cambiar referencias antiguas a Pellares donde corresponda. No renombrar recursos de otros integrantes a ciegas: revisar primero sus referencias.
+La selección actual es `martin_pescador`, `paloma`, `loro`, `colibri`. Cambiar referencias antiguas a Pellares donde corresponda. No renombrar recursos de otros integrantes a ciegas: revisar primero sus referencias.
 
 ## 2. Estructura real y estructura propuesta
 
@@ -204,7 +204,7 @@ Crear los otros cuatro registros conservando exactamente los nombres de campos. 
 
 ### 4.3 Validación necesaria
 
-- Cinco IDs únicos y los cinco acordados, sin tildes en los IDs.
+- IDs únicos y los acordados en el catálogo vigente, sin tildes en los IDs.
 - Campos obligatorios presentes, textos no vacíos y sin `PENDIENTE` en la versión final.
 - Preguntas con ID único, tres opciones y `correcta` entera entre cero y dos.
 - Respuesta correcta y explicación respaldadas por información presentada.
@@ -224,9 +224,9 @@ Esto solo comprueba que el JSON pueda leerse, no que los datos biológicos, ruta
 
 ### 4.4 Configuración de experiencia
 
-Proponer `src/data/experiencia.json` para cantidad de preguntas, orden de especies, límites de inspección, especie inicial, escala de exhibición y desplazamientos del reto relativos al punto elegido. La raíz de colocación almacena posición y orientación; los cinco IDs describen alternativas para una sola ave activa. Separar estas posiciones de la información biológica, ya que son decisiones de diseño.
+Proponer `src/data/experiencia.json` para cantidad de preguntas, orden de especies, límites de inspección, especie inicial, escala de exhibición y desplazamientos del reto relativos al punto elegido. La raíz de colocación almacena posición y orientación; los IDs vigentes describen alternativas para una sola ave activa. Separar estas posiciones de la información biológica, ya que son decisiones de diseño.
 
-**Salida P1:** fuente, cinco fichas, recursos identificados, preguntas revisadas y JSON válido.
+**Salida P1:** fuente, fichas del catálogo vigente, recursos identificados, preguntas revisadas y JSON válido.
 
 ## 5. P2 — Producción y entrega de recursos 3D
 
@@ -353,7 +353,7 @@ fallo recuperable -> ERROR -> recuperación controlada
 | REINICIANDO | Entrada bloqueada y limpieza | Volver a escaneo |
 | ERROR | Mensaje y recuperación aplicable | Retirar error al recuperar |
 
-La animación es independiente del estado de app: idle puede reproducirse durante EXPLORAR. Una animación de aparición no exige botón Iniciar llegada ni despliegue de cinco aves.
+La animación es independiente del estado de app: idle puede reproducirse durante EXPLORAR. Una animación de aparición no exige botón Iniciar llegada ni despliegue de aves del catálogo vigente.
 
 ### 6.3.1 Llegada vigente del Colirufo
 
@@ -467,7 +467,7 @@ play() se invoca dentro del click, sin await previo ni temporizador de cierre. p
 6. Ofrecer Restaurar y cerrar ficha; verificar que no altera el punto de colocación. Reubicar es un modo distinto.
 7. Comprobar que girar el modelo no gira accidentalmente el panel o cambia la respuesta del quiz.
 
-**Salida P4:** las cinco aves responden con datos correctos y la inspección es reversible.
+**Salida P4:** las aves del catálogo vigente responden con datos correctos y la inspección es reversible.
 
 ## 8. P5 — Reto de avistamiento
 
@@ -490,19 +490,19 @@ No programar ubicaciones que obliguen a caminar hacia obstáculos reales. Manten
 
 Mantener separados: cola de cantos, cola de preguntas informativas, índice actual, respuestas, puntos por ronda y bloqueo de respuesta. No guardar el puntaje dentro del JSON de especies. Reiniciar estas estructuras al comenzar un nuevo quiz.
 
-Configuración inicial propuesta: cinco cantos sin repetir especie y cinco preguntas de información, una por especie. Cada respuesta correcta suma uno; incorrecta suma cero. Máximo diez. Si se cambia la cantidad, calcular el máximo a partir de la sesión y actualizar los textos del resultado.
+Configuración inicial propuesta: una ronda de cantos y otra de información, con cantidad ajustada a las especies con recursos completos. Cada respuesta correcta suma uno; incorrecta suma cero. El máximo se calcula con la cantidad de preguntas de la sesión. Si se cambia la cantidad, calcular el máximo a partir de la sesión y actualizar los textos del resultado.
 
 ### 9.2 Ronda de cantos
 
-1. Barajar una copia de los cinco IDs; no modificar el catálogo original.
-2. Guardar especie y transformación del ave de exploración y ocultarla temporalmente. Crear cinco tarjetas de especies en RA cerca del punto de colocación, con nombre o imagen verificable, sin cargar cinco modelos simultáneos.
+1. Barajar una copia de los IDs vigentes; no modificar el catálogo original.
+2. Guardar especie y transformación del ave de exploración y ocultarla temporalmente. Crear tarjetas de las especies habilitadas en RA cerca del punto de colocación, con nombre o imagen verificable, sin cargar modelos del catálogo vigente simultáneos.
 3. Para cada ID, guardar la respuesta esperada antes de reproducir el canto.
 4. Permitir repetir audio sin sumar puntos ni cambiar pregunta.
 5. Al tocar una tarjeta de especie, revisar bloqueo y estado; marcar inmediatamente la pregunta como resuelta.
 6. Comparar el ID, guardar respuesta y sumar una sola vez.
 7. Dar feedback en las tarjetas, sonido y explicación de la correcta. Si se muestra una reacción de ave, usar una sola representación temporal después de resolver, sin revelar la respuesta antes del toque.
 8. Avanzar mediante Siguiente después de feedback.
-9. Al terminar cinco preguntas, pasar a QUIZ_INFO y detener el canto.
+9. Al terminar la ronda configurada, pasar a QUIZ_INFO y detener el canto.
 
 ### 9.3 Ronda de información
 
@@ -543,7 +543,7 @@ Automatizar pruebas de la lógica pura del puntaje, bloqueo, selección sin repe
 2. Contrato de datos y un recurso piloto.
 3. Punto de colocación, selector de especie y estado.
 4. Una ave con ficha/canto completa.
-5. Cambio entre las cinco especies e inspección de una ave activa.
+5. Cambio entre las especies del catálogo vigente e inspección de una ave activa.
 6. Avistamiento.
 7. Ronda de cantos.
 8. Ronda informativa y resultados.
@@ -556,7 +556,7 @@ Este orden mantiene una versión comprobable en cada hito. No integrar todos los
 1. Medir peso total de modelos, audios e imágenes y tiempos de carga con caché fría/caliente.
 2. Observar FPS y pausas durante spawn, cambio de especie, giro, búsqueda y quiz en el dispositivo más limitado disponible.
 3. Registrar ave activa, recursos en caché, tarjetas visibles, sombras y configuración cuando se mide.
-4. Mantener cinco especies en el selector y una sola ave visible. Elegir carga bajo demanda o precarga medida; simplificar `idle` y efectos secundarios si hace falta.
+4. Mantener especies del catálogo vigente en el selector y una sola ave visible. Elegir carga bajo demanda o precarga medida; simplificar `idle` y efectos secundarios si hace falta.
 5. Reducir materiales, texturas o sombras antes de sacrificar identificación. El campus opcional tiene su propia medición.
 6. Comprobar que el indicador de carga no desaparece antes de tener los recursos básicos listos.
 7. Cambiar de orientación, minimizar/restaurar y completar tres recorridos consecutivos.
@@ -571,7 +571,7 @@ Crear un registro por versión publicada. No dejar casillas aprobadas sin ejecuc
 | T02 | Negar permiso | Mensaje y recuperación, sin pantalla vacía |
 | T03 | Detectar plano sin tocar; luego colocar con doble toque | Nada aparece antes del toque; después solo una ave |
 | T04 | Mover el celular alrededor | Seguimiento razonablemente estable |
-| T05 | Cambiar rápidamente entre las cinco especies | Queda solo la última elegida en el mismo punto |
+| T05 | Cambiar rápidamente entre las especies del catálogo vigente | Queda solo la última elegida en el mismo punto |
 | T06 | Seleccionar cada especie | Ficha, imagen y canto correspondientes |
 | T07 | Girar/escalar/restaurar | Sin deformación ni cambios de punto de colocación |
 | T08 | Buscar, fallar y registrar | Solo el objetivo completa el reto |
@@ -627,7 +627,7 @@ Esto actualiza la rama personal con cambios de `main`; no mueve el trabajo a `ma
 git diff --stat
 git diff
 git add src/data/aves.json docs/PLANEACION.md docs/TECNICO.md
-git commit -m 'Documentar el flujo y los datos de las cinco aves'
+git commit -m 'Documentar el flujo y los datos de las aves del catálogo vigente'
 git push origin juandate
 ```
 
@@ -680,7 +680,7 @@ Fuente: [publicación de Studio](https://8thwall.org/docs/getting-started/publis
 
 ### 12.5 Comprobación posterior
 
-Abrir desde Android e iPhone, permitir cámara, seleccionar las cinco aves, escuchar cantos, ejecutar búsqueda y quiz, repetir y reiniciar. Registrar el commit que generó el sitio. Un check verde en Actions solo demuestra que esos jobs terminaron, no que el aprendizaje, la cámara o el audio funcionen en el teléfono.
+Abrir desde Android e iPhone, permitir cámara, seleccionar las aves del catálogo vigente, escuchar cantos, ejecutar búsqueda y quiz, repetir y reiniciar. Registrar el commit que generó el sitio. Un check verde en Actions solo demuestra que esos jobs terminaron, no que el aprendizaje, la cámara o el audio funcionen en el teléfono.
 
 ## 13. Licencias, créditos y dependencias
 
@@ -732,6 +732,31 @@ Se consultaron los archivos reales del repositorio, documentación oficial de Gl
 
 Se implementó la colocación directa de una sola ave, con estado independiente del motor, ficha de referencia desde JSON, seis clips reales, reubicación con cancelación y reinicio. Los recursos anteriores y las modificaciones previas de la escena se conservan. Ver [AVANCE_01.md](AVANCE_01.md) para archivos, comprobaciones y pruebas físicas pendientes.
 
-El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). src/data/aves.json conserva ID colibri, modelo, clips e inspección; añade familia, ficha única de página 17, imagen assets/img/colirufo.jpg y crédito independiente. La UI elimina referencias/candidatas; el archivo documentacion/REFERENCIAS_COLIBRIES.json conserva esos datos sin incluirlos en la ficha activa. Canto y créditos/licencias siguen pendientes. Las cinco especies no se marcan como terminadas.
+El usuario define al GLB piloto como representación del Colibrí Colirufo (Amazilia tzacatl). src/data/aves.json conserva ID colibri, modelo, clips e inspección; añade familia, ficha única de página 17, imagen assets/img/colirufo.jpg y crédito independiente. La UI elimina referencias/candidatas; el archivo documentacion/REFERENCIAS_COLIBRIES.json conserva esos datos sin incluirlos en la ficha activa. Canto y créditos/licencias siguen pendientes. Las especies del catálogo vigente no se marcan como terminadas.
 
 Se conservan los nombres reales de los clips aportados; no se afirma que existan clips sing, happy o no. El campus queda opcional. La vista 3D de escritorio sirve para inspección y no certifica tracking en Android/iPhone. El control de inicio habilita la colocación; el runtime administra los permisos de cámara.
+
+
+## Catálogo y modelos compartidos · 13 de octubre de 2026
+
+La selección vigente es Martín Pescador, Paloma Doméstica, Loro y Colibrí Colirufo. Hay tres especies habilitadas; Loro conserva su entrada pendiente. Pechirrojo y Azulejo salen del recorrido; no se borran recursos de integrantes ni se inventa una quinta ave. Los cambios de escena, efectos de ui-sounds.js y GLB originales permanecen intactos.
+
+El selector llama a controls.species. PlacementSession.changeSpecies invalida generaciones, elimina la instancia anterior y conserva el punto. PREPARANDO espera recurso y seguimiento; COLOCANDO carga la sustitución y loaded entra directamente en EXPLORAR con reposo. Antes de colocar no se crea contenido; después de Reiniciar se exige un toque nuevo y se reproduce la llegada propia del ave elegida. Reubicar conserva escala y orientación de la misma instancia. Los fetch abortados y eventos de modelos eliminados no pueden restaurar una selección anterior.
+
+pilot-ui.ts mantiene una sola UI: setBird reconstruye únicamente datos de ficha y botones de clips, actualiza aria-pressed y el encabezado, libera el audio anterior y crea el controlador del nuevo recurso. Las etiquetas usan {ave} en interfaz.json. Se conservan el círculo de cinco opciones, icono de nido, X, transiciones, giro/pinch y efectos de interfaz. Sin estilos nuevos: pilot.css e inline siguen sincronizados.
+
+| Ave | Recurso usado | Clips y llegada | Exhibición |
+|---|---|---|---|
+| Colirufo | assets/models/colibri.glb | Seis clips originales; 05_Landing, contacto 2,25 s | Escala 0,25; límites 0,12–0,60; offset anterior |
+| Martín Pescador | assets/models/martin_pescador_configurado.glb | Diez nombres originales, con inicios desplazados a cero; fly_endA_bird → idleA1_bird; 3,3 s | Escala 0,18; límites 0,09–0,45; frente +Z; offset Y −0,1066 |
+| Paloma | assets/models/paloma_configurada.glb | Recortes reales de Take 001: vuelo 4–5 s, aterrizaje 18–20 s, reposo 35–40 s; llegada 2 s | Escala 1,2; límites 0,6–3; frente +X y giro local −π/2; offset Y 0,001 |
+
+MartinPescador.glb y paloma.glb se conservan como originales. Las copias configuradas guardan rangos originales y SHA en extras, mantienen geometría, texturas y rig, y compactan buffers no utilizados. El material principal de la Paloma usa metallicFactor=0 para evitar tratar sus plumas como metal cuando no hay mapa de entorno. No se inventan movimientos: sus tres clips derivados proceden de intervalos verificados de Take 001. Martín conserva los nombres reales; en el original idleA1_bird empieza a los 23,63 s, por lo que reproducirlo desde cero causaba una espera prolongada.
+
+Cada ave tiene su calibración JSON y dirección frontal propia. Las curvas de root se expresan en coordenadas del modelo aplicando los ancestros estáticos del GLB. rootContacto cancela la traslación hasta la pose final sin salto; rootReposo registra la referencia de reposo. La reproducción nativa mantiene velocidad positiva y pausa junto con la trayectoria al perder seguimiento. El contacto visual y el apoyo físico deben revisarse en móvil: terminar el ancla en el punto elegido no prueba el contacto de las patas con una superficie AR.
+
+La Paloma usa Columba livia, familia Columbidae, texto e ilustración de la guía UAO, página 15. Para Martín se usa la referencia Megaceryle torquata, familia Cerylidae, del índice de la página 9; el GLB se considera ilustrativo y no confirma taxonómicamente esa especie. Faltan ficha detallada e imagen de referencia. Ambos carecen de canto aportado: Canto cierra el radial e informa que el recurso está pendiente; no utiliza el MP3 del Colirufo. Los créditos de Martín conservan ahitch3, CC-BY-4.0 y el enlace Sketchfab del GLB. Los créditos desconocidos se registran como pendientes.
+
+Validación: 54 pruebas unitarias, TypeScript y build. Las pruebas de integridad verifican originales, modelos derivados, tiempos, nombres y calibraciones; las de sesión cubren selección previa, sustitución en el mismo punto, cambios rápidos, carga/llegada tardías, seguimiento y reinicio. Con ECS simulado y bundle se comprobaron las tres fichas, 6/10/3 clips, giro, límites de pinch, reubicación/cancelación y cantos faltantes. El MP3 real del Colirufo conserva pausa, continuación y X en móvil estrecho y horizontal. Con ECS 3.2.0 y GLB reales en Edge se observaron poses variables durante las tres llegadas, transición a sus reposos y ancla final exacta, usando una escena 3D temporal con la versión de escena del proyecto. Esta prueba no usa SLAM ni sustituye Studio/Android/iPhone.
+
+El build conserva dos avisos de tamaño. El Martín configurado pesa aproximadamente 30,6 MiB y la Paloma 14,4 MiB; la copia de assets incluye también originales para conservar el proyecto. Falta medir carga, consumo de memoria, materiales, suavidad, legibilidad y apoyo físico en dispositivos, y optimizar los modelos si los resultados lo requieren.

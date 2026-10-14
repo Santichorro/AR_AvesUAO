@@ -1,22 +1,238 @@
 {
   "aves": [
     {
-      "id": "pechirrojo",
-      "nombre": "Pechirrojo",
-      "disponible": false,
-      "modelo": null
-    },
-    {
-      "id": "azulejo",
-      "nombre": "Azulejo",
-      "disponible": false,
-      "modelo": null
+      "id": "martin_pescador",
+      "nombre": "Martín Pescador",
+      "disponible": true,
+      "tipoRepresentacion": "ilustrativa",
+      "modelo": "assets/models/martin_pescador_configurado.glb",
+      "audioCanto": null,
+      "imagen": null,
+      "escalaExhibicion": 0.18,
+      "inspeccion": {
+        "escalaMinima": 0.09,
+        "escalaMaxima": 0.45,
+        "sensibilidadGiro": 6.283185307179586,
+        "umbralArrastre": 0.015
+      },
+      "transformacion": {
+        "posicionLocal": {
+          "x": 0,
+          "y": -0.1066,
+          "z": 0
+        },
+        "giroY": 0
+      },
+      "animaciones": {
+        "reposo": "idleA1_bird",
+        "vuelo": "fly1_bird",
+        "aterrizaje": "fly_endA_bird"
+      },
+      "llegada": {
+        "calibracion": "martin_pescador-aterrizaje.json",
+        "duracionSegundos": 3.3,
+        "mezclaReposoSegundos": 0.16,
+        "alturaMinima": 0.45,
+        "alturaMaxima": 0.75,
+        "radioMinimo": 0.35,
+        "radioMaximo": 0.65,
+        "exponenteVertical": 1.1,
+        "anguloFrente": 0
+      },
+      "fuente": {
+        "titulo": "Guía ilustrada de las aves del campus de la UAO",
+        "edicion": "Primera edición 2023",
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "autores": [
+          "Germán Morales Zuñiga",
+          "Natalia Lenis Sánchez"
+        ],
+        "consulta": "2026-10-13",
+        "paginas": [
+          9
+        ]
+      },
+      "ficha": {},
+      "pendientes": [
+        "Añadir canto identificado y sus créditos",
+        "Comprobar llegada y materiales en Android/iPhone",
+        "Completar ficha académica con una fuente o ficha específica",
+        "Añadir imagen de referencia del Martín Pescador"
+      ],
+      "nombreCientifico": "Megaceryle torquata",
+      "familia": "Cerylidae",
+      "nombreIngles": "Ringed Kingfisher",
+      "modeloOriginal": "assets/models/MartinPescador.glb",
+      "animacionesNota": "Clips originales del modelo, preparados para comenzar sin esperas.",
+      "fichaNota": "La guía UAO identifica esta especie en el índice de la página 9. Su descripción detallada y una imagen de referencia están pendientes de incorporar.",
+      "creditoModelo": {
+        "autor": "ahitch3",
+        "licencia": "CC-BY-4.0",
+        "origen": "https://sketchfab.com/3d-models/bird-animations-alex-081fa7f0cfd649b9b07babb4c619acc7"
+      },
+      "clips": [
+        {
+          "nombre": "fly1_bird",
+          "etiqueta": "Vuelo 1",
+          "duracionSegundos": 3.766667,
+          "bucle": true
+        },
+        {
+          "nombre": "fly2_bird",
+          "etiqueta": "Vuelo 2",
+          "duracionSegundos": 3.533334,
+          "bucle": true
+        },
+        {
+          "nombre": "fly3_bird",
+          "etiqueta": "Vuelo 3",
+          "duracionSegundos": 2.9,
+          "bucle": true
+        },
+        {
+          "nombre": "fly_endA_bird",
+          "etiqueta": "Aterrizaje A",
+          "duracionSegundos": 3.3,
+          "bucle": false
+        },
+        {
+          "nombre": "fly_endB_bird",
+          "etiqueta": "Aterrizaje B",
+          "duracionSegundos": 3.3,
+          "bucle": false
+        },
+        {
+          "nombre": "fly_startA_bird",
+          "etiqueta": "Despegue A",
+          "duracionSegundos": 3.3,
+          "bucle": false
+        },
+        {
+          "nombre": "fly_startB_bird",
+          "etiqueta": "Despegue B",
+          "duracionSegundos": 3.3,
+          "bucle": false
+        },
+        {
+          "nombre": "idleA1_bird",
+          "etiqueta": "Reposo 1",
+          "duracionSegundos": 7.366667,
+          "bucle": true
+        },
+        {
+          "nombre": "idleA2_bird",
+          "etiqueta": "Reposo 2",
+          "duracionSegundos": 13.3,
+          "bucle": true
+        },
+        {
+          "nombre": "idleB1",
+          "etiqueta": "Reposo 3",
+          "duracionSegundos": 6.4,
+          "bucle": true
+        }
+      ]
     },
     {
       "id": "paloma",
-      "nombre": "Paloma",
-      "disponible": false,
-      "modelo": null
+      "nombre": "Paloma Doméstica",
+      "disponible": true,
+      "tipoRepresentacion": "ilustrativa",
+      "modelo": "assets/models/paloma_configurada.glb",
+      "audioCanto": null,
+      "imagen": "assets/img/paloma_guia.png",
+      "escalaExhibicion": 1.2,
+      "inspeccion": {
+        "escalaMinima": 0.6,
+        "escalaMaxima": 3,
+        "sensibilidadGiro": 6.283185307179586,
+        "umbralArrastre": 0.015
+      },
+      "transformacion": {
+        "posicionLocal": {
+          "x": 0,
+          "y": 0.001,
+          "z": 0
+        },
+        "giroY": -1.5707963267948966
+      },
+      "animaciones": {
+        "reposo": "Take 001__reposo",
+        "vuelo": "Take 001__vuelo",
+        "aterrizaje": "Take 001__aterrizaje"
+      },
+      "llegada": {
+        "calibracion": "paloma-aterrizaje.json",
+        "duracionSegundos": 2,
+        "mezclaReposoSegundos": 0.16,
+        "alturaMinima": 0.45,
+        "alturaMaxima": 0.75,
+        "radioMinimo": 0.35,
+        "radioMaximo": 0.65,
+        "exponenteVertical": 1.1,
+        "anguloFrente": 1.5707963267948966
+      },
+      "fuente": {
+        "titulo": "Guía ilustrada de las aves del campus de la UAO",
+        "edicion": "Primera edición 2023",
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "autores": [
+          "Germán Morales Zuñiga",
+          "Natalia Lenis Sánchez"
+        ],
+        "consulta": "2026-10-13",
+        "paginas": [
+          15
+        ]
+      },
+      "ficha": {
+        "descripcion": "Paloma grande y común, con una amplia diversidad de colores silvestres y domésticos. La mayoría son grises, aunque también existen ejemplares negros, blancos o café anaranjados.",
+        "habitat": "Se encuentra en ciudades, zonas agrícolas y elevadores de grano.",
+        "comportamiento": "Se ha adaptado a anidar en estructuras altas, como rascacielos y puentes. La guía señala su introducción desde Eurasia, donde anida en acantilados.",
+        "rasgos": "La diversidad de coloración es característica de sus variedades silvestres y domésticas."
+      },
+      "pendientes": [
+        "Añadir canto identificado y sus créditos",
+        "Comprobar llegada y materiales en Android/iPhone",
+        "Registrar procedencia y licencia del modelo",
+        "Confirmar permisos de redistribución de la ilustración de la guía"
+      ],
+      "nombreCientifico": "Columba livia",
+      "familia": "Columbidae",
+      "nombreIngles": "Rock Pigeon",
+      "modeloOriginal": "assets/models/paloma.glb",
+      "animacionesNota": "Reposo, vuelo y aterrizaje extraídos de la secuencia original «Take 001».",
+      "imagenAlt": "Ilustración de la Paloma Doméstica de la guía UAO, con plumaje gris y cuello iridiscente.",
+      "creditoImagen": {
+        "origen": "Ilustración de la guía UAO, página 15",
+        "autor": null,
+        "licencia": null
+      },
+      "creditoModelo": {
+        "origen": "Modelo paloma.glb aportado por el usuario",
+        "autor": null,
+        "licencia": null
+      },
+      "clips": [
+        {
+          "nombre": "Take 001__reposo",
+          "etiqueta": "Reposo",
+          "duracionSegundos": 5,
+          "bucle": true
+        },
+        {
+          "nombre": "Take 001__vuelo",
+          "etiqueta": "Vuelo",
+          "duracionSegundos": 1,
+          "bucle": true
+        },
+        {
+          "nombre": "Take 001__aterrizaje",
+          "etiqueta": "Aterrizaje",
+          "duracionSegundos": 2,
+          "bucle": false
+        }
+      ]
     },
     {
       "id": "loro",
@@ -143,7 +359,8 @@
         "radioMinimo": 0.35,
         "radioMaximo": 0.65,
         "exponenteVertical": 1.1
-      }
+      },
+      "animacionesNota": "Controles del modelo piloto. Las animaciones de alimentación no incluyen una flor en esta escena."
     }
   ]
 }

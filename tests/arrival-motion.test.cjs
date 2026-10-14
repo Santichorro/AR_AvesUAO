@@ -70,3 +70,22 @@ test('calibración corresponde al GLB original y termina en la traslación de re
  const model=path.join(__dirname,'../src',calibration.modelo)
  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(model)).digest('hex'),calibration.sha256Modelo)
 })
+
+
+test('frente propio de cada GLB apunta al destino sin asumir el eje del Colibrí',async()=>{
+ const {ArrivalMotion}=await modulePromise
+ for(const front of [0,Math.PI/2,-Math.PI/2]){
+  const motion=new ArrivalMotion({...bird.llegada,anguloFrente:front},calibration,()=>.25)
+  const p=motion.begin(target,7,.25,-Math.PI/2,bird.transformacion.posicionLocal)
+  const direction=Math.atan2(target.x-p.position.x,target.z-p.position.z)
+  near(Math.cos(p.yaw-Math.PI/2+front-direction),1)
+ }
+})
+test('contacto distinto del reposo mantiene continua la compensación hasta el destino',async()=>{
+ const {ArrivalMotion}=await modulePromise,ref=calibration.rootReposo
+ const cal={...calibration,rootContacto:{...ref,y:ref.y+1},traslacionRoot:[[0,ref.x,ref.y+2,ref.z],[2.25,ref.x,ref.y+1,ref.z]]}
+ const motion=new ArrivalMotion(bird.llegada,cal,()=>.5)
+ motion.begin(target,7,.25,-Math.PI/2,bird.transformacion.posicionLocal)
+ const before=motion.advance(2.25-1e-6,7);assert.ok(Math.abs(before.localPosition.y-bird.transformacion.posicionLocal.y)<1e-6)
+ assert.deepEqual(motion.advance(.001,7).localPosition,bird.transformacion.posicionLocal)
+})
