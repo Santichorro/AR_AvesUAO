@@ -118,3 +118,7 @@ El nido abre el mismo selector: Martín Pescador, Paloma Doméstica y Colibrí C
 Se mantienen las cinco opciones del círculo y las transiciones existentes. La Paloma muestra una ilustración de la guía, página 15, con crédito separado; Martín conserva título, identificación del índice y un mensaje claro de ficha detallada pendiente, sin reutilizar fotografía ni texto del Colirufo. Cuando no existe canto, se informa mediante el mensaje de estado y no aparece el indicador de escucha.
 
 No se modificó CSS ni la geometría de los sectores. Revisión con bundle y ECS simulado: selección, fichas y 6/10/3 botones de clips, giro/pinch, cambio rápido sin duplicados y cierre del panel al elegir un clip. El canto real del Colirufo conserva pausa/continuación/X en 390×844, 320×568 y 844×390. Pendiente validar percepción de animaciones, tacto, fotos y textos con Studio y dispositivos físicos.
+
+### Fotografías de Paloma y Martín Pescador
+
+Se usan las fotografías aportadas por el usuario: Paloma IMG.jpg (1280×960) y Martin Pescador IM.jpg (2000×2000). La ficha conserva el ancho máximo de 220 px y height:auto: la Paloma se muestra en 220×165 y el Martín en 220×220. aves.json registra las dimensiones y el crédito de cada recurso; pilot-ui.ts las aplica antes de cargar la imagen. La ilustración anterior permanece archivada, sin mostrarse en la ficha. No se modificaron colores, menús ni controles. La comprobación del bundle con ECS simulado verificó carga, proporción y pie de foto en ambas fichas.

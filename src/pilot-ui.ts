@@ -174,7 +174,11 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         get('.aves-family').textContent = bird.familia
         const photo = get<HTMLImageElement>('.aves-bird-photo img')
         get('.aves-bird-photo').hidden = !bird.imagen
-        if (bird.imagen) { photo.src = bird.imagen; photo.alt = bird.imagenAlt || bird.nombre }
+        if (bird.imagen) {
+            photo.width = bird.imagenDimensiones?.ancho || 480
+            photo.height = bird.imagenDimensiones?.alto || 639
+            photo.src = bird.imagen; photo.alt = bird.imagenAlt || bird.nombre
+        }
         else photo.removeAttribute('src')
         get('.aves-bird-photo figcaption').textContent = bird.creditoImagen?.origen || ''
         get('.aves-source').textContent = bird.fuente?.paginas?.length ? `${labels.guia} · ${labels.pagina} ${bird.fuente.paginas.join(', ')}` : labels.fuentePendiente

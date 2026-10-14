@@ -7,7 +7,7 @@
       "tipoRepresentacion": "ilustrativa",
       "modelo": "assets/models/martin_pescador_configurado.glb",
       "audioCanto": null,
-      "imagen": null,
+      "imagen": "assets/img/martin_pescador.jpg",
       "escalaExhibicion": 0.18,
       "inspeccion": {
         "escalaMinima": 0.09,
@@ -57,14 +57,14 @@
         "Añadir canto identificado y sus créditos",
         "Comprobar llegada y materiales en Android/iPhone",
         "Completar ficha académica con una fuente o ficha específica",
-        "Añadir imagen de referencia del Martín Pescador"
+        "Registrar autoría y licencia de la fotografía aportada"
       ],
       "nombreCientifico": "Megaceryle torquata",
       "familia": "Cerylidae",
       "nombreIngles": "Ringed Kingfisher",
       "modeloOriginal": "assets/models/MartinPescador.glb",
       "animacionesNota": "Clips originales del modelo, preparados para comenzar sin esperas.",
-      "fichaNota": "La guía UAO identifica esta especie en el índice de la página 9. Su descripción detallada y una imagen de referencia están pendientes de incorporar.",
+      "fichaNota": "La guía UAO identifica esta especie en el índice de la página 9. Su descripción detallada está pendiente de incorporar.",
       "creditoModelo": {
         "autor": "ahitch3",
         "licencia": "CC-BY-4.0",
@@ -131,7 +131,18 @@
           "duracionSegundos": 6.4,
           "bucle": true
         }
-      ]
+      ],
+      "imagenAlt": "Martín pescador de plumaje azul y naranja y pico largo, posado sobre una rama.",
+      "imagenDimensiones": {
+        "ancho": 2000,
+        "alto": 2000
+      },
+      "creditoImagen": {
+        "origen": "Fotografía proporcionada por el usuario",
+        "archivoOriginal": "Martin Pescador IM.jpg",
+        "autor": null,
+        "licencia": null
+      }
     },
     {
       "id": "paloma",
@@ -140,7 +151,7 @@
       "tipoRepresentacion": "ilustrativa",
       "modelo": "assets/models/paloma_configurada.glb",
       "audioCanto": null,
-      "imagen": "assets/img/paloma_guia.png",
+      "imagen": "assets/img/paloma.jpg",
       "escalaExhibicion": 1.2,
       "inspeccion": {
         "escalaMinima": 0.6,
@@ -195,16 +206,17 @@
         "Añadir canto identificado y sus créditos",
         "Comprobar llegada y materiales en Android/iPhone",
         "Registrar procedencia y licencia del modelo",
-        "Confirmar permisos de redistribución de la ilustración de la guía"
+        "Registrar autoría y licencia de la fotografía aportada"
       ],
       "nombreCientifico": "Columba livia",
       "familia": "Columbidae",
       "nombreIngles": "Rock Pigeon",
       "modeloOriginal": "assets/models/paloma.glb",
       "animacionesNota": "Reposo, vuelo y aterrizaje extraídos de la secuencia original «Take 001».",
-      "imagenAlt": "Ilustración de la Paloma Doméstica de la guía UAO, con plumaje gris y cuello iridiscente.",
+      "imagenAlt": "Paloma de plumaje gris, cuello con reflejos verdes, ojo anaranjado y patas rojizas.",
       "creditoImagen": {
-        "origen": "Ilustración de la guía UAO, página 15",
+        "origen": "Fotografía proporcionada por el usuario",
+        "archivoOriginal": "Paloma IMG.jpg",
         "autor": null,
         "licencia": null
       },
@@ -232,7 +244,11 @@
           "duracionSegundos": 2,
           "bucle": false
         }
-      ]
+      ],
+      "imagenDimensiones": {
+        "ancho": 1280,
+        "alto": 960
+      }
     },
     {
       "id": "loro",
