@@ -55,7 +55,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     <div class="aves-radial" data-aves-ui aria-hidden="true"><svg viewBox="0 0 320 320">${radialMarkup()}<circle class="aves-radial-center" cx="160" cy="160" r="${144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius - 9}"/><text class="aves-radial-hint" x="160" y="159" text-anchor="middle"></text><text class="aves-radial-subhint" x="160" y="174" text-anchor="middle"></text></svg></div>
     <section class="aves-panel" id="aves-info" hidden aria-labelledby="aves-info-title">
       <div class="aves-info-heading"><div><h2 id="aves-info-title"></h2><p class="aves-scientific"><em></em></p><p class="aves-family"></p></div><button data-close="info">${icon('close')}</button></div>
-      <figure class="aves-bird-photo"><img width="480" height="639" decoding="async"><figcaption></figcaption></figure>
+      <figure class="aves-bird-photo"><img width="480" height="639" decoding="async"></figure>
       <div class="aves-facts"></div><p class="aves-source"></p>
       <div class="aves-actions aves-guide-actions"><button data-action="animation"></button><button data-action="relocate"></button><button data-action="reset"></button></div>
     </section>
@@ -180,7 +180,6 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             photo.src = bird.imagen; photo.alt = bird.imagenAlt || bird.nombre
         }
         else photo.removeAttribute('src')
-        get('.aves-bird-photo figcaption').textContent = bird.creditoImagen?.origen || ''
         get('.aves-source').textContent = bird.fuente?.paginas?.length ? `${labels.guia} · ${labels.pagina} ${bird.fuente.paginas.join(', ')}` : labels.fuentePendiente
         const facts = get('.aves-facts'); facts.replaceChildren()
         if (bird.fichaNota) { const note = document.createElement('p'); note.textContent = bird.fichaNota; facts.append(note) }

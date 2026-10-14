@@ -6,7 +6,7 @@
       "disponible": true,
       "tipoRepresentacion": "ilustrativa",
       "modelo": "assets/models/martin_pescador_configurado.glb",
-      "audioCanto": null,
+      "audioCanto": "assets/audio/martin_pescador_canto.mp3",
       "imagen": "assets/img/martin_pescador.jpg",
       "escalaExhibicion": 0.18,
       "inspeccion": {
@@ -54,10 +54,10 @@
       },
       "ficha": {},
       "pendientes": [
-        "Añadir canto identificado y sus créditos",
         "Comprobar llegada y materiales en Android/iPhone",
         "Completar ficha académica con una fuente o ficha específica",
-        "Registrar autoría y licencia de la fotografía aportada"
+        "Registrar autoría y licencia de la fotografía aportada",
+        "Registrar autoría y licencia del canto aportado"
       ],
       "nombreCientifico": "Megaceryle torquata",
       "familia": "Cerylidae",
@@ -142,6 +142,13 @@
         "archivoOriginal": "Martin Pescador IM.jpg",
         "autor": null,
         "licencia": null
+      },
+      "creditoAudio": {
+        "origen": "Canto proporcionado por el usuario para Martín Pescador",
+        "archivoOriginal": "Martin Pescador Canto.mp3",
+        "autor": null,
+        "licencia": null,
+        "sha256": "36fa8e0a08daacf1e9ccc45c9f85124fb34fd91b9ceedbbe28e6d8a5a9d0a471"
       }
     },
     {
@@ -150,7 +157,7 @@
       "disponible": true,
       "tipoRepresentacion": "ilustrativa",
       "modelo": "assets/models/paloma_configurada.glb",
-      "audioCanto": null,
+      "audioCanto": "assets/audio/paloma_canto.mp3",
       "imagen": "assets/img/paloma.jpg",
       "escalaExhibicion": 1.2,
       "inspeccion": {
@@ -203,10 +210,10 @@
         "rasgos": "La diversidad de coloración es característica de sus variedades silvestres y domésticas."
       },
       "pendientes": [
-        "Añadir canto identificado y sus créditos",
         "Comprobar llegada y materiales en Android/iPhone",
         "Registrar procedencia y licencia del modelo",
-        "Registrar autoría y licencia de la fotografía aportada"
+        "Registrar autoría y licencia de la fotografía aportada",
+        "Registrar autoría y licencia del canto aportado"
       ],
       "nombreCientifico": "Columba livia",
       "familia": "Columbidae",
@@ -248,13 +255,163 @@
       "imagenDimensiones": {
         "ancho": 1280,
         "alto": 960
+      },
+      "creditoAudio": {
+        "origen": "Canto proporcionado por el usuario para Paloma Doméstica",
+        "archivoOriginal": "paloma canto.mp3",
+        "autor": null,
+        "licencia": null,
+        "sha256": "af13bfac774819af705134bfffc42863e44de19225e9930ece3098e22452e6f4"
       }
     },
     {
       "id": "loro",
-      "nombre": "Loro",
-      "disponible": false,
-      "modelo": null
+      "nombre": "Guacamaya Cariseca",
+      "disponible": true,
+      "modelo": "assets/models/guacamaya_configurada.glb",
+      "nombreCientifico": "Ara severus",
+      "familia": "Psittacidae",
+      "nombreIngles": "Chestnut-fronted Macaw",
+      "tipoRepresentacion": "ilustrativa",
+      "asignacionEspecie": "Decisión del usuario para la representación del proyecto",
+      "modeloOriginal": "assets/models/Guacamaya.glb",
+      "imagen": "assets/img/guacamaya_cariseca.jpg",
+      "imagenAlt": "Guacamaya Cariseca de plumaje verde, cara clara, pico oscuro y cola larga, posada en un tronco.",
+      "imagenDimensiones": {
+        "ancho": 960,
+        "alto": 1141
+      },
+      "creditoImagen": {
+        "origen": "Fotografía proporcionada por el usuario",
+        "archivoOriginal": "Guacamaya Cariseca.jpg",
+        "autor": null,
+        "licencia": null
+      },
+      "creditoModelo": {
+        "origen": "Modelo Guacamaya.glb aportado por el usuario",
+        "autor": null,
+        "licencia": null
+      },
+      "escalaExhibicion": 0.6,
+      "inspeccion": {
+        "escalaMinima": 0.3,
+        "escalaMaxima": 1.5,
+        "sensibilidadGiro": 6.283185307179586,
+        "umbralArrastre": 0.015
+      },
+      "transformacion": {
+        "posicionLocal": {
+          "x": 0,
+          "y": 0.0048,
+          "z": 0
+        },
+        "giroY": -1.5707963267948966
+      },
+      "animaciones": {
+        "reposo": "ParrotALL_Idle",
+        "vuelo": "ParrotALL_Fly",
+        "aterrizaje": "ParrotALL_Land"
+      },
+      "clips": [
+        {
+          "nombre": "ParrotALL_Idle",
+          "etiqueta": "Reposo",
+          "duracionSegundos": 6.65,
+          "bucle": true
+        },
+        {
+          "nombre": "ParrotALL_Idle2",
+          "etiqueta": "Reposo alternativo",
+          "duracionSegundos": 9.983333,
+          "bucle": true
+        },
+        {
+          "nombre": "ParrotALL_Fly",
+          "etiqueta": "Vuelo",
+          "duracionSegundos": 0.95,
+          "bucle": true
+        },
+        {
+          "nombre": "ParrotALL_Hover",
+          "etiqueta": "Vuelo suspendido",
+          "duracionSegundos": 1.083333,
+          "bucle": true
+        },
+        {
+          "nombre": "ParrotALL_CircleFly",
+          "etiqueta": "Vuelo circular",
+          "duracionSegundos": 7.783333,
+          "bucle": true
+        },
+        {
+          "nombre": "ParrotALL_Land",
+          "etiqueta": "Aterrizaje",
+          "duracionSegundos": 2.983333,
+          "bucle": false
+        },
+        {
+          "nombre": "ParrotALL_Rise",
+          "etiqueta": "Despegue",
+          "duracionSegundos": 1.983333,
+          "bucle": false
+        },
+        {
+          "nombre": "ParrotALL_Preen",
+          "etiqueta": "Acicalamiento",
+          "duracionSegundos": 5.983333,
+          "bucle": false
+        },
+        {
+          "nombre": "ParrotALL_Walk",
+          "etiqueta": "Caminar",
+          "duracionSegundos": 1.483333,
+          "bucle": true
+        }
+      ],
+      "animacionesNota": "Clips originales de reposo, vuelo, aterrizaje, despegue, acicalamiento y caminata del modelo.",
+      "llegada": {
+        "calibracion": "loro-aterrizaje.json",
+        "duracionSegundos": 2.9833333333333334,
+        "mezclaReposoSegundos": 0.16,
+        "alturaMinima": 0.45,
+        "alturaMaxima": 0.75,
+        "radioMinimo": 0.35,
+        "radioMaximo": 0.65,
+        "exponenteVertical": 1.1,
+        "anguloFrente": 1.5707963267948966
+      },
+      "fuente": {
+        "titulo": "Guía ilustrada de las aves del campus de la UAO",
+        "edicion": "Primera edición 2023",
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "paginas": [
+          25
+        ],
+        "autores": [
+          "Germán Morales Zuñiga",
+          "Natalia Lenis Sánchez"
+        ],
+        "consulta": "2026-10-13"
+      },
+      "ficha": {
+        "descripcion": "Guacamaya de tamaño pequeño dentro de su grupo, con plumaje mayormente verde. Machos y hembras tienen apariencia similar.",
+        "habitat": "Habita bosques y ambientes abiertos modificados, como tierras agrícolas y claros.",
+        "comportamiento": "Se observa en parejas o pequeñas bandadas. Sus llamadas son muy ásperas.",
+        "rasgos": "Cara blancuzca y parte inferior de las alas rojiza, visible durante el vuelo."
+      },
+      "pendientes": [
+        "Registrar procedencia y licencia del modelo",
+        "Registrar autoría y licencia de la fotografía y del canto aportados",
+        "Comprobar apoyo, llegada y materiales en Studio y Android/iPhone"
+      ],
+      "audioCanto": "assets/audio/guacamaya_cariseca_canto.mp3",
+      "creditoAudio": {
+        "origen": "Canto proporcionado por el usuario para Guacamaya Cariseca",
+        "archivoOriginal": "Guacamaya Cariseca Canto.mp3",
+        "autor": null,
+        "licencia": null,
+        "sha256": "0ba461a646f6f82068bff2978c69999b5ee7012a7fc68f59a2e7c385b852c23f"
+      }
     },
     {
       "id": "colibri",

@@ -284,7 +284,6 @@
 #aves-pilot .aves-info-heading > button { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; min-height: 44px; padding: 10px; border-radius: 50%; }
 .aves-bird-photo { margin: 18px 0 22px; text-align: center; }
 .aves-bird-photo img { display: block; width: min(100%, 220px); height: auto; margin: 0 auto; border-radius: 18px; box-shadow: 0 4px 14px #243d3514; }
-.aves-bird-photo figcaption { margin-top: 8px; font-size: 11px; line-height: 1.4; color: var(--aves-muted); }
 .aves-facts { display: grid; gap: 18px; }
 .aves-facts section { border-left: 3px solid var(--aves-leaf); padding-left: 12px; }
 .aves-facts h3 { margin: 0 0 6px; font-size: 15px; line-height: 1.4; color: var(--aves-leaf); }

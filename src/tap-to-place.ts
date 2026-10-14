@@ -10,12 +10,13 @@ import {ArrivalMotion} from './arrival-motion'
 import colibriCalibration from './data/colibri-aterrizaje.json'
 import martinCalibration from './data/martin_pescador-aterrizaje.json'
 import palomaCalibration from './data/paloma-aterrizaje.json'
+import guacamayaCalibration from './data/loro-aterrizaje.json'
 import {availableBird} from './bird-catalog'
 
 // Se conserva el evento de la plantilla para no romper componentes ajenos.
 const OBJECT_PLACED_EVENT = 'object-placed'
 const controllers = new Map<ecs.Eid, {tick: () => void; dispose: () => void}>()
-const calibrations = {colibri: colibriCalibration, martin_pescador: martinCalibration, paloma: palomaCalibration}
+const calibrations = {colibri: colibriCalibration, martin_pescador: martinCalibration, paloma: palomaCalibration, loro: guacamayaCalibration}
 
 function attach(world: ecs.World, ground: ecs.Eid) {
   const desktop = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !('ontouchend' in document && navigator.maxTouchPoints > 1)

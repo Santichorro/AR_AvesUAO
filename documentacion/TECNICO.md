@@ -771,3 +771,32 @@ Validación en Edge con ECS 3.2.0 real: comparación antes/después desde seis �
 
 Criterio de transparencia: especificación oficial glTF 2.0, sección Alpha Coverage, https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#alpha-coverage.
 Comprobaciones adicionales de esta corrección: 54 pruebas existentes aprobadas, TypeScript sin errores y build generado con los dos avisos previos de tamaño. Los dos GLB de dist son idénticos a sus copias corregidas en src. El bundle con ECS real completó las tres llegadas con poses variables, ancla final exacta y transición a EXPLORAR/reposo, sin errores de página. No se hizo push ni despliegue.
+
+
+## Guacamaya Cariseca y cantos del catálogo · 13 de octubre de 2026
+
+La entrada interna `loro` ahora representa a Guacamaya Cariseca (`Ara severus`, Psittacidae), por decisión del usuario. El selector habilita cuatro aves: Martín Pescador, Paloma Doméstica, Guacamaya Cariseca y Colibrí Colirufo. No se añade una quinta especie ni se duplica la entrada de Loro.
+
+Se conserva `src/assets/models/Guacamaya.glb` íntegro. La aplicación carga `guacamaya_configurada.glb`, que mantiene geometría, imágenes, rig y los catorce nombres de animación del original, desplazando sus inicios al tiempo cero. La interfaz presenta nueve clips de comportamiento: reposo, reposo alternativo, vuelo, vuelo suspendido, vuelo circular, aterrizaje, despegue, acicalamiento y caminar. Los clips técnicos/de ataque/muerte permanecen en el recurso y no se ofrecen como comportamiento del recorrido. No se crean movimientos nuevos. El material existente MASK, con corte alfa 0,5 y doble cara, se conserva; los materiales corregidos de Paloma y Martín tampoco se alteran.
+
+`loro-aterrizaje.json` registra SHA del original y de la copia, rangos, contacto y curva del hueso Hips en coordenadas del modelo, con sus ancestros estáticos. Llegada de aproximadamente 2,983 s: ParrotALL_Land → ParrotALL_Idle, mezcla 0,16 s. Dirección frontal +X, giro local −π/2, escala inicial 0,6, límites 0,3–1,5 y offset local Y 0,0048, a partir de la pose de reposo inspeccionada. Reutiliza colocación única, root de llegada, giro, pinch, selección, tap/radial, cancelación, reubicación y reinicio. El apoyo definitivo sobre una superficie AR debe ajustarse si las pruebas físicas lo requieren.
+
+La ficha académica procede exclusivamente de la página 25 de `GUIA AVES UAO FINAL.pdf`, comprobada mediante texto y vista completa. Contiene descripción, hábitat, comportamiento y rasgos; no atribuye alimentación o medidas ausentes. La fotografía `guacamaya_cariseca.jpg`, 960×1141, es copia íntegra de la aportada. Todas las fichas dejan de mostrar la leyenda de fotografía aportada: se retira el figcaption y su estilo, sin contenedor vacío. Alt, proporciones y créditos siguen en JSON. CSS y estilos inline permanecen sincronizados.
+
+Recursos nuevos, copiados sin recodificar:
+
+| Ave | Audio en assets | Duración comprobada |
+|---|---|---|
+| Guacamaya Cariseca | guacamaya_cariseca_canto.mp3 | 52,712 s |
+| Paloma Doméstica | paloma_canto.mp3 | 185,112 s |
+| Martín Pescador | martin_pescador_canto.mp3 | 21,072 s |
+
+Se conserva el MP3 del Colirufo. Los archivos nuevos registran nombre de origen y SHA-256 en creditoAudio; autor/licencia quedan sin inventar. El controlador existente mantiene una instancia por ave, inicio desde el segundo tap, cierre suave del círculo, indicador vinculado a playing, pausa/continuación, X y cierre suave. Repetir reinicia; cambiar de ave, reubicar, reiniciar y dispose detienen el recurso anterior. Los efectos de interfaz y su reducción de volumen durante el canto permanecen.
+
+Validación: 57 pruebas unitarias aprobadas, TypeScript sin errores y build con los dos avisos anteriores de tamaño. Regresión de catálogo/modelos/clips/calibraciones, cuatro MP3 distintos con integridad exacta y materiales corregidos. En Edge, sobre el bundle con ECS/raycast simulados, se decodificaron los cuatro MP3 y se comprobaron fichas/fotos sin leyendas, pausa, continuación, repetición sin superposición y X en 390×844 y 844×390. Guacamaya conservó giro, límite de escala, animaciones con cierre automático, reubicación/cancelación y reinicio en 320×568 con movimiento reducido. Las fotografías mantienen su proporción, los paneles tienen scroll y no desbordan horizontalmente. La ejecución headless está silenciada: decodificar y avanzar el reloj no certifica escucha física.
+
+Pendiente en Studio, Android/Chrome e iPhone/Safari: escucha y volumen de los tres recursos nuevos, restricciones de reproducción del navegador, interrupciones/segundo plano, raycast sobre los modelos, contacto de patas, fluidez sobre cámara, tracking, iluminación y memoria. El MP3 completo de Paloma pesa unos 7,06 MiB y dura tres minutos; medir la carga real antes de decidir una optimización. No se hizo push ni despliegue.
+
+Verificación 3D adicional sobre el bundle generado y ECS 3.2.0 real: las cuatro llegadas terminaron en EXPLORAR con sus reposos y ancla final exacta. Guacamaya produjo 27 muestras de aproximación; el hueso BN_Wing_L_01 cambió de rotación durante el aterrizaje. El modelo mostró alas abiertas durante aproximación y plegadas al final en las poses inspeccionadas. Sin errores de página. La escena de prueba usa cámara 3D temporal, sin SLAM ni cambios de escena del proyecto. Los modelos, las cuatro fotografías y los cuatro cantos de dist son idénticos a src.
+
+Archivos de esta integración: src/data/aves.json y loro-aterrizaje.json; src/tap-to-place.ts, pilot-ui.ts, pilot.css e index.html; tests/bird-catalog.test.cjs; documentacion/AVANCE_01.md, TECNICO.md y DISENO_UI.md; Guacamaya.glb original y guacamaya_configurada.glb; guacamaya_cariseca.jpg; guacamaya_cariseca_canto.mp3, paloma_canto.mp3 y martin_pescador_canto.mp3. No se modifica .expanse.json ni el motor.
