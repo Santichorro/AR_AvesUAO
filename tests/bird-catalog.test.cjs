@@ -45,6 +45,32 @@ test('cada clip de las aves declara una altura válida y la elevación de vuelo 
  }
 })
 
+test('la animación de despegue es opcional y, cuando existe, es un clip real del ave',()=>{
+ const conDespegue=[]
+ for(const b of birds.filter(b=>b.disponible)){
+  const despegue=b.animaciones.despegue
+  if(despegue===undefined)continue
+  conDespegue.push(b.id)
+  assert.equal(typeof despegue,'string',`${b.id}: despegue no es texto`)
+  assert.ok(b.clips.some(c=>c.nombre===despegue),`${b.id}: despegue "${despegue}" no está en clips`)
+ }
+ assert.deepEqual(conDespegue.sort(),['colibri','loro','martin_pescador'])
+ assert.equal(birds.find(b=>b.id==='paloma').animaciones.despegue,undefined)
+})
+
+test('la animación de aterrizaje es opcional y, cuando existe, es un clip real del ave',()=>{
+ const conAterrizaje=[]
+ for(const b of birds.filter(b=>b.disponible)){
+  const aterrizaje=b.animaciones.aterrizaje
+  if(aterrizaje===undefined)continue
+  conAterrizaje.push(b.id)
+  assert.equal(typeof aterrizaje,'string',`${b.id}: aterrizaje no es texto`)
+  assert.ok(b.clips.some(c=>c.nombre===aterrizaje),`${b.id}: aterrizaje "${aterrizaje}" no está en clips`)
+ }
+ // Hoy las cuatro lo declaran; la llegada y el seguimiento caen a vuelo/reposo si faltara.
+ assert.deepEqual(conAterrizaje.sort(),['colibri','loro','martin_pescador','paloma'])
+})
+
 test('Paloma documenta sus recortes de Take 001 y Martín conserva sus nombres reales',()=>{
  const paloma=JSON.parse(fs.readFileSync(path.join(root,'src/data/paloma-aterrizaje.json')))
  assert.ok(Object.values(paloma.rangosOriginales).every(r=>r.clipOriginal==='Take 001'))

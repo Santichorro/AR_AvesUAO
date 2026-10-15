@@ -25,15 +25,20 @@ export class ArrivalMotion {
     this.random = random
     this.cancel()
   }
-  begin(target, generation, scale, modelYaw, localPosition) {
+  // `origin` es opcional: si se entrega, la llegada parte de ese punto (se usa para encadenar
+  // el aterrizaje del seguimiento sin saltos). Si no, se conserva el origen aleatorio elevado.
+  begin(target, generation, scale, modelYaw, localPosition, origin) {
     if (!finitePosition(target) || !finitePosition(localPosition) || !Number.isFinite(modelYaw) || !Number.isFinite(scale) || scale <= 0) throw new Error('Transformación de llegada inválida')
+    if (origin !== undefined && !finitePosition(origin)) throw new Error('Origen de llegada inválido')
     const c = this.config
     if (!(c.duracionSegundos > 0 && c.mezclaReposoSegundos >= 0 && c.alturaMinima > 0 && c.alturaMaxima >= c.alturaMinima && c.radioMinimo > 0 && c.radioMaximo >= c.radioMinimo && c.exponenteVertical > 0)) throw new Error('Calibración de llegada inválida')
     const angle = this.random() * Math.PI * 2
     const radius = c.radioMinimo + this.random() * (c.radioMaximo - c.radioMinimo)
     const height = c.alturaMinima + this.random() * (c.alturaMaxima - c.alturaMinima)
     this.target = copy(target)
-    this.origin = {x: target.x + Math.cos(angle) * radius, y: target.y + height, z: target.z + Math.sin(angle) * radius}
+    this.origin = origin !== undefined
+      ? copy(origin)
+      : {x: target.x + Math.cos(angle) * radius, y: target.y + height, z: target.z + Math.sin(angle) * radius}
     // Cada modelo declara su dirección frontal en el plano XZ.
     this.yaw = Math.atan2(target.x - this.origin.x, target.z - this.origin.z) - ((c.anguloFrente ?? Math.PI / 2) + modelYaw)
     this.modelYaw = modelYaw

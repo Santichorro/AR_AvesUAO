@@ -1,0 +1,10 @@
+{
+  "habilitado": true,
+  "distanciaActivacion": 5,
+  "distanciaAcercamiento": 1.5,
+  "distanciaInicioAterrizaje": 2,
+  "velocidadVuelo": 2,
+  "alturaCrucero": 0.5,
+  "pausaSegundos": 1.5,
+  "bajadaSinAterrizajeSegundos": 0.5
+}

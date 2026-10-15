@@ -8,6 +8,8 @@ import {RadialGesture} from './radial-gesture'
 import {screenToViewport, viewportToScreen} from './screen-coordinates'
 import {ArrivalMotion} from './arrival-motion'
 import {refreshAnimatedBounds} from './animated-bounds'
+import {SeguimientoAve, ESTADOS, normalizarConfig} from './bird-follow'
+import seguimientoConfig from './data/seguimiento.json'
 import colibriCalibration from './data/colibri-aterrizaje.json'
 import martinCalibration from './data/martin_pescador-aterrizaje.json'
 import palomaCalibration from './data/paloma-aterrizaje.json'
@@ -28,6 +30,49 @@ const ELEVACION_VUELO_POR_DEFECTO = 0.08
 const suavizarEntradaSalida = (t: number) => t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2
 const suavizarSalida = (t: number) => 1 - (1 - t) ** 3
 
+// Crea el seguimiento puro de un ave: mezcla la configuración global con la anulación por ave
+// y aporta los datos que la máquina de estados necesita (presencia real de clips, giro y ángulo
+// de frente). No se escribe ningún nombre de clip en la lógica: solo se usan los del JSON.
+function crearSeguimiento(ave: any) {
+  const clips: any[] = ave.clips ?? []
+  const despegue = ave.animaciones?.despegue
+  const aterrizaje = ave.animaciones?.aterrizaje
+  const tiene = (nombre: any) => !!nombre && clips.some(c => c.nombre === nombre)
+  return new SeguimientoAve(
+    normalizarConfig(seguimientoConfig, ave.seguimiento),
+    {
+      anguloFrente: ave.llegada?.anguloFrente,
+      giroY: ave.transformacion?.giroY,
+      tieneDespegue: tiene(despegue),
+      tieneAterrizaje: tiene(aterrizaje),
+      duracionDespegue: clips.find(c => c.nombre === despegue)?.duracionSegundos ?? 0,
+    },
+  )
+}
+
+// Lee la pose de la cámara activa desde los componentes ECS de la entidad de cámara, que el
+// motor actualiza cada fotograma con la pose real del dispositivo. La cámara de render es hija
+// de la entidad con un giro local de 180° en Y (createCameraObject) y el motor aplica además un
+// Z_FLIP; por eso el eje +Z de la entidad de cámara es la dirección de vista real (su -Z apunta
+// hacia atrás). Se lee de la transformación ECS, no de three.js, para no depender del modo de
+// actualización de matrices (por defecto 'manual').
+function poseCamara(world: ecs.World) {
+  try {
+    const eid = world.camera.getActiveEid()
+    if (!eid) return null
+    const posicion = world.transform.getWorldPosition(eid)
+    if (!posicion || !['x', 'y', 'z'].every(k => Number.isFinite((posicion as any)[k]))) return null
+    const giro = world.transform.getWorldQuaternion(eid)
+    if (!giro || !['x', 'y', 'z', 'w'].every(k => Number.isFinite((giro as any)[k]))) return null
+    const {x, y, z, w} = giro as any
+    // Rotación de (0,0,1) por el cuaternión (producto de Hamilton).
+    const adelante = {x: 2 * (x * z + w * y), y: 2 * (z * y - w * x), z: 1 - 2 * (x * x + y * y)}
+    return {posicion: {x: posicion.x, y: posicion.y, z: posicion.z}, adelante}
+  } catch (error) {
+    return null
+  }
+}
+
 function attach(world: ecs.World, ground: ecs.Eid) {
   const desktop = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !('ontouchend' in document && navigator.maxTouchPoints > 1)
   let bird = availableBird(catalog.aves, 'colibri')!
@@ -46,6 +91,21 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let arrival = new ArrivalMotion(bird.llegada, landingCalibration)
   let landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
   let landingFrameApplied = false
+  // Descenso simple de la llegada inicial si el ave no tiene clip de aterrizaje (defensivo;
+  // hoy las cuatro aves lo tienen). Reutiliza el origen aéreo aleatorio de ArrivalMotion.
+  let arrivalSimple = false
+  let arrivalTranscurrido = 0
+  let arrivalInicio: {x: number; y: number; z: number} = {x: 0, y: 0, z: 0}
+  let arrivalDestino: {x: number; y: number; z: number} = {x: 0, y: 0, z: 0}
+  // Seguimiento del ave por distancia. `seguimiento` es puro y testeable; `arrivalFollow` es la
+  // trayectoria de aterrizaje basada en el clip, separada de la llegada inicial. `generacion`
+  // propia permite reutilizar ArrivalMotion sin depender de la generación de la sesión.
+  let seguimiento = crearSeguimiento(bird)
+  let arrivalFollow = new ArrivalMotion(bird.llegada, landingCalibration)
+  let seguimientoGeneracion = 0
+  let seguimientoAterrizajeListo = false
+  let seguimientoCongelado = false
+  let seguimientoFrameContacto = false
   // Elevación del modelo: objetivo por categoría del clip, transición suave e independiente del FPS.
   let clipTimeScale = 1
   let elevacionActual = 0
@@ -88,7 +148,14 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }
   const destroy = () => {
     arrival.cancel()
+    arrivalFollow.cancel()
+    seguimiento.cancelar()
+    seguimientoAterrizajeListo = false
+    seguimientoCongelado = false
+    seguimientoFrameContacto = false
     landingFrameApplied = false
+    arrivalSimple = false
+    arrivalTranscurrido = 0
     clearLoadTimer()
     if (model !== null) {
       if (loadedListener) world.events.removeListener(model, ecs.events.GLTF_MODEL_LOADED, loadedListener)
@@ -147,9 +214,12 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     }
   }
   // Avanza la transición con el delta de ECS (no setTimeout) y devuelve si escribió el nodo.
-  // No actúa durante la llegada: ArrivalMotion controla la posición del modelo hasta EXPLORAR.
+  // No actúa durante la llegada inicial ni durante el aterrizaje basado en clip del seguimiento:
+  // en ambos casos ArrivalMotion controla la posición del nodo del modelo.
+  const seguimientoControlaModelo = () =>
+    seguimiento.estado === ESTADOS.ATERRIZAJE && seguimiento.modoAterrizaje === 'clip'
   const tickElevacion = () => {
-    if (model === null || session.phase !== 'EXPLORAR') return false
+    if (model === null || session.phase !== 'EXPLORAR' || seguimientoControlaModelo()) return false
     if (elevacionTranscurrido < elevacionDuracion) {
       elevacionTranscurrido = Math.min(elevacionDuracion, elevacionTranscurrido + world.time.delta / 1000)
       const t = elevacionDuracion > 0 ? elevacionTranscurrido / elevacionDuracion : 1
@@ -163,6 +233,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (model === null || session.phase !== 'EXPLORAR') return
     const clip = bird.clips.find(c => c.nombre === name)
     if (!clip) { ui.showMessage(labels.errorAnimacion); return }
+    // Una elección manual de animación cancela el seguimiento y devuelve el ave al suelo.
+    abortarSeguimiento()
     activeClip = name; paused = false
     clipTimeScale = 1
     ecs.GltfModel.set(world, model, {animationClip: name, loop: clip.bucle, paused: false, time: 0, timeScale: 1, crossFadeDuration: 0.12})
@@ -177,6 +249,28 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }
   const tickArrival = () => {
     if (root === null || model === null || session.phase !== 'ATERRIZANDO' || !session.trackingReady) return
+    // Sin clip de aterrizaje: descenso suave desde el origen aéreo, conservando el clip de vuelo.
+    if (arrivalSimple) {
+      arrivalTranscurrido += world.time.delta / 1000
+      const segundos = Math.max(1e-6, seguimiento.config.bajadaSinAterrizajeSegundos)
+      const t = Math.min(1, arrivalTranscurrido / segundos)
+      const factor = suavizarEntradaSalida(t)
+      world.getEntity(root).setLocalPosition({
+        x: arrivalInicio.x + (arrivalDestino.x - arrivalInicio.x) * factor,
+        y: arrivalInicio.y + (arrivalDestino.y - arrivalInicio.y) * factor,
+        z: arrivalInicio.z + (arrivalDestino.z - arrivalInicio.z) * factor,
+      })
+      if (t >= 1) {
+        arrivalSimple = false
+        activeClip = bird.animaciones.reposo
+        clipTimeScale = 1
+        ecs.GltfModel.set(world, model, {animationClip: activeClip, loop: true, paused: false,
+          time: 0, timeScale: 1, crossFadeDuration: bird.llegada.mezclaReposoSegundos})
+        const generation = session.generation
+        if (session.arrived(generation)) world.events.dispatch(ground, OBJECT_PLACED_EVENT)
+      }
+      return
+    }
     try {
       const pose = arrival.advance(world.time.delta / 1000, session.generation)
       if (!pose) return
@@ -201,6 +295,127 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       session.fail(labels.errorLlegada)
     }
   }
+  // El seguimiento no inicia ciclos y, si el ave vuela, aterriza donde está, cuando hay una
+  // inspección activa, un panel/ficha/rueda o quiz abiertos, o la escena sale de EXPLORAR.
+  const seguimientoPausado = () =>
+    session.phase !== 'EXPLORAR' ||
+    pinchActive ||
+    inspectionTouch?.dragged === true ||
+    ui.bloqueandoSeguimiento()
+  // El propio seguimiento controla el clip activo mientras dura un ciclo (deja de ser reposo).
+  const seguimientoGestionaClip = () => seguimiento.habilitado && seguimiento.estado !== ESTADOS.REPOSO
+  // Reproduce un clip del ave sin la validación de fase de setClip (el seguimiento ya corre en
+  // EXPLORAR) y sin abortarse a sí mismo. `escala` permite al aterrizaje usar landingRate, igual
+  // que la llegada inicial, para que el clip renderizado avance al ritmo de la trayectoria.
+  const reproducirClip = (nombre?: string, escala = 1) => {
+    if (model === null || !nombre) return
+    const clip = bird.clips.find(c => c.nombre === nombre)
+    if (!clip) return
+    activeClip = nombre; paused = false; clipTimeScale = escala
+    ecs.GltfModel.set(world, model, {animationClip: nombre, loop: clip.bucle, paused: false, time: 0, timeScale: escala, crossFadeDuration: 0.12})
+    aplicarAlturaDeClip(clip)
+  }
+  const aplicarClipDeSeguimiento = (estado: string) => {
+    if (estado === ESTADOS.DESPEGUE) reproducirClip(bird.animaciones.despegue ?? bird.animaciones.vuelo)
+    else if (estado === ESTADOS.VUELO) reproducirClip(bird.animaciones.vuelo)
+    else if (estado === ESTADOS.ATERRIZAJE) {
+      // Con clip de aterrizaje lo controla ArrivalMotion (a su ritmo); sin él se conserva el vuelo.
+      reproducirClip(seguimiento.modoAterrizaje === 'clip' ? bird.animaciones.aterrizaje : bird.animaciones.vuelo,
+        seguimiento.modoAterrizaje === 'clip' ? landingRate : 1)
+    } else reproducirClip(bird.animaciones.reposo)
+  }
+  // Aborta el seguimiento y deja la raíz en el suelo; el clip lo elige quien llama después.
+  const abortarSeguimiento = () => {
+    const activo = seguimiento.estado !== ESTADOS.REPOSO
+    arrivalFollow.cancel()
+    seguimientoAterrizajeListo = false
+    seguimientoCongelado = false
+    seguimientoFrameContacto = false
+    seguimiento.cancelar()
+    if (!activo || root === null) return
+    seguimiento.posicion.y = seguimiento.sueloY
+    world.getEntity(root).setLocalPosition(seguimiento.posicion)
+    elevacionActual = elevacionDesde = elevacionObjetivo = 0
+    elevacionDuracion = elevacionTranscurrido = 0
+    elevacionCurva = suavizarEntradaSalida
+    elevacionAplicada = null
+  }
+  // Aterrizaje basado en el clip y la calibración por ave, reutilizando ArrivalMotion. El origen
+  // se ajusta con la elevación actual del nodo del modelo para que la pose visible sea continua:
+  // la raíz sube lo mismo que baja el nodo al aplicar la compensación de hueso del clip.
+  const tickAterrizajeSeguimiento = () => {
+    if (root === null || model === null) return false
+    const info = seguimiento.aterrizaje
+    if (!info) return false
+    if (!session.trackingReady) {
+      if (!seguimientoCongelado) { seguimientoCongelado = true; ecs.GltfModel.set(world, model, {paused: true}) }
+      return false
+    }
+    if (seguimientoCongelado) { seguimientoCongelado = false; ecs.GltfModel.set(world, model, {paused}) }
+    try {
+      if (!seguimientoAterrizajeListo) {
+        seguimientoAterrizajeListo = true
+        seguimientoFrameContacto = false
+        const origen = {x: info.origen.x, y: info.origen.y + elevacionActual, z: info.origen.z}
+        const pose = arrivalFollow.begin(info.destino, ++seguimientoGeneracion, inspection.scale,
+          bird.transformacion.giroY, bird.transformacion.posicionLocal, origen)
+        applyArrivalPose(pose)
+      }
+      const pose = arrivalFollow.advance(world.time.delta / 1000, seguimientoGeneracion)
+      if (!pose) return false
+      applyArrivalPose(pose)
+      if (pose.landed && arrivalFollow.phase === 'approach') {
+        // Un fotograma de contacto con el suelo antes de mezclar con reposo (igual que la llegada).
+        if (!seguimientoFrameContacto) { seguimientoFrameContacto = true; return true }
+        arrivalFollow.beginBlend()
+        activeClip = bird.animaciones.reposo
+        clipTimeScale = 1
+        ecs.GltfModel.set(world, model, {animationClip: activeClip, loop: true, paused: false,
+          time: 0, timeScale: 1, crossFadeDuration: bird.llegada.mezclaReposoSegundos})
+      } else if (pose.finished) {
+        seguimientoAterrizajeListo = false
+        seguimientoFrameContacto = false
+        arrivalFollow.cancel()
+        seguimiento.confirmarAterrizaje(info.destino, pose.yaw)
+        elevacionActual = elevacionDesde = elevacionObjetivo = 0
+        elevacionDuracion = elevacionTranscurrido = 0
+        elevacionCurva = suavizarEntradaSalida
+        elevacionAplicada = null
+      }
+      return true
+    } catch (error) {
+      console.error('Aterrizaje del seguimiento:', error)
+      seguimientoAterrizajeListo = false
+      arrivalFollow.cancel()
+      seguimiento.cancelar()
+      elevacionAplicada = null
+      return false
+    }
+  }
+  // Avanza el seguimiento y aplica la pose de la raíz que le corresponde. Devuelve si escribió
+  // posición o rotación, para refrescar la matriz del modelo que usa el raycast del toque.
+  const tickSeguimiento = () => {
+    if (root === null || model === null || session.phase !== 'EXPLORAR' || !seguimiento.habilitado) return false
+    if (seguimiento.estado === ESTADOS.ATERRIZAJE && seguimiento.modoAterrizaje === 'clip') return tickAterrizajeSeguimiento()
+    // Sin cámara o sin seguimiento estable, se congela el ave sin avanzar el estado.
+    const pose = poseCamara(world)
+    if (!session.trackingReady || !pose) {
+      if (!seguimientoCongelado) { seguimientoCongelado = true; ecs.GltfModel.set(world, model, {paused: true}) }
+      return false
+    }
+    if (seguimientoCongelado) { seguimientoCongelado = false; ecs.GltfModel.set(world, model, {paused}) }
+    // Al empezar un ciclo, el ave parte del giro visible actual (pudo inspeccionarla el usuario).
+    if (seguimiento.estado === ESTADOS.REPOSO) seguimiento.yaw = inspection.yaw
+    const anterior = seguimiento.estado
+    const resultado = seguimiento.actualizar(world.time.delta / 1000, {
+      camara: pose.posicion, adelante: pose.adelante, pausado: seguimientoPausado(),
+    })
+    if (resultado.estado !== anterior) aplicarClipDeSeguimiento(resultado.estado)
+    let escrito = false
+    if (resultado.posicion) { world.getEntity(root).setLocalPosition(resultado.posicion); escrito = true }
+    if (Number.isFinite(resultado.yaw)) { inspection.yaw = resultado.yaw as number; applyInspection(); escrito = true }
+    return escrito
+  }
   const session = new PlacementSession({
     destroy,
     move(position: {x: number; y: number; z: number}) {
@@ -209,7 +424,13 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     spawn(position: {x: number; y: number; z: number}, generation: number, options: {arrival: boolean}) {
       inspection.reset()
       landingFrameApplied = false
-      clipTimeScale = options.arrival ? landingRate : 1
+      arrivalSimple = false
+      arrivalTranscurrido = 0
+      // Clip de entrada: aterrizaje si lo hay, vuelo como respaldo, o reposo en colocación directa.
+      const tieneAterrizaje = !!bird.animaciones.aterrizaje && bird.clips.some(c => c.nombre === bird.animaciones.aterrizaje)
+      const clipEntrada = !options.arrival ? bird.animaciones.reposo
+        : (tieneAterrizaje ? bird.animaciones.aterrizaje : bird.animaciones.vuelo)
+      clipTimeScale = options.arrival && tieneAterrizaje ? landingRate : 1
       elevacionActual = elevacionDesde = elevacionObjetivo = 0
       elevacionDuracion = elevacionTranscurrido = 0
       elevacionCurva = suavizarEntradaSalida
@@ -223,29 +444,41 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       applyInspection()
       if (options.arrival) {
         const initialPose = arrival.begin(position, generation, inspection.scale, bird.transformacion.giroY, bird.transformacion.posicionLocal)
-        applyArrivalPose(initialPose)
+        if (tieneAterrizaje) {
+          applyArrivalPose(initialPose)
+        } else {
+          // Sin clip de aterrizaje: se guarda el origen aéreo y se desciende suave en tickArrival.
+          arrivalSimple = true
+          arrivalInicio = {...initialPose.position}
+          arrivalDestino = {x: position.x, y: position.y, z: position.z}
+          inspection.yaw = initialPose.yaw
+          applyInspection()
+          arrival.cancel()
+        }
       }
       const currentModel = model
       loadedListener = (event: any) => {
         if (model !== currentModel || !session.loaded(generation)) return
         clearLoadTimer()
-        activeClip = options.arrival ? bird.animaciones.aterrizaje : bird.animaciones.reposo
-        clipTimeScale = options.arrival ? landingRate : 1
-        ecs.GltfModel.set(world, currentModel, {time: 0, timeScale: options.arrival ? landingRate : 1, paused: options.arrival && !session.trackingReady})
+        activeClip = clipEntrada
+        clipTimeScale = options.arrival && tieneAterrizaje ? landingRate : 1
+        ecs.GltfModel.set(world, currentModel, {time: 0, timeScale: options.arrival && tieneAterrizaje ? landingRate : 1, paused: options.arrival && !session.trackingReady})
       }
       finishedListener = (event: any) => {
-        if (model === currentModel && session.phase === 'EXPLORAR' && event.data.name === activeClip) {
-          const clip = bird.clips.find(c => c.nombre === activeClip)
-          if (clip && !clip.bucle) setClip(bird.animaciones.reposo)
-        }
+        if (model !== currentModel || session.phase !== 'EXPLORAR' || event.data.name !== activeClip) return
+        // Mientras el seguimiento controla el clip, su final no debe elegir otra animación.
+        if (seguimientoGestionaClip()) return
+        const clip = bird.clips.find(c => c.nombre === activeClip)
+        if (clip && !clip.bucle) setClip(bird.animaciones.reposo)
       }
       world.events.addListener(model, ecs.events.GLTF_MODEL_LOADED, loadedListener)
       world.events.addListener(model, ecs.events.GLTF_ANIMATION_FINISHED, finishedListener)
       loadTimer = setTimeout(() => {
         if (session.generation === generation && session.phase === 'COLOCANDO') session.fail(labels.errorRecurso)
       }, 30000)
-      activeClip = options.arrival ? bird.animaciones.aterrizaje : bird.animaciones.reposo
-      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: !options.arrival, paused: true, time: 0, timeScale: options.arrival ? landingRate : 1})
+      activeClip = clipEntrada
+      const clipEntradaBucle = bird.clips.find(c => c.nombre === clipEntrada)?.bucle ?? !options.arrival
+      ecs.GltfModel.set(world, model, {url: bird.modelo, animationClip: activeClip, loop: clipEntradaBucle, paused: true, time: 0, timeScale: options.arrival && tieneAterrizaje ? landingRate : 1})
     },
   }, snapshot => {
     if (model !== null && snapshot.phase === 'ATERRIZANDO') {
@@ -254,6 +487,16 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     // Al entrar en EXPLORAR (tras la llegada o al reubicar) la altura parte del clip activo.
     if (snapshot.phase === 'EXPLORAR' && phaseAnterior !== 'EXPLORAR') {
       aplicarAlturaDeClip(bird.clips.find(c => c.nombre === activeClip))
+      arrivalFollow.cancel()
+      seguimientoAterrizajeListo = false
+      seguimientoCongelado = false
+      // La llegada pudo dejar el nodo del modelo en la compensación de hueso: se invalida el
+      // último valor aplicado para que tickElevacion vuelva a escribir la base del modelo.
+      elevacionAplicada = null
+      // El ave queda en reposo sobre su punto de apoyo; conserva el giro con el que llegó.
+      if (snapshot.position) seguimiento.reiniciar(
+        {x: snapshot.position.x, y: snapshot.position.y, z: snapshot.position.z},
+        snapshot.position.y, inspection.yaw)
     }
     phaseAnterior = snapshot.phase
     if (snapshot.phase !== 'EXPLORAR' || !snapshot.trackingReady) {
@@ -291,6 +534,10 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     bird = next
     landingCalibration = calibrations[bird.id]
     arrival = new ArrivalMotion(bird.llegada, landingCalibration)
+    arrivalFollow = new ArrivalMotion(bird.llegada, landingCalibration)
+    seguimiento = crearSeguimiento(bird)
+    seguimientoAterrizajeListo = false
+    seguimientoCongelado = false
     landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
     inspection = new InspectionControls({escalaBase: bird.escalaExhibicion, ...bird.inspeccion})
     activeClip = bird.animaciones.reposo
@@ -313,7 +560,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     idle() { setClip(bird.animaciones.reposo) },
     pause() {
       if (model === null || session.phase !== 'EXPLORAR') return
-      paused = !paused; ecs.GltfModel.set(world, model, {paused})
+      paused = !paused; ecs.GltfModel.set(world, model, {paused: paused || seguimientoCongelado})
     },
   }, desktop)
   session.emit()
@@ -472,17 +719,19 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
     model: model?.toString() ?? null, activeClip, paused, desktop, birdId: bird.id, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot(),
-    elevacion: elevacionActual, elevacionObjetivo, elevacionAplicada})
+    elevacion: elevacionActual, elevacionObjetivo, elevacionAplicada,
+    seguimiento: seguimiento.snapshot(), seguimientoCongelado})
   ;(window as any).__AR_AVES_DEBUG__ = debug
   return {tick: () => {
     tickArrival()
+    const seguimientoEscrito = tickSeguimiento()
     const elevacionEscrita = tickElevacion()
     if (model !== null) {
-      // La elevación mueve el nodo del modelo: hay que refrescar las envolventes del
-      // raycast. Las aves con actualizarLimitesAnimados ya lo hacen cada fotograma; las
-      // demás solo necesitan rehacer la matriz de mundo cuando la altura cambia.
+      // Tanto la elevación como el seguimiento mueven el modelo (directamente o vía la raíz):
+      // hay que refrescar las envolventes del raycast. Las aves con actualizarLimitesAnimados ya
+      // lo hacen cada fotograma; las demás solo necesitan rehacer la matriz de mundo si cambió.
       if (bird.inspeccion?.actualizarLimitesAnimados) refreshAnimatedBounds(world.three.entityToObject.get(model))
-      else if (elevacionEscrita) world.three.entityToObject.get(model)?.updateWorldMatrix(true, true)
+      else if (elevacionEscrita || seguimientoEscrito) world.three.entityToObject.get(model)?.updateWorldMatrix(true, true)
     }
   }, dispose: () => {
     ++fetchGeneration

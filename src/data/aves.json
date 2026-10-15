@@ -27,7 +27,8 @@
       "animaciones": {
         "reposo": "idleA1_bird",
         "vuelo": "fly1_bird",
-        "aterrizaje": "fly_endA_bird"
+        "aterrizaje": "fly_endA_bird",
+        "despegue": "fly_startA_bird"
       },
       "llegada": {
         "calibracion": "martin_pescador-aterrizaje.json",
@@ -336,7 +337,8 @@
       "animaciones": {
         "reposo": "ParrotALL_Idle",
         "vuelo": "ParrotALL_Fly",
-        "aterrizaje": "ParrotALL_Land"
+        "aterrizaje": "ParrotALL_Land",
+        "despegue": "ParrotALL_Rise"
       },
       "clips": [
         {
@@ -482,7 +484,8 @@
       "animaciones": {
         "reposo": "03_Perched_Idle_Loop",
         "vuelo": "02_Forward_Flight_Loop",
-        "aterrizaje": "05_Landing"
+        "aterrizaje": "05_Landing",
+        "despegue": "04_Takeoff"
       },
       "clips": [
         {

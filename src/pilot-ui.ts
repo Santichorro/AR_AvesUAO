@@ -2306,6 +2306,13 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
         showMessage: setStatusMessage,
 
+        // Solo lectura: true si hay una ficha, panel, rueda radial o quiz abierto.
+        // Lo usa el seguimiento del ave para pausar el ciclo sin tocar la interfaz.
+        bloqueandoSeguimiento() {
+            return !!speciesOpen || !animationPanel.hidden || !get<HTMLElement>('#aves-info').hidden ||
+                !quizPanel.hidden || !quizLock.hidden || menu.classList.contains('is-open')
+        },
+
         update(snapshot: any) {
 
             const phase = snapshot.phase
