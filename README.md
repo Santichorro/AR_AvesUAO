@@ -18,7 +18,7 @@ Información, pruebas y pendientes: [documentacion/AVANCE_01.md](documentacion/A
 ## Requisitos
 
 - [8th Wall Studio Desktop](https://8thwall.org/downloads) (para editar la escena).
-- [Node.js](https://nodejs.org/) 20 o superior y `npm`.
+- [Node.js](https://nodejs.org/) 22.15 o superior (recomendado: Node 24 LTS) y `npm`.
 - [Git LFS](https://git-lfs.com/) (`git lfs install`) — los modelos `.glb` y las
   imágenes se guardan con Git LFS.
 - Un editor de código (VSCode / Cursor) opcional.
