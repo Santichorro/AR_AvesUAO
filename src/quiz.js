@@ -1,3 +1,5 @@
+import quizData from './data/quiz.json'
+
 export class BirdQuiz {
     constructor() {
         this.questions = []
@@ -13,46 +15,19 @@ export class BirdQuiz {
     }
 
     /**
-     * Carga quiz.json desde src/data/quiz.json.
+     * Carga las preguntas del quiz.
      *
      * IMPORTANTE:
-     * No usamos "/data/quiz.json", porque eso busca el archivo
-     * en la raíz pública del servidor.
-     *
-     * import.meta.url hace que la ruta sea relativa a quiz.js.
+     * Las preguntas viajan dentro del paquete: quiz.json se importa de forma
+     * estática (arriba), así que ya no hay ninguna petición de red ni una ruta
+     * con hash que se pueda perder al publicar. Se conserva `async` para no
+     * romper el `await birdQuiz.cargarPreguntas()` de pilot-ui.ts, aunque no
+     * espere ninguna red.
      */
     async cargarPreguntas() {
-        console.log('BIRD QUIZ: iniciando carga de quiz.json...')
+        console.log('BIRD QUIZ: inicializando preguntas desde quiz.json...')
 
         try {
-            const quizUrl = new URL('./data/quiz.json', import.meta.url)
-
-            console.log(
-                'BIRD QUIZ: URL generada:',
-                quizUrl.href
-            )
-
-            const response = await fetch(quizUrl)
-
-            console.log(
-                'BIRD QUIZ: respuesta HTTP:',
-                response.status,
-                response.statusText
-            )
-
-            if (!response.ok) {
-                throw new Error(
-                    `No se pudo cargar quiz.json: ${response.status} ${response.statusText}`
-                )
-            }
-
-            const data = await response.json()
-
-            console.log(
-                'BIRD QUIZ: JSON recibido:',
-                data
-            )
-
             /*
              * Admitimos varias estructuras posibles.
              *
@@ -71,58 +46,92 @@ export class BirdQuiz {
              */
             let preguntas = []
 
-            if (Array.isArray(data)) {
-                preguntas = data
-            } else if (Array.isArray(data.preguntas)) {
-                preguntas = data.preguntas
-            } else if (Array.isArray(data.quiz)) {
-                preguntas = data.quiz
-            } else if (Array.isArray(data.questions)) {
-                preguntas = data.questions
+            if (Array.isArray(quizData)) {
+                preguntas = quizData
+            } else if (Array.isArray(quizData?.preguntas)) {
+                preguntas = quizData.preguntas
+            } else if (Array.isArray(quizData?.quiz)) {
+                preguntas = quizData.quiz
+            } else if (Array.isArray(quizData?.questions)) {
+                preguntas = quizData.questions
             }
 
             if (!preguntas.length) {
                 throw new Error(
-                    'quiz.json fue cargado correctamente, pero no contiene preguntas válidas.'
+                    'quiz.json no contiene preguntas válidas.'
                 )
             }
 
             this.questions = preguntas.map((pregunta, index) => {
-                const opciones = Array.isArray(pregunta.opciones)
+                const opciones = Array.isArray(pregunta?.opciones)
                     ? pregunta.opciones
-                    : Array.isArray(pregunta.options)
+                    : Array.isArray(pregunta?.options)
                         ? pregunta.options
                         : []
 
                 let respuestaCorrecta
 
                 if (
-                    typeof pregunta.respuestaCorrecta === 'number'
+                    typeof pregunta?.respuestaCorrecta === 'number'
                 ) {
                     respuestaCorrecta = pregunta.respuestaCorrecta
                 } else if (
-                    typeof pregunta.correcta === 'number'
+                    typeof pregunta?.correcta === 'number'
                 ) {
                     respuestaCorrecta = pregunta.correcta
                 } else if (
-                    typeof pregunta.correctIndex === 'number'
+                    typeof pregunta?.correctIndex === 'number'
                 ) {
                     respuestaCorrecta = pregunta.correctIndex
                 } else if (
-                    typeof pregunta.respuesta === 'number'
+                    typeof pregunta?.respuesta === 'number'
                 ) {
                     respuestaCorrecta = pregunta.respuesta
                 } else {
-                    respuestaCorrecta = 0
+                    respuestaCorrecta = -1
+                }
+
+                const enunciado =
+                    pregunta?.pregunta ??
+                    pregunta?.question ??
+                    (typeof pregunta?.enunciado === 'string'
+                        ? pregunta.enunciado
+                        : undefined)
+
+                /*
+                 * Validación: cada pregunta debe traer enunciado, opciones y
+                 * una respuesta correcta que exista dentro de las opciones.
+                 * Si algo falta, el error dice exactamente cuál pregunta es.
+                 */
+                if (
+                    typeof enunciado !== 'string' ||
+                    !enunciado.trim()
+                ) {
+                    throw new Error(
+                        `quiz.json: la pregunta ${index + 1} no tiene enunciado.`
+                    )
+                }
+
+                if (opciones.length < 2) {
+                    throw new Error(
+                        `quiz.json: la pregunta ${index + 1} no tiene opciones válidas.`
+                    )
+                }
+
+                if (
+                    !Number.isInteger(respuestaCorrecta) ||
+                    respuestaCorrecta < 0 ||
+                    respuestaCorrecta >= opciones.length
+                ) {
+                    throw new Error(
+                        `quiz.json: la pregunta ${index + 1} tiene una respuesta correcta fuera de rango.`
+                    )
                 }
 
                 return {
                     ...pregunta,
 
-                    pregunta:
-                        pregunta.pregunta ??
-                        pregunta.question ??
-                        `Pregunta ${index + 1}`,
+                    pregunta: enunciado,
 
                     opciones,
 

@@ -1,5 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict')
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto')
+const {loadBirdQuizModule}=require('./quiz-module-loader.cjs')
 const root=path.join(__dirname,'..'),read=name=>fs.readFileSync(path.join(root,name),'utf8')
 const birds=JSON.parse(read('src/data/aves.json')).aves
 const bird=birds.find(b=>b.id==='carpintero')
@@ -47,7 +48,7 @@ test('preguntas del carpintero participan en el quiz y sus respuestas se puntúa
  assert.equal(questions.length,5)
  assert.equal(new Set(data.preguntas.map(q=>q.id)).size,data.preguntas.length)
  for(const q of questions){assert.equal(q.opciones.length,4);assert.ok(q.respuestaCorrecta>=0&&q.respuestaCorrecta<4);assert.ok(q.explicacion);assert.equal(q.fuente.pagina,22)}
- const {BirdQuiz}=await import('data:text/javascript;base64,'+Buffer.from(read('src/quiz.js')).toString('base64'))
+ const {BirdQuiz}=await loadBirdQuizModule()
  const quiz=new BirdQuiz();quiz.loaded=true;quiz.questions=questions;quiz.iniciarQuiz()
  assert.equal(quiz.currentQuestions.length,5)
  for(let i=0;i<5;i++){

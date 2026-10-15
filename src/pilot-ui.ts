@@ -1285,8 +1285,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
             sfx.play('error')
 
-            quizLockMessage.textContent =
-                'No se pudo cargar el quiz. Revisa la conexión con quiz.json.'
+            quizLockMessage.textContent = labels.errorQuiz
 
             quizStartButton.hidden = false
         }

@@ -20,6 +20,7 @@
   "colocando": "Preparando {ave} en el punto elegido…",
   "aterrizando": "{ave} está aterrizando en el lugar elegido…",
   "errorLlegada": "No se pudo completar la llegada del ave. Reinicia para volver a colocarla.",
+  "errorQuiz": "No se pudo abrir el quiz. Inténtalo de nuevo.",
   "explorar": "Toca el ave para abrir el menú y después toca una opción. Arrastra para girarla o usa dos dedos para cambiar su tamaño.",
   "reubicando": "Toca otro lugar del suelo. Cancelar conserva la ubicación anterior.",
   "seguimiento": "Mueve el celular lentamente para recuperar el seguimiento antes de colocar.",
