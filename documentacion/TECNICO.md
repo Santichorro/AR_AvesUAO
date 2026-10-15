@@ -323,14 +323,6 @@ Actualmente cada toque válido crea un prefab con orientación aleatoria. La imp
 
 La posición de toque usada por la plantilla no demuestra que ya exista una retícula de detección continua. Verificar la API de hit-testing de la versión instalada antes de implementarla.
 
-### 6.2.1 Validación de suelo y retícula vigentes
-
-La cámara declara `direction: "back"` en `camera.xr` (`.expanse.json`). El ECS transporta ese valor hasta `XR8.run({cameraConfig: direction})`; su valor por defecto es `"front"`, por lo que en RA de superficie hay que fijarlo de forma explícita.
-
-`src/colocacion-suelo.js` reúne las reglas puras (sin ECS): intersección analítica rayo-plano y=0, ángulo bajo el horizonte, rayo de proyección desde un píxel tocado y suavizado exponencial independiente de los FPS. `src/data/colocacion.json` da los umbrales: `habilitado`, `modoColocacion` (`toque` por defecto / `centro`), `distanciaMaxima` 4 m, `toleranciaAltura` 0,05, `anguloMinimoGrados` 15, `reticulaSuelo` y los radios del anillo. Con `habilitado: false` no se valida ni se dibuja nada.
-
-En ESCANEO y REUBICAR el punto de apoyo sale del píxel tocado (`modoColocacion: "toque"`, por defecto): se construye el rayo que pasa por ese píxel con la proyección real de la cámara de render (`world.three.activeCamera`: base ortonormal de su `matrixWorld` y FOV/aspecto; la dirección de vista es su -Z) y se corta analíticamente con y=0. Como three.js no es importable, el rayo se calcula con `rayoDesdePantalla` a partir de las matrices; si la proyección no está disponible (o la base de render no coincide con la pose ECS), se recurre al `worldPosition` del evento. El punto se valida con las mismas reglas y, si es válido, coloca al ave justo ahí; si no, se rechaza con `labels.superficieInvalida` sin cambiar de fase y `PlacementSession.place` (con validador) actúa como último guardián. En este modo el anillo 3D no es fijo: destella unos 0,6 s en el punto calculado (verde si se coloca, rojo atenuado si se rechaza) con el mismo estilo y se oculta; no se muestra fuera del toque. El modo `centro` conserva el comportamiento previo: cada tick corta el rayo del centro de pantalla con y=0, lo valida y dibuja un anillo continuo suavizado con el delta del tick. Si `reticulaSuelo` está desactivada (o en escritorio) se conserva el cruce CSS y el `worldPosition`/`desktopPosition` previos. El anillo se oculta y se aleja fuera de su uso para no interferir con el toque del ave. `PlacementSession` guarda además `trackingStatus`/`trackingReason` para elegir el mensaje de seguimiento (INITIALIZING, RELOCALIZING, LIMITED/NOT_AVAILABLE). El panel de diagnóstico solo aparece con `?debug` en la URL y muestra el modo activo y el último punto calculado (x, z, distancia, ángulo y el motivo del rechazo).
-
 ### 6.3 Máquina de estados
 
 ```text

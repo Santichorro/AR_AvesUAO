@@ -7,8 +7,6 @@ export class PlacementSession {
     this.changed = changed
     this.started = false
     this.trackingReady = false
-    this.trackingStatus = null
-    this.trackingReason = null
     this.assetReady = false
     this.phase = 'INTRO'
     this.position = null
@@ -21,7 +19,6 @@ export class PlacementSession {
   snapshot() {
     return {phase: this.phase, position: this.position ? {...this.position} : null,
       started: this.started, trackingReady: this.trackingReady,
-      trackingStatus: this.trackingStatus, trackingReason: this.trackingReason,
       assetReady: this.assetReady, message: this.message, generation: this.generation}
   }
   prepare() {
@@ -36,19 +33,11 @@ export class PlacementSession {
     this.emit()
   }
   start() { this.started = true; this.prepare() }
-  setTracking(ready, info) {
-    this.trackingReady = ready
-    this.trackingStatus = info?.status ?? null
-    this.trackingReason = info?.reason ?? null
-    this.prepare()
-  }
+  setTracking(ready) { this.trackingReady = ready; this.prepare() }
   setAsset(ready) { this.assetReady = ready; this.prepare() }
-  // `validador` (opcional) decide si el punto es aceptable (reglas de suelo de colocacion-suelo.js).
-  // Si lo rechaza, no cambia de fase ni coloca: la sesión es el último guardián del punto.
-  place(p, validador) {
+  place(p) {
     if (!this.started || !this.assetReady || !this.trackingReady || !validPosition(p)) return false
     if (!['ESCANEO', 'REUBICAR'].includes(this.phase)) return false
-    if (typeof validador === 'function' && !validador(p)) return false
     const next = {x: p.x, y: p.y, z: p.z}
     if (this.phase === 'REUBICAR') {
       this.actions.move(next)
