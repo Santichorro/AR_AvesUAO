@@ -41,8 +41,20 @@ function radialMarkup() {
     }).join('')
 }
 
+// Texto de seguimiento según el estado y el motivo que reporta el motor. Si ni el motivo ni el
+// estado están mapeados, se usa el mensaje genérico (labels.seguimiento). El motor puede enviar
+// 'INITIALIZING'/'RELOCALIZING' como motivo y 'LIMITED'/'NOT_AVAILABLE' como estado.
+const trackingMessage = (snapshot: any) => {
+    const reason = String(snapshot.trackingReason ?? '').toUpperCase()
+    const status = String(snapshot.trackingStatus ?? '').toUpperCase()
+    if (reason === 'INITIALIZING') return labels.seguimientoInicializando
+    if (reason === 'RELOCALIZING') return labels.seguimientoRelocalizando
+    if (status === 'LIMITED' || status === 'NOT_AVAILABLE') return labels.seguimientoLimitado
+    return labels.seguimiento
+}
+
 // El contenido académico y las etiquetas proceden de JSON; el DOM no recibe HTML del PDF.
-export function createPilotUi(catalog: any[], bird: any, controls: Controls, desktop: boolean) {
+export function createPilotUi(catalog: any[], bird: any, controls: Controls, desktop: boolean, reticulacion = false) {
     const birdQuiz = new BirdQuiz()
     document.getElementById('aves-pilot')?.remove()
     const root = document.createElement('main')
@@ -1842,8 +1854,8 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
                 ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, ATERRIZANDO: bird.mensajeLlegada || labels.aterrizando, EXPLORAR: labels.explorar,
                 REUBICAR: labels.reubicando, ERROR: snapshot.message || labels.errorRecurso
             }
-            setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? labels.seguimiento : birdText(messages[phase]))
-            get('.aves-scan').hidden = !['ESCANEO', 'REUBICAR'].includes(phase)
+            setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? trackingMessage(snapshot) : birdText(messages[phase]))
+            get('.aves-scan').hidden = reticulacion || !['ESCANEO', 'REUBICAR'].includes(phase)
             for (const action of ['idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
             get('[data-action="cancel"]').hidden = phase !== 'REUBICAR'
             get('[data-action="reset"]').hidden = !['COLOCANDO', 'ATERRIZANDO', 'ERROR'].includes(phase)

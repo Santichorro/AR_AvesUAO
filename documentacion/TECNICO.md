@@ -323,6 +323,35 @@ Actualmente cada toque válido crea un prefab con orientación aleatoria. La imp
 
 La posición de toque usada por la plantilla no demuestra que ya exista una retícula de detección continua. Verificar la API de hit-testing de la versión instalada antes de implementarla.
 
+### 6.2.1 Colocación sobre el suelo: retícula y validación
+
+La cámara declara `direction: "back"` dentro de `camera.xr` (`.expanse.json`). El ECS transporta ese valor hasta `XR8.run({cameraConfig: direction})`; su valor por defecto es `"front"`, por lo que en RA de superficie hay que fijarlo explícitamente. Studio puede regenerar `.expanse.json` al abrir y guardar la escena; si lo hace, hay que volver a comprobar que `direction` sigue en `"back"`.
+
+`src/colocacion-suelo.js` reúne las reglas puras (sin ECS, DOM ni timers): intersección analítica rayo-plano y=0, ángulo bajo el horizonte, rayo de proyección desde un píxel y suavizado exponencial independiente de los FPS. `src/data/colocacion.json` da la configuración; estos son los valores por defecto:
+
+| Campo | Valor | Significado |
+|---|---|---|
+| `habilitado` | `true` | `false` desactiva toda la mejora y vuelve al comportamiento original. |
+| `modoColocacion` | `"toque"` | `"toque"` = el punto sale del píxel tocado; `"centro"` = lo marca la retícula central. |
+| `distanciaMaxima` | `4` | m: distancia horizontal máxima de la cámara al punto. |
+| `toleranciaAltura` | `0.05` | m: desviación máxima admitida respecto al suelo (y=0). |
+| `anguloMinimoGrados` | `15` | Grados mínimos que debe descender el rayo bajo el horizonte. |
+| `suavizadoSegundos` | `0.12` | Constante de tiempo del suavizado de la retícula (independiente de los FPS). |
+| `radioExteriorReticula` / `radioInteriorReticula` | `0.12` / `0.09` | Radios del anillo 3D (unidades de mundo). |
+| `alturaReticula` | `0.005` | Altura del anillo sobre el suelo para evitar z-fighting. |
+| `duracionConfirmacionSegundos` | `0.6` | S: tiempo que se ve el anillo tras un toque en modo `toque`. |
+| `reticulaSuelo` | `true` | Dibuja el anillo 3D sobre el suelo. |
+
+Modo `toque` (por defecto): en ESCANEO y REUBICAR, al tocar se construye el rayo que pasa por ese píxel con la proyección real de la cámara de render (`world.three.activeCamera`: base ortonormal de su `matrixWorld`, dirección de vista = su -Z, FOV vertical y aspecto) y se corta analíticamente con y=0 mediante `rayoDesdePantalla`. Como three.js no es importable, el rayo se calcula con matrices; el resultado siempre queda en y=0. Si la proyección no está disponible (o la base de render no coincide con la pose ECS), se recurre al `worldPosition` del evento y se valida igual, midiendo el ángulo con el rayo cámara->punto. El punto se valida con las mismas reglas y, si es válido, coloca al ave justo ahí; `PlacementSession.place` (con validador) es el último guardián. El anillo 3D no es fijo en este modo: aparece en el punto calculado durante `duracionConfirmacionSegundos` (verde si se coloca, rojo atenuado si se rechaza) y luego se oculta.
+
+Modo `centro`: cada tick corta el rayo central de la cámara con y=0, lo valida y dibuja un anillo continuo suavizado con el delta del tick; al tocar coloca el ave en ese punto.
+
+Validación: se rechaza si el rayo no baja lo suficiente (`anguloMinimoGrados`), si la distancia horizontal a la cámara supera `distanciaMaxima`, o si la altura del punto difiere del suelo más de `toleranciaAltura`. Los rechazos se avisan con mensajes distintos por causa en `interfaz.json`: horizonte/cielo (`superficieHorizonte`, «Apunta al suelo y toca más abajo»), demasiado lejos (`superficieDistancia`, «Toca un punto más cercano») y genérico (`superficieInvalida`) como respaldo. Mientras el seguimiento no sea `NORMAL` no se coloca.
+
+El anillo se crea por código (una sola entidad con `ecs.RingGeometry` + `ecs.UnlitMaterial`, sin assets), se tumba sobre y=0 y se oculta (y se aleja a y=-1000) fuera de ESCANEO/REUBICAR y mientras no haya seguimiento, para no interferir con el toque del ave ni con el raycast de inspección. Con `reticulaSuelo` desactivada se conserva el cruce CSS `.aves-scan`; con la retícula 3D activa se oculta ese cruce. En escritorio se mantiene exactamente el comportamiento previo (`desktopPosition`, sin validación). `PlacementSession` guarda además `trackingStatus`/`trackingReason` para elegir el mensaje de seguimiento (`seguimientoInicializando`, `seguimientoRelocalizando`, `seguimientoLimitado`, o el genérico `seguimiento`). El panel de diagnóstico solo existe con `?debug` en la URL y muestra el estado/motivo del seguimiento, la altura de la cámara, la distancia horizontal al ave, el modo de colocación, el último punto calculado (x, z, distancia, ángulo), la validez o el motivo del rechazo, y los FPS.
+
+Limitaciones sin dispositivo: no se ha verificado la precisión del punto tocado, la suavidad del anillo, que la escala del plano y=0 coincida en metros reales, ni que el motor respete `direction: "back"` en Android/iPhone.
+
 ### 6.3 Máquina de estados
 
 ```text

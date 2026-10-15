@@ -1,0 +1,13 @@
+{
+  "habilitado": true,
+  "modoColocacion": "toque",
+  "distanciaMaxima": 15,
+  "toleranciaAltura": 0.05,
+  "anguloMinimoGrados": 15,
+  "suavizadoSegundos": 0.12,
+  "radioExteriorReticula": 0.12,
+  "radioInteriorReticula": 0.09,
+  "alturaReticula": 0.005,
+  "duracionConfirmacionSegundos": 0.6,
+  "reticulaSuelo": true
+}

@@ -127,6 +127,7 @@
         "type": "perspective",
         "xr": {
           "xrCameraType": "world",
+          "direction": "back",
           "phone": "AR",
           "desktop": "3D",
           "headset": "disabled"
