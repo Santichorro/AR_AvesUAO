@@ -2,7 +2,7 @@
   "aves": [
     {
       "id": "martin_pescador",
-      "nombre": "Martín Pescador",
+      "nombre": "Martín Pescador Mayor",
       "disponible": true,
       "tipoRepresentacion": "ilustrativa",
       "modelo": "assets/models/martin_pescador_configurado.glb",
@@ -52,10 +52,19 @@
           9
         ]
       },
-      "ficha": {},
+      "ficha": {
+        "descripcion": "Ave compacta de cabeza grande, pico largo y recto y patas cortas. Es el de mayor tamaño entre los martines pescadores más comunes de Colombia.",
+        "habitat": "Ríos, quebradas, lagos, lagunas y manglares, con perchas cercanas al agua.",
+        "comportamiento": "Se posa en una rama o cable sobre el agua y se lanza en picada para capturar peces pequeños, insectos acuáticos, crustáceos y, ocasionalmente, renacuajos. Vuela bajo y rápido sobre el agua, con llamados fuertes. Excava su nido en taludes de tierra cercanos al agua.",
+        "rasgos": "El macho tiene el pecho rufo y la hembra presenta bandas grises en el pecho."
+      },
+      "fuenteFicha": {
+        "titulo": "WikiAves Icesi",
+        "url": "https://wikiaves.icesi.edu.co/",
+        "consulta": "2026-10-14"
+      },
       "pendientes": [
         "Comprobar llegada y materiales en Android/iPhone",
-        "Completar ficha académica con una fuente o ficha específica",
         "Registrar autoría y licencia de la fotografía aportada",
         "Registrar autoría y licencia del canto aportado"
       ],
@@ -64,7 +73,7 @@
       "nombreIngles": "Ringed Kingfisher",
       "modeloOriginal": "assets/models/MartinPescador.glb",
       "animacionesNota": "Clips originales del modelo, preparados para comenzar sin esperas.",
-      "fichaNota": "La guía UAO identifica esta especie en el índice de la página 9. Su descripción detallada está pendiente de incorporar.",
+      "fichaNota": "Información tomada de WikiAves Icesi. La guía UAO lista la especie en el índice de la página 9.",
       "creditoModelo": {
         "autor": "ahitch3",
         "licencia": "CC-BY-4.0",
