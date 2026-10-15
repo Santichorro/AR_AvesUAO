@@ -30,6 +30,21 @@ for(const id of ['martin_pescador','paloma','loro'])test(`${id}: clips y calibra
  assert.ok(bird.audioCanto);assert.notEqual(bird.imagen,'assets/img/colirufo.jpg')
 })
 
+test('cada clip de las aves declara una altura válida y la elevación de vuelo queda en rango',()=>{
+ const alturas=new Set(['aire','suelo','aterrizaje'])
+ for(const b of birds.filter(b=>b.disponible)){
+  assert.ok(Array.isArray(b.clips)&&b.clips.length>0,`${b.id} sin clips`)
+  for(const c of b.clips){
+   assert.ok(alturas.has(c.altura),`${b.id}:${c.nombre} altura inválida: ${c.altura}`)
+  }
+  if('elevacionVuelo' in b){
+   assert.equal(typeof b.elevacionVuelo,'number')
+   assert.ok(Number.isFinite(b.elevacionVuelo))
+   assert.ok(b.elevacionVuelo>=0.01&&b.elevacionVuelo<=0.3,`${b.id} elevacionVuelo fuera de rango: ${b.elevacionVuelo}`)
+  }
+ }
+})
+
 test('Paloma documenta sus recortes de Take 001 y Martín conserva sus nombres reales',()=>{
  const paloma=JSON.parse(fs.readFileSync(path.join(root,'src/data/paloma-aterrizaje.json')))
  assert.ok(Object.values(paloma.rangosOriginales).every(r=>r.clipOriginal==='Take 001'))

@@ -19,6 +19,15 @@ const OBJECT_PLACED_EVENT = 'object-placed'
 const controllers = new Map<ecs.Eid, {tick: () => void; dispose: () => void}>()
 const calibrations = {colibri: colibriCalibration, martin_pescador: martinCalibration, paloma: palomaCalibration, loro: guacamayaCalibration}
 
+// Elevación suave del modelo según la categoría de altura del clip activo, en metros de mundo.
+// La subida y el retorno al suelo duran ELEVACION_SUBIDA_SEGUNDOS; el descenso de "aterrizaje"
+// dura lo que dura el clip. El valor de vuelo por defecto se puede ajustar por ave con
+// "elevacionVuelo" en aves.json.
+const ELEVACION_SUBIDA_SEGUNDOS = 0.5
+const ELEVACION_VUELO_POR_DEFECTO = 0.08
+const suavizarEntradaSalida = (t: number) => t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2
+const suavizarSalida = (t: number) => 1 - (1 - t) ** 3
+
 function attach(world: ecs.World, ground: ecs.Eid) {
   const desktop = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !('ontouchend' in document && navigator.maxTouchPoints > 1)
   let bird = availableBird(catalog.aves, 'colibri')!
@@ -37,6 +46,16 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let arrival = new ArrivalMotion(bird.llegada, landingCalibration)
   let landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
   let landingFrameApplied = false
+  // Elevación del modelo: objetivo por categoría del clip, transición suave e independiente del FPS.
+  let clipTimeScale = 1
+  let elevacionActual = 0
+  let elevacionDesde = 0
+  let elevacionObjetivo = 0
+  let elevacionDuracion = 0
+  let elevacionTranscurrido = 0
+  let elevacionCurva: (t: number) => number = suavizarEntradaSalida
+  let elevacionAplicada: number | null = null
+  let phaseAnterior = 'INTRO'
   let inspection = new InspectionControls({
     escalaBase: bird.escalaExhibicion,
     escalaMinima: bird.inspeccion?.escalaMinima,
@@ -82,16 +101,72 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     paused = false
     inspectionTouch = null
     pinchActive = false
+    clipTimeScale = 1
+    elevacionActual = elevacionDesde = elevacionObjetivo = 0
+    elevacionDuracion = elevacionTranscurrido = 0
+    elevacionCurva = suavizarEntradaSalida
+    elevacionAplicada = null
     inspection.reset()
     radial.reset(true)
     ui?.setGestureBlocked(radial.blocked)
+  }
+  // Escribe la elevación actual en el nodo del modelo, sumándola al nivel de suelo
+  // declarado en transformacion.posicionLocal (que nunca se reemplaza). Como el nodo
+  // del modelo es hijo de la raíz sin escala, la posición local está en metros de mundo:
+  // la elevación no depende de escalaExhibicion ni del escalado por inspección.
+  const escribirElevacion = () => {
+    if (model === null) return false
+    if (elevacionAplicada !== null && Math.abs(elevacionAplicada - elevacionActual) < 1e-9) return false
+    const base = bird.transformacion.posicionLocal
+    world.getEntity(model).setLocalPosition({x: base.x, y: base.y + elevacionActual, z: base.z})
+    elevacionAplicada = elevacionActual
+    return true
+  }
+  // Comienza una transición hacia la altura objetivo. Si ya hay una en curso, parte de la
+  // altura actual (elevacionActual) para continuar sin saltos; si ya está en el objetivo, la fija.
+  const iniciarElevacion = (objetivo: number, duracion: number, curva: (t: number) => number) => {
+    if (Math.abs(objetivo - elevacionActual) < 1e-6) {
+      elevacionDesde = elevacionObjetivo = elevacionActual
+      elevacionDuracion = elevacionTranscurrido = 0
+      return
+    }
+    elevacionDesde = elevacionActual
+    elevacionObjetivo = objetivo
+    elevacionDuracion = Math.max(0, duracion)
+    elevacionTranscurrido = 0
+    elevacionCurva = curva
+  }
+  const aplicarAlturaDeClip = (clip: any) => {
+    if (clip?.altura === 'aire') {
+      iniciarElevacion(bird.elevacionVuelo ?? ELEVACION_VUELO_POR_DEFECTO, ELEVACION_SUBIDA_SEGUNDOS, suavizarEntradaSalida)
+    } else if (clip?.altura === 'aterrizaje') {
+      const escalaTiempo = clipTimeScale > 0 ? clipTimeScale : 1
+      iniciarElevacion(0, (clip.duracionSegundos ?? 0) / escalaTiempo, suavizarSalida)
+    } else {
+      iniciarElevacion(0, ELEVACION_SUBIDA_SEGUNDOS, suavizarEntradaSalida)
+    }
+  }
+  // Avanza la transición con el delta de ECS (no setTimeout) y devuelve si escribió el nodo.
+  // No actúa durante la llegada: ArrivalMotion controla la posición del modelo hasta EXPLORAR.
+  const tickElevacion = () => {
+    if (model === null || session.phase !== 'EXPLORAR') return false
+    if (elevacionTranscurrido < elevacionDuracion) {
+      elevacionTranscurrido = Math.min(elevacionDuracion, elevacionTranscurrido + world.time.delta / 1000)
+      const t = elevacionDuracion > 0 ? elevacionTranscurrido / elevacionDuracion : 1
+      elevacionActual = elevacionDesde + (elevacionObjetivo - elevacionDesde) * elevacionCurva(t)
+    } else {
+      elevacionActual = elevacionObjetivo
+    }
+    return escribirElevacion()
   }
   const setClip = (name: string) => {
     if (model === null || session.phase !== 'EXPLORAR') return
     const clip = bird.clips.find(c => c.nombre === name)
     if (!clip) { ui.showMessage(labels.errorAnimacion); return }
     activeClip = name; paused = false
+    clipTimeScale = 1
     ecs.GltfModel.set(world, model, {animationClip: name, loop: clip.bucle, paused: false, time: 0, timeScale: 1, crossFadeDuration: 0.12})
+    aplicarAlturaDeClip(clip)
   }
   const applyArrivalPose = (pose: ReturnType<ArrivalMotion['sample']>) => {
     if (root === null || model === null) return
@@ -113,6 +188,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
         if (!landingFrameApplied) { landingFrameApplied = true; return }
         arrival.beginBlend()
         activeClip = bird.animaciones.reposo
+        clipTimeScale = 1
         ecs.GltfModel.set(world, model, {animationClip: activeClip, loop: true, paused: false,
           time: 0, timeScale: 1, crossFadeDuration: bird.llegada.mezclaReposoSegundos})
       } else if (pose.finished) {
@@ -133,6 +209,11 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     spawn(position: {x: number; y: number; z: number}, generation: number, options: {arrival: boolean}) {
       inspection.reset()
       landingFrameApplied = false
+      clipTimeScale = options.arrival ? landingRate : 1
+      elevacionActual = elevacionDesde = elevacionObjetivo = 0
+      elevacionDuracion = elevacionTranscurrido = 0
+      elevacionCurva = suavizarEntradaSalida
+      elevacionAplicada = 0
       root = world.createEntity()
       world.getEntity(root).setLocalPosition(position)
       model = world.createEntity()
@@ -149,6 +230,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
         if (model !== currentModel || !session.loaded(generation)) return
         clearLoadTimer()
         activeClip = options.arrival ? bird.animaciones.aterrizaje : bird.animaciones.reposo
+        clipTimeScale = options.arrival ? landingRate : 1
         ecs.GltfModel.set(world, currentModel, {time: 0, timeScale: options.arrival ? landingRate : 1, paused: options.arrival && !session.trackingReady})
       }
       finishedListener = (event: any) => {
@@ -169,6 +251,11 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (model !== null && snapshot.phase === 'ATERRIZANDO') {
       ecs.GltfModel.set(world, model, {paused: !snapshot.trackingReady})
     }
+    // Al entrar en EXPLORAR (tras la llegada o al reubicar) la altura parte del clip activo.
+    if (snapshot.phase === 'EXPLORAR' && phaseAnterior !== 'EXPLORAR') {
+      aplicarAlturaDeClip(bird.clips.find(c => c.nombre === activeClip))
+    }
+    phaseAnterior = snapshot.phase
     if (snapshot.phase !== 'EXPLORAR' || !snapshot.trackingReady) {
       radial.cancel()
       inspectionTouch = null
@@ -384,12 +471,18 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   }, 45000)
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
-    model: model?.toString() ?? null, activeClip, paused, desktop, birdId: bird.id, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot()})
+    model: model?.toString() ?? null, activeClip, paused, desktop, birdId: bird.id, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot(),
+    elevacion: elevacionActual, elevacionObjetivo, elevacionAplicada})
   ;(window as any).__AR_AVES_DEBUG__ = debug
   return {tick: () => {
     tickArrival()
-    if (model !== null && bird.inspeccion?.actualizarLimitesAnimados) {
-      refreshAnimatedBounds(world.three.entityToObject.get(model))
+    const elevacionEscrita = tickElevacion()
+    if (model !== null) {
+      // La elevación mueve el nodo del modelo: hay que refrescar las envolventes del
+      // raycast. Las aves con actualizarLimitesAnimados ya lo hacen cada fotograma; las
+      // demás solo necesitan rehacer la matriz de mundo cuando la altura cambia.
+      if (bird.inspeccion?.actualizarLimitesAnimados) refreshAnimatedBounds(world.three.entityToObject.get(model))
+      else if (elevacionEscrita) world.three.entityToObject.get(model)?.updateWorldMatrix(true, true)
     }
   }, dispose: () => {
     ++fetchGeneration

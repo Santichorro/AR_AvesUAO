@@ -9,6 +9,7 @@
       "audioCanto": "assets/audio/martin_pescador_canto.mp3",
       "imagen": "assets/img/martin_pescador.jpg",
       "escalaExhibicion": 0.18,
+      "elevacionVuelo": 0.08,
       "inspeccion": {
         "escalaMinima": 0.09,
         "escalaMaxima": 0.45,
@@ -84,61 +85,71 @@
           "nombre": "fly1_bird",
           "etiqueta": "Vuelo 1",
           "duracionSegundos": 3.766667,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "fly2_bird",
           "etiqueta": "Vuelo 2",
           "duracionSegundos": 3.533334,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "fly3_bird",
           "etiqueta": "Vuelo 3",
           "duracionSegundos": 2.9,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "fly_endA_bird",
           "etiqueta": "Aterrizaje A",
           "duracionSegundos": 3.3,
-          "bucle": false
+          "bucle": false,
+          "altura": "aterrizaje"
         },
         {
           "nombre": "fly_endB_bird",
           "etiqueta": "Aterrizaje B",
           "duracionSegundos": 3.3,
-          "bucle": false
+          "bucle": false,
+          "altura": "aterrizaje"
         },
         {
           "nombre": "fly_startA_bird",
           "etiqueta": "Despegue A",
           "duracionSegundos": 3.3,
-          "bucle": false
+          "bucle": false,
+          "altura": "aire"
         },
         {
           "nombre": "fly_startB_bird",
           "etiqueta": "Despegue B",
           "duracionSegundos": 3.3,
-          "bucle": false
+          "bucle": false,
+          "altura": "aire"
         },
         {
           "nombre": "idleA1_bird",
           "etiqueta": "Reposo 1",
           "duracionSegundos": 7.366667,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         },
         {
           "nombre": "idleA2_bird",
           "etiqueta": "Reposo 2",
           "duracionSegundos": 13.3,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         },
         {
           "nombre": "idleB1",
           "etiqueta": "Reposo 3",
           "duracionSegundos": 6.4,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         }
       ],
       "imagenAlt": "Martín pescador de plumaje azul y naranja y pico largo, posado sobre una rama.",
@@ -169,6 +180,7 @@
       "audioCanto": "assets/audio/paloma_canto.mp3",
       "imagen": "assets/img/paloma.jpg",
       "escalaExhibicion": 1.2,
+      "elevacionVuelo": 0.08,
       "inspeccion": {
         "escalaMinima": 0.6,
         "escalaMaxima": 3,
@@ -246,19 +258,22 @@
           "nombre": "Take 001__reposo",
           "etiqueta": "Reposo",
           "duracionSegundos": 5,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         },
         {
           "nombre": "Take 001__vuelo",
           "etiqueta": "Vuelo",
           "duracionSegundos": 1,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "Take 001__aterrizaje",
           "etiqueta": "Aterrizaje",
           "duracionSegundos": 2,
-          "bucle": false
+          "bucle": false,
+          "altura": "aterrizaje"
         }
       ],
       "imagenDimensiones": {
@@ -302,6 +317,7 @@
         "licencia": null
       },
       "escalaExhibicion": 0.6,
+      "elevacionVuelo": 0.08,
       "inspeccion": {
         "escalaMinima": 0.3,
         "escalaMaxima": 1.5,
@@ -327,55 +343,64 @@
           "nombre": "ParrotALL_Idle",
           "etiqueta": "Reposo",
           "duracionSegundos": 6.65,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         },
         {
           "nombre": "ParrotALL_Idle2",
           "etiqueta": "Reposo alternativo",
           "duracionSegundos": 9.983333,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         },
         {
           "nombre": "ParrotALL_Fly",
           "etiqueta": "Vuelo",
           "duracionSegundos": 0.95,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "ParrotALL_Hover",
           "etiqueta": "Vuelo suspendido",
           "duracionSegundos": 1.083333,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "ParrotALL_CircleFly",
           "etiqueta": "Vuelo circular",
           "duracionSegundos": 7.783333,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "ParrotALL_Land",
           "etiqueta": "Aterrizaje",
           "duracionSegundos": 2.983333,
-          "bucle": false
+          "bucle": false,
+          "altura": "aterrizaje"
         },
         {
           "nombre": "ParrotALL_Rise",
           "etiqueta": "Despegue",
           "duracionSegundos": 1.983333,
-          "bucle": false
+          "bucle": false,
+          "altura": "aire"
         },
         {
           "nombre": "ParrotALL_Preen",
           "etiqueta": "Acicalamiento",
           "duracionSegundos": 5.983333,
-          "bucle": false
+          "bucle": false,
+          "altura": "suelo"
         },
         {
           "nombre": "ParrotALL_Walk",
           "etiqueta": "Caminar",
           "duracionSegundos": 1.483333,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         }
       ],
       "animacionesNota": "Clips originales de reposo, vuelo, aterrizaje, despegue, acicalamiento y caminata del modelo.",
@@ -439,6 +464,7 @@
       },
       "imagen": "assets/img/colirufo.jpg",
       "escalaExhibicion": 0.25,
+      "elevacionVuelo": 0.08,
       "inspeccion": {
         "escalaMinima": 0.12,
         "escalaMaxima": 0.6,
@@ -463,37 +489,43 @@
           "nombre": "01_Hover_Idle_Loop",
           "etiqueta": "Vuelo suspendido",
           "duracionSegundos": 2,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "02_Forward_Flight_Loop",
           "etiqueta": "Vuelo hacia adelante",
           "duracionSegundos": 2,
-          "bucle": true
+          "bucle": true,
+          "altura": "aire"
         },
         {
           "nombre": "03_Perched_Idle_Loop",
           "etiqueta": "Reposo",
           "duracionSegundos": 4,
-          "bucle": true
+          "bucle": true,
+          "altura": "suelo"
         },
         {
           "nombre": "04_Takeoff",
           "etiqueta": "Despegue",
           "duracionSegundos": 1.5,
-          "bucle": false
+          "bucle": false,
+          "altura": "aire"
         },
         {
           "nombre": "05_Landing",
           "etiqueta": "Aterrizaje",
           "duracionSegundos": 2.5,
-          "bucle": false
+          "bucle": false,
+          "altura": "aterrizaje"
         },
         {
           "nombre": "06_Flower_Feeding",
           "etiqueta": "Alimentación (gesto)",
           "duracionSegundos": 3,
-          "bucle": false
+          "bucle": false,
+          "altura": "suelo"
         }
       ],
       "fuente": {
