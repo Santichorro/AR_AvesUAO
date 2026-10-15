@@ -46,6 +46,18 @@ const icon = (name: string) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill
 
 const radialText: Record<string, string> = { info: labels.radialFicha, animation: labels.radialAnimaciones, song: labels.radialCanto, relocate: labels.radialReubicar, reset: labels.radialReiniciar }
 
+// Texto de seguimiento según el estado y el motivo que reporta el motor. Si ni el motivo ni el
+// estado están mapeados, se usa el mensaje genérico (labels.seguimiento). El motor puede enviar
+// 'INITIALIZING'/'RELOCALIZING' como motivo y 'LIMITED'/'NOT_AVAILABLE' como estado.
+const trackingMessage = (snapshot: any) => {
+    const reason = String(snapshot.trackingReason ?? '').toUpperCase()
+    const status = String(snapshot.trackingStatus ?? '').toUpperCase()
+    if (reason === 'INITIALIZING') return labels.seguimientoInicializando
+    if (reason === 'RELOCALIZING') return labels.seguimientoRelocalizando
+    if (status === 'LIMITED' || status === 'NOT_AVAILABLE') return labels.seguimientoLimitado
+    return labels.seguimiento
+}
+
 function radialMarkup() {
 
     const inner = 144 * RADIAL_CONFIG.deadRadius / RADIAL_CONFIG.radius
@@ -80,7 +92,7 @@ function radialMarkup() {
 
 // El contenido académico y las etiquetas proceden de JSON; el DOM no recibe HTML del PDF.
 
-export function createPilotUi(catalog: any[], bird: any, controls: Controls, desktop: boolean) {
+export function createPilotUi(catalog: any[], bird: any, controls: Controls, desktop: boolean, reticulacion = false) {
 
     const birdQuiz = new BirdQuiz()
 
@@ -2361,9 +2373,10 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
             }
 
-            setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? labels.seguimiento : birdText(messages[phase]))
+            setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? trackingMessage(snapshot) : birdText(messages[phase]))
 
-            get('.aves-scan').hidden = !['ESCANEO', 'REUBICAR'].includes(phase)
+            // El cruce CSS es solo el respaldo cuando la retícula 3D de suelo está desactivada.
+            get('.aves-scan').hidden = reticulacion || !['ESCANEO', 'REUBICAR'].includes(phase)
 
             for (const action of ['idle', 'pause']) get<HTMLButtonElement>(`[data-action="${action}"]`).disabled = !placed
 

@@ -72,3 +72,24 @@ test('reiniciar mientras se prepara sustitución exige un punto nuevo',async()=>
  assert.equal(f.session.phase,'ESCANEO');assert.equal(f.session.position,null);assert.equal(f.calls.spawn.length,1)
  f.session.place(b);assert.deepEqual(f.calls.spawn[1].options,{arrival:true})
 })
+
+test('el validador de punto rechaza sin cambiar de fase ni colocar',async()=>{
+ const f=await fixture();f.ready()
+ assert.equal(f.session.place(a,()=>false),false)
+ assert.equal(f.session.phase,'ESCANEO');assert.equal(f.session.position,null);assert.equal(f.calls.spawn.length,0)
+ // El mismo punto se acepta cuando el validador lo aprueba.
+ assert.equal(f.session.place(a,()=>true),true)
+ assert.equal(f.calls.spawn.length,1)
+})
+
+test('conserva estado y motivo del seguimiento en la instantánea',async()=>{
+ const f=await fixture();f.session.start();f.session.setAsset(true)
+ f.session.setTracking(false,{status:'LIMITED',reason:'INITIALIZING'})
+ const snapshot=f.session.snapshot()
+ assert.equal(snapshot.trackingReady,false)
+ assert.equal(snapshot.trackingStatus,'LIMITED')
+ assert.equal(snapshot.trackingReason,'INITIALIZING')
+ f.session.setTracking(false)
+ assert.equal(f.session.snapshot().trackingStatus,null)
+ assert.equal(f.session.snapshot().trackingReason,null)
+})

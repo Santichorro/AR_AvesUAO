@@ -323,6 +323,14 @@ Actualmente cada toque válido crea un prefab con orientación aleatoria. La imp
 
 La posición de toque usada por la plantilla no demuestra que ya exista una retícula de detección continua. Verificar la API de hit-testing de la versión instalada antes de implementarla.
 
+### 6.2.1 Validación de suelo y retícula vigentes
+
+La cámara declara `direction: "back"` en `camera.xr` (`.expanse.json`). El ECS transporta ese valor hasta `XR8.run({cameraConfig: direction})`; su valor por defecto es `"front"`, por lo que en RA de superficie hay que fijarlo de forma explícita.
+
+`src/colocacion-suelo.js` reúne las reglas puras (sin ECS): intersección analítica rayo-plano y=0, ángulo bajo el horizonte y suavizado exponencial independiente de los FPS. `src/data/colocacion.json` da los umbrales: `habilitado`, `distanciaMaxima` 4 m, `toleranciaAltura` 0,05, `anguloMinimoGrados` 15, `reticulaSuelo` y los radios del anillo. Con `habilitado: false` no se valida ni se dibuja nada.
+
+En ESCANEO y REUBICAR, si la retícula de suelo está activa y hay seguimiento, cada tick calcula el corte del rayo del centro de pantalla con y=0, lo valida con esas reglas y dibuja un anillo 3D creado por código (verde válido, rojo atenuado no válido) suavizado con el delta del tick. El toque coloca en el punto válido del anillo o rechaza con `labels.superficieInvalida` sin cambiar de fase; `PlacementSession.place` recibe un validador y actúa como último guardián. Si `reticulaSuelo` está desactivada (o en escritorio) se conserva el cruce CSS y el `worldPosition`/`desktopPosition` previos. El anillo se oculta y se aleja fuera de esas fases para no interferir con el toque del ave. `PlacementSession` guarda además `trackingStatus`/`trackingReason` para elegir el mensaje de seguimiento (INITIALIZING, RELOCALIZING, LIMITED/NOT_AVAILABLE). El panel de diagnóstico solo aparece con `?debug` en la URL.
+
 ### 6.3 Máquina de estados
 
 ```text

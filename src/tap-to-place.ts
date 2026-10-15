@@ -10,6 +10,8 @@ import {ArrivalMotion} from './arrival-motion'
 import {refreshAnimatedBounds} from './animated-bounds'
 import {SeguimientoAve, ESTADOS, normalizarConfig} from './bird-follow'
 import seguimientoConfig from './data/seguimiento.json'
+import colocadoConfig from './data/colocacion.json'
+import {normalizarConfig as normalizarColocacion, interseccionRayoPlanoY, validarPuntoSuelo, acercarPuntoSuave} from './colocacion-suelo'
 import colibriCalibration from './data/colibri-aterrizaje.json'
 import martinCalibration from './data/martin_pescador-aterrizaje.json'
 import palomaCalibration from './data/paloma-aterrizaje.json'
@@ -29,6 +31,15 @@ const ELEVACION_SUBIDA_SEGUNDOS = 0.5
 const ELEVACION_VUELO_POR_DEFECTO = 0.08
 const suavizarEntradaSalida = (t: number) => t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2
 const suavizarSalida = (t: number) => 1 - (1 - t) ** 3
+
+// Configuración de colocación sobre el suelo (src/data/colocacion.json). Se normaliza una vez:
+// mezcla los valores por defecto con el archivo y desactiva todo con "habilitado": false.
+const COLOCACION = normalizarColocacion(colocadoConfig)
+// Reticula 3D: colores (r,g,b 0-255, como los materiales unlit del motor) y posición de reposo
+// fuera de escena cuando está oculta, para que el raycast del toque sobre el ave no la alcance.
+const RETICULA_VALIDA = {r: 34, g: 197, b: 94}
+const RETICULA_INVALIDA = {r: 237, g: 28, b: 36}
+const RETICULA_OCULTA = {x: 0, y: -1000, z: 0}
 
 // Crea el seguimiento puro de un ave: mezcla la configuración global con la anulación por ave
 // y aporta los datos que la máquina de estados necesita (presencia real de clips, giro y ángulo
@@ -116,6 +127,12 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let elevacionCurva: (t: number) => number = suavizarEntradaSalida
   let elevacionAplicada: number | null = null
   let phaseAnterior = 'INTRO'
+  // Retícula 3D sobre el suelo: entidad creada por código (sin assets) que marca el punto de
+  // apoyo calculado analíticamente. El suavizado usa el delta del tick, no los FPS.
+  let reticulaEid: ecs.Eid | null = null
+  let reticulaPunto: {x: number; y: number; z: number} | null = null
+  let reticulaValida = false
+  let reticulaColor: 'valida' | 'invalida' | null = null
   let inspection = new InspectionControls({
     escalaBase: bird.escalaExhibicion,
     escalaMinima: bird.inspeccion?.escalaMinima,
@@ -562,7 +579,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       if (model === null || session.phase !== 'EXPLORAR') return
       paused = !paused; ecs.GltfModel.set(world, model, {paused: paused || seguimientoCongelado})
     },
-  }, desktop)
+  }, desktop, COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop)
   session.emit()
   if (desktop) session.setTracking(true)
   const ready = () => {
@@ -571,7 +588,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     // REALITY_READY confirma inicio, no garantiza por sí solo seguimiento estable.
     if (!desktop) ui.showMessage(labels.seguimiento)
   }
-  const tracking = (event: any) => session.setTracking(event.data?.status === 'NORMAL')
+  const tracking = (event: any) => session.setTracking(event.data?.status === 'NORMAL',
+    {status: event.data?.status, reason: event.data?.reason})
   const inputRect = () => world.three.renderer.domElement.getBoundingClientRect()
   const isUiTouch = (position: {x: number; y: number} | undefined) => {
     const point = screenToViewport(position, inputRect())
@@ -588,11 +606,90 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null
     return {x: (x - 0.5) * 3.2, y: 0, z: (0.5 - y) * 2.2}
   }
+  // Retícula 3D sobre el suelo: una única entidad-anillo creada por código (sin assets) con
+  // geometría y material del motor. Mientras no hay fase de colocación o falta el seguimiento se
+  // oculta y se aleja a RETICULA_OCULTA para que el raycast del toque sobre el ave no la alcance.
+  const crearReticula = () => {
+    if (reticulaEid !== null) return
+    const eid = world.createEntity()
+    const entity = world.getEntity(eid)
+    entity.set(ecs.RingGeometry, {
+      innerRadius: COLOCACION.radioInteriorReticula,
+      outerRadius: COLOCACION.radioExteriorReticula,
+    })
+    // Anillo por defecto en el plano XY: se gira -90° en X para tumbarlo sobre el suelo (y = 0).
+    entity.set(ecs.Quaternion, {x: -0.7071067811865476, y: 0, z: 0, w: 0.7071067811865476})
+    entity.set(ecs.UnlitMaterial, {
+      ...RETICULA_VALIDA, opacity: 0.95, side: 'double', blending: 'normal',
+      depthTest: false, depthWrite: false, forceTransparent: true,
+    })
+    entity.setLocalPosition(RETICULA_OCULTA)
+    entity.hide()
+    reticulaEid = eid
+  }
+  const ocultarReticula = () => {
+    if (reticulaEid === null) return
+    const entity = world.getEntity(reticulaEid)
+    entity.hide()
+    entity.setLocalPosition(RETICULA_OCULTA)
+    reticulaPunto = null
+    reticulaValida = false
+    reticulaColor = null
+  }
+  const aplicarColorReticula = (valida: boolean) => {
+    if (reticulaEid === null) return
+    const clave = valida ? 'valida' : 'invalida'
+    if (clave === reticulaColor) return
+    reticulaColor = clave
+    world.getEntity(reticulaEid).set(ecs.UnlitMaterial, {
+      ...(valida ? RETICULA_VALIDA : RETICULA_INVALIDA), opacity: valida ? 0.95 : 0.5,
+      side: 'double', blending: 'normal', depthTest: false, depthWrite: false, forceTransparent: true,
+    })
+  }
+  const tickReticula = () => {
+    if (reticulaEid === null) return
+    const activa = COLOCACION.habilitado && COLOCACION.reticulaSuelo &&
+      ['ESCANEO', 'REUBICAR'].includes(session.phase) && session.trackingReady
+    if (!activa) return ocultarReticula()
+    const pose = poseCamara(world)
+    if (!pose) return ocultarReticula()
+    const punto = interseccionRayoPlanoY(pose.posicion, pose.adelante, 0)
+    if (!punto) return ocultarReticula()
+    reticulaValida = validarPuntoSuelo(punto, pose, COLOCACION).valido
+    // Suavizado con delta del tick: el mismo tiempo de reacción sin importar los FPS.
+    reticulaPunto = acercarPuntoSuave(reticulaPunto, punto, world.time.delta / 1000, COLOCACION.suavizadoSegundos)
+    aplicarColorReticula(reticulaValida)
+    const entity = world.getEntity(reticulaEid)
+    entity.show()
+    entity.setLocalPosition({x: reticulaPunto!.x, y: COLOCACION.alturaReticula, z: reticulaPunto!.z})
+  }
+  if (COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop) crearReticula()
   const touch = (event: any) => {
     if (isUiTouch(event.data.position)) return
     if (!['ESCANEO', 'REUBICAR'].includes(session.phase)) return
+    // Con la retícula de suelo activa, el punto de apoyo es el que ella marca (calculado
+    // analíticamente en cada tick). Si no es válido, se rechaza sin cambiar de fase.
+    if (COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop) {
+      const pose = poseCamara(world)
+      if (reticulaPunto && reticulaValida && pose) {
+        const valido = session.place({x: reticulaPunto.x, y: 0, z: reticulaPunto.z},
+          p => validarPuntoSuelo(p, pose, COLOCACION).valido)
+        if (!valido) ui.showMessage(labels.superficieInvalida)
+      } else {
+        ui.showMessage(labels.superficieInvalida)
+      }
+      return
+    }
+    // Sin retícula (desactivada o escritorio) se conserva el comportamiento previo: el
+    // worldPosition del motor o, en 3D, el plano virtual de escritorio.
     const position = validPosition(event.data.worldPosition) ? event.data.worldPosition : desktopPosition(event.data.position)
     if (!validPosition(position)) { ui.showMessage(labels.superficieInvalida); return }
+    if (!desktop) {
+      const pose = poseCamara(world)
+      if (!validarPuntoSuelo(position, pose, COLOCACION).valido) { ui.showMessage(labels.superficieInvalida); return }
+      if (!session.place(position, p => validarPuntoSuelo(p, pose, COLOCACION).valido)) ui.showMessage(labels.superficieInvalida)
+      return
+    }
     session.place(position)
   }
   const canInspect = () => session.phase === 'EXPLORAR' && root !== null && model !== null
@@ -716,6 +813,39 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   if (!desktop) startupTimer = setTimeout(() => {
     if (!session.trackingReady) ui.showMessage(labels.errorMotor)
   }, 45000)
+  // Panel de diagnóstico que solo existe (y solo se actualiza) con ?debug en la URL. Sin el
+  // parámetro no crea DOM ni ejecuta lecturas.
+  const debugActivo = new URLSearchParams(window.location.search).has('debug')
+  let debugPanel: HTMLElement | null = null
+  let debugFps = 0
+  let debugFpsTiempo = performance.now()
+  if (debugActivo) {
+    debugPanel = document.createElement('pre')
+    debugPanel.id = 'aves-debug'
+    debugPanel.style.cssText = 'position:fixed;left:8px;top:8px;z-index:9999;margin:0;padding:8px 10px;font:11px/1.45 ui-monospace,monospace;color:#e6ffe6;background:rgba(0,0,0,.72);border-radius:8px;white-space:pre-wrap;pointer-events:none;max-width:70vw'
+    document.body.appendChild(debugPanel)
+  }
+  const tickDebug = () => {
+    if (debugPanel === null) return
+    const ahora = performance.now()
+    const dtFps = ahora - debugFpsTiempo
+    debugFpsTiempo = ahora
+    if (dtFps > 0) debugFps = debugFps ? debugFps * 0.85 + (1000 / dtFps) * 0.15 : 1000 / dtFps
+    const pose = poseCamara(world)
+    const estado = session.snapshot()
+    let distancia = '-'
+    if (root !== null && pose) {
+      const p = world.transform.getWorldPosition(root)
+      if (p) distancia = `${Math.hypot(p.x - pose.posicion.x, p.z - pose.posicion.z).toFixed(2)} m`
+    }
+    debugPanel.textContent = [
+      `seguimiento: ${estado.trackingStatus ?? '-'} · ${estado.trackingReason ?? '-'}`,
+      `altura de la cámara: ${pose ? pose.posicion.y.toFixed(2) : '-'} m`,
+      `distancia horizontal al ave: ${distancia}`,
+      `retícula: ${reticulaPunto ? (reticulaValida ? 'válida' : 'inválida') : 'sin punto'}`,
+      `fps: ${debugFps.toFixed(0)}`,
+    ].join('\n')
+  }
   // Diagnóstico de solo lectura; no añade controles de simulación al producto.
   const debug = () => ({...session.snapshot(), root: root?.toString() ?? null,
     model: model?.toString() ?? null, activeClip, paused, desktop, birdId: bird.id, inspection: inspection.snapshot(), pinchActive, radial: radial.snapshot(), arrival: arrival.snapshot(),
@@ -726,6 +856,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     tickArrival()
     const seguimientoEscrito = tickSeguimiento()
     const elevacionEscrita = tickElevacion()
+    tickReticula()
+    tickDebug()
     if (model !== null) {
       // Tanto la elevación como el seguimiento mueven el modelo (directamente o vía la raíz):
       // hay que refrescar las envolventes del raycast. Las aves con actualizarLimitesAnimados ya
@@ -756,6 +888,8 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     world.events.removeListener(world.events.globalId, ecs.input.GESTURE_END, endPinch)
     world.events.removeListener(world.events.globalId, ecs.events.REALITY_READY, ready)
     world.events.removeListener(world.events.globalId, ecs.events.REALITY_TRACKING_STATUS, tracking)
+    if (reticulaEid !== null) { world.deleteEntity(reticulaEid); reticulaEid = null }
+    if (debugPanel) { debugPanel.remove(); debugPanel = null }
     if ((window as any).__AR_AVES_DEBUG__ === debug) delete (window as any).__AR_AVES_DEBUG__
     ui.dispose()
   }}
