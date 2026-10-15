@@ -579,6 +579,117 @@
         "exponenteVertical": 1.1
       },
       "animacionesNota": "Controles del modelo piloto. Las animaciones de alimentación no incluyen una flor en esta escena."
+    },
+    {
+      "id": "carpintero",
+      "nombre": "Carpintero Habado",
+      "disponible": true,
+      "nombreCientifico": "Melanerpes rubricapillus",
+      "familia": "Picidae",
+      "nombreIngles": "Red-crowned Woodpecker",
+      "tipoRepresentacion": "ilustrativa",
+      "asignacionEspecie": "Decisión del usuario para la representación del proyecto, confirmada el 15 de octubre de 2026",
+      "modelo": "assets/models/carpintero.glb",
+      "imagen": "assets/img/carpintero.jpeg",
+      "audioCanto": "assets/audio/carpintero_canto.mp3",
+      "imagenAlt": "Carpintero Habado de cabeza roja, cara clara y espalda barrada en blanco y negro, aferrado al tronco de un árbol.",
+      "imagenDimensiones": {
+        "ancho": 769,
+        "alto": 769
+      },
+      "creditoModelo": {
+        "origen": "Modelo woodpecker.glb proporcionado por el usuario",
+        "archivoOriginal": "Pajaro Carpintero/source/woodpecker.glb",
+        "autor": null,
+        "licencia": null,
+        "sha256": "1392906e937e66a667d6023dc3f334b27ce391c15344a4edde913dac8eb2353a"
+      },
+      "creditoImagen": {
+        "origen": "Fotografía proporcionada por el usuario",
+        "archivoOriginal": "pajaro carpintero imagen.jpeg",
+        "autor": null,
+        "licencia": null,
+        "sha256": "a12e01dbf0f796f915b4bcd586f2129feb5a1c2071c31557a747afec9c609664"
+      },
+      "creditoAudio": {
+        "origen": "Canto proporcionado por el usuario para Carpintero Habado",
+        "archivoOriginal": "sonido carpintero.mp3",
+        "autor": null,
+        "licencia": null,
+        "sha256": "70d25a826b1359c3c1516c081d8ac551304a8783f02f360bd236d04e7e356c35"
+      },
+      "escalaExhibicion": 0.45,
+      "elevacionVuelo": 0.08,
+      "inspeccion": {
+        "escalaMinima": 0.225,
+        "escalaMaxima": 1.125,
+        "sensibilidadGiro": 6.283185307179586,
+        "umbralArrastre": 0.015,
+        "actualizarLimitesAnimados": true
+      },
+      "transformacion": {
+        "posicionLocal": {
+          "x": 0,
+          "y": 0.2,
+          "z": 0
+        },
+        "giroY": 0
+      },
+      "animaciones": {
+        "reposo": "Animation",
+        "vuelo": "Animation"
+      },
+      "clips": [
+        {
+          "nombre": "Animation",
+          "etiqueta": "Aleteo original",
+          "duracionSegundos": 2.125,
+          "bucle": true,
+          "altura": "aire"
+        }
+      ],
+      "etiquetaAnimacionInicial": "Volver al aleteo",
+      "animacionesNota": "El modelo incluye un único clip de aleteo. Se conserva como animación inicial: no dispone de reposo con alas plegadas, despegue, aterrizaje ni picoteo. La llegada utiliza un desplazamiento suave con el aleteo original.",
+      "llegada": {
+        "duracionSegundos": 0.5,
+        "mezclaReposoSegundos": 0.16,
+        "alturaMinima": 0.45,
+        "alturaMaxima": 0.75,
+        "radioMinimo": 0.35,
+        "radioMaximo": 0.65,
+        "exponenteVertical": 1.1,
+        "anguloFrente": 0
+      },
+      "fuente": {
+        "titulo": "Guía ilustrada de las aves del campus de la UAO",
+        "edicion": "Primera edición 2023",
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "paginas": [
+          22
+        ],
+        "autores": [
+          "Germán Morales Zúñiga",
+          "Natalia Lenis Sánchez"
+        ],
+        "consulta": "2026-10-15"
+      },
+      "ficha": {
+        "descripcion": "Carpintero mediano de color beige pálido, con zonas rojas en la nuca y el vientre y espalda barrada en blanco y negro.",
+        "habitat": "Es común en bosques abiertos, vegetación secundaria y jardines. Su distribución se extiende desde Costa Rica hasta el norte de Suramérica.",
+        "comportamiento": "Excava cavidades para anidar. En un estudio realizado en Cali, machos y hembras participaron en la incubación y la crianza de los polluelos.",
+        "rasgos": "El macho presenta rojo desde la nuca hasta la parte superior de la corona. La hembra tiene la corona pálida y el rojo restringido a la parte posterior de la nuca. Destacan las barras blancas y negras del dorso."
+      },
+      "fuenteComplementaria": {
+        "seccion": "comportamiento",
+        "cita": "Comportamiento: Sierra-Sánchez, Triana-Llanos y Cruz-Bernate (2024), Journal of Field Ornithology 95(2):5",
+        "url": "https://journal.afonet.org/vol95/iss2/art5/"
+      },
+      "pendientes": [
+        "Registrar autoría y licencia del modelo, la fotografía y el canto aportados",
+        "Validar llegada, selección, tamaño y materiales en Studio y Android/iPhone",
+        "El modelo no dispone de reposo horizontal con alas plegadas ni de clips de despegue o aterrizaje; no se crean en esta tarea"
+      ],
+      "mensajeLlegada": "{ave} se está acercando al punto elegido…"
     }
   ]
 }

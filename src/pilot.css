@@ -1,5 +1,6 @@
 /* Mantener sincronizado con el bloque <style> de index.html (Studio). */
 :root {
+  --aves-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --aves-red: #ed1d24;
   --aves-primary: #c91b22;
   --aves-primary-pressed: #a7151b;
@@ -26,7 +27,7 @@
   z-index: 1000;
   box-sizing: border-box;
   pointer-events: none;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--aves-font);
   color: var(--aves-ink);
   display: flex;
   flex-direction: column;
@@ -60,6 +61,7 @@
 }
 .aves-species-trigger svg { width: 100%; height: 100%; }
 .aves-species-popover {
+  z-index: 3;
   pointer-events: auto;
   position: absolute;
   left: calc(env(safe-area-inset-left, 0px) + 16px);
@@ -253,6 +255,7 @@
 .aves-preview:empty { display: none; }
 
 .aves-panel {
+  z-index: 3;
   background: linear-gradient(150deg, #ffffff, var(--aves-paper));
   pointer-events: auto;
   position: absolute;
@@ -571,3 +574,9 @@
 
   cursor: pointer;
 }
+/* El quiz comparte la tipografía del HUD, incluso en los controles nativos. */
+#aves-pilot #aves-quiz-lock, #aves-pilot #aves-quiz-panel,
+#aves-pilot #aves-quiz-lock *, #aves-pilot #aves-quiz-panel * {
+  font-family: var(--aves-font);
+}
+#aves-quiz-panel [data-quiz-exit] svg { display: block; width: 20px; height: 20px; }

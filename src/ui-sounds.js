@@ -5,7 +5,8 @@
 // Carpeta donde viven los efectos (src/assets/audio/ui se sirve como assets/audio/ui/).
 export const UI_SOUNDS_BASE = 'assets/audio/ui/'
 
-// nombre del evento -> archivo (dentro de UI_SOUNDS_BASE), volumen base y separación mínima entre repeticiones (ms)
+// nombre del evento -> archivo (dentro de UI_SOUNDS_BASE), volumen base y separación mínima entre repeticiones (ms).
+// "fallback" (opcional): si ESTE archivo no existe, suena el otro evento en su lugar.
 export const UI_SOUNDS = Object.freeze({
     radialOpen: { file: 'radial-abrir.mp3', volume: 0.8, minGap: 120 },
     radialClose: { file: 'radial-cerrar.mp3', volume: 0.6, minGap: 120 },
@@ -20,6 +21,15 @@ export const UI_SOUNDS = Object.freeze({
     relocate: { file: 'reubicar.mp3', volume: 0.9, minGap: 300 },
     reset: { file: 'reiniciar.mp3', volume: 0.8, minGap: 300 },
     error: { file: 'error.mp3', volume: 0.8, minGap: 400 },
+
+    // ---- Quiz ----
+    quizStart: { file: 'quiz-comenzar.mp3', volume: 0.9, minGap: 300 },
+    quizOption: { file: 'quiz-opcion.mp3', volume: 0.7, minGap: 100 },
+    quizNext: { file: 'quiz-siguiente.mp3', volume: 0.7, minGap: 150 },
+    quizLocked: { file: 'quiz-bloqueado.mp3', volume: 0.7, minGap: 300 },
+    quizFinish: { file: 'quiz-final.mp3', volume: 0.9, minGap: 500 },
+    quizFinishHigh: { file: 'quiz-final-alto.mp3', volume: 0.9, minGap: 500, fallback: 'quizFinish' },
+    quizClose: { file: 'quiz-cerrar.mp3', volume: 0.6, minGap: 150 },
 })
 
 const UNLOCK_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']
@@ -119,38 +129,44 @@ export function createUiSounds({ base = UI_SOUNDS_BASE, sounds = UI_SOUNDS, duck
         })
     }
 
+    const play = (name, { volume = 1 } = {}) => {
+        const def = sounds[name]
+        if (disposed || !def || !Ctor) return false
+        unlock()
+        const buffer = buffers.get(name)
+        // Si este archivo no existe y hay un sonido de respaldo, suena ese.
+        if (!buffer && failed.has(name) && def.fallback && def.fallback !== name) {
+            return play(def.fallback, { volume })
+        }
+        if (!buffer || !ctx || ctx.state !== 'running') {
+            if (!buffer && ctx && ctx.state === 'running' && !failed.has(name) && !warned.has(name)) {
+                warned.add(name) // Probablemente aún se está decodificando; solo se avisa una vez.
+                console.info(`${TAG} "${name}" todavía no está listo`)
+            }
+            return false
+        }
+        const now = performance.now()
+        if (now - (lastPlayed.get(name) ?? -Infinity) < (def.minGap ?? 60)) return false
+        lastPlayed.set(name, now)
+        try {
+            const source = ctx.createBufferSource()
+            const gain = ctx.createGain()
+            gain.gain.value = (def.volume ?? 1) * volume * (ducked ? duckedVolume : 1)
+            source.buffer = buffer
+            source.connect(gain)
+            gain.connect(master)
+            source.onended = () => { source.disconnect(); gain.disconnect() }
+            source.start()
+            return true
+        } catch (error) {
+            console.warn(`${TAG} no se pudo reproducir "${name}":`, error)
+            return false
+        }
+    }
+
     return {
-        play(name, { volume = 1 } = {}) {
-            const def = sounds[name]
-            if (disposed || !def || !Ctor) return false
-            unlock()
-            const buffer = buffers.get(name)
-            if (!buffer || !ctx || ctx.state !== 'running') {
-                if (!buffer && ctx && ctx.state === 'running' && !failed.has(name) && !warned.has(name)) {
-                    warned.add(name) // Probablemente aún se está decodificando; solo se avisa una vez.
-                    console.info(`${TAG} "${name}" todavía no está listo`)
-                }
-                return false
-            }
-            const now = performance.now()
-            if (now - (lastPlayed.get(name) ?? -Infinity) < (def.minGap ?? 60)) return false
-            lastPlayed.set(name, now)
-            try {
-                const source = ctx.createBufferSource()
-                const gain = ctx.createGain()
-                gain.gain.value = (def.volume ?? 1) * volume * (ducked ? duckedVolume : 1)
-                source.buffer = buffer
-                source.connect(gain)
-                gain.connect(master)
-                source.onended = () => { source.disconnect(); gain.disconnect() }
-                source.start()
-                return true
-            } catch (error) {
-                console.warn(`${TAG} no se pudo reproducir "${name}":`, error)
-                return false
-            }
-        },
-        // Baja el volumen de los efectos mientras suena el canto del ave.
+        play,
+        // Baja el volumen de los efectos mientras suena un canto.
         setDucked(value) { ducked = !!value },
         dispose() {
             if (disposed) return

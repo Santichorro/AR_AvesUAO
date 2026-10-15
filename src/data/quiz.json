@@ -259,6 +259,96 @@
       ],
       "respuestaCorrecta": 0,
       "ave": "martin_pescador"
+    },
+    {
+      "id": "q21",
+      "tipo": "informacion",
+      "pregunta": "¿Cuál es el nombre científico del Carpintero Habado?",
+      "opciones": [
+        "Melanerpes rubricapillus",
+        "Megaceryle torquata",
+        "Columba livia",
+        "Ara severus"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "carpintero",
+      "explicacion": "La ficha de la página 22 identifica al Carpintero Habado como Melanerpes rubricapillus.",
+      "fuente": {
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "pagina": 22
+      }
+    },
+    {
+      "id": "q22",
+      "tipo": "informacion",
+      "pregunta": "¿A qué familia pertenece el Carpintero Habado?",
+      "opciones": [
+        "Trochilidae",
+        "Picidae",
+        "Columbidae",
+        "Psittacidae"
+      ],
+      "respuestaCorrecta": 1,
+      "ave": "carpintero",
+      "explicacion": "La guía UAO sitúa al Carpintero Habado en la familia Picidae.",
+      "fuente": {
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "pagina": 22
+      }
+    },
+    {
+      "id": "q23",
+      "tipo": "informacion",
+      "pregunta": "¿Dónde es común encontrar al Carpintero Habado?",
+      "opciones": [
+        "Solo en aguas profundas",
+        "Exclusivamente en desiertos sin árboles",
+        "En bosques abiertos, vegetación secundaria y jardines",
+        "Únicamente en zonas de nieve"
+      ],
+      "respuestaCorrecta": 2,
+      "ave": "carpintero",
+      "explicacion": "La página 22 menciona bosques abiertos, bosque secundario y jardines.",
+      "fuente": {
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "pagina": 22
+      }
+    },
+    {
+      "id": "q24",
+      "tipo": "informacion",
+      "pregunta": "¿Qué patrón distingue la espalda del Carpintero Habado?",
+      "opciones": [
+        "Plumas completamente azules",
+        "Manchas verdes uniformes",
+        "Un color gris sin marcas",
+        "Barras blancas y negras"
+      ],
+      "respuestaCorrecta": 3,
+      "ave": "carpintero",
+      "explicacion": "La guía describe barras blancas y negras en la espalda.",
+      "fuente": {
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "pagina": 22
+      }
+    },
+    {
+      "id": "q25",
+      "tipo": "informacion",
+      "pregunta": "¿Qué diferencia de la corona describe la guía para el Carpintero Habado?",
+      "opciones": [
+        "El macho tiene rojo hasta la corona; la hembra tiene la corona pálida",
+        "Ambos tienen una corona totalmente azul",
+        "La hembra tiene la corona roja y el macho azul",
+        "Ambos carecen de rojo en la cabeza"
+      ],
+      "respuestaCorrecta": 0,
+      "ave": "carpintero",
+      "explicacion": "El rojo llega a la parte superior de la corona en el macho; en la hembra queda restringido a la nuca.",
+      "fuente": {
+        "archivo": "GUIA AVES UAO FINAL.pdf",
+        "pagina": 22
+      }
     }
   ]
 }
