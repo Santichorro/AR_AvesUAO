@@ -87,3 +87,60 @@ test('normalizarConfig: valores por defecto, anulaciones y entradas inválidas',
  assert.equal(custom.anguloMinimoGrados,15) // negativo: se ignora y queda el defecto
  assert.equal(normalizarConfig({distanciaMaxima:'x'}).distanciaMaxima,4) // no numérico: defecto
 })
+
+test('normalizarConfig: modo de colocación por defecto, aceptado e inválido',async()=>{
+ const {normalizarConfig,DEFAULTS}=await modulePromise
+ assert.equal(DEFAULTS.modoColocacion,'toque') // por defecto se coloca donde se toca
+ assert.equal(normalizarConfig(undefined).modoColocacion,'toque')
+ assert.equal(normalizarConfig({modoColocacion:'centro'}).modoColocacion,'centro') // se respeta
+ assert.equal(normalizarConfig({modoColocacion:'toque'}).modoColocacion,'toque')
+ // Un valor desconocido no cambia el defecto.
+ assert.equal(normalizarConfig({modoColocacion:'esquina'}).modoColocacion,'toque')
+ assert.equal(normalizarConfig({modoColocacion:3}).modoColocacion,'toque')
+})
+
+// Cámara horizontal mirando en -Z, subiendo con +Y y a la derecha con +X, fov vertical 90°.
+const CAMARA_RECTA={posicion:{x:0,y:1.6,z:0},derecha:{x:1,y:0,z:0},arriba:{x:0,y:1,z:0},adelante:{x:0,y:0,z:-1},fovGrados:90,aspecto:1}
+const cerca=(a,b,eps=1e-6)=>assert.ok(Math.abs(a-b)<eps,`${a} != ${b}`)
+const cercaPunto=(p,q,eps=1e-6)=>{cerca(p.x,q.x,eps);cerca(p.y,q.y,eps);cerca(p.z,q.z,eps)}
+
+test('rayo desde el píxel: centro, esquinas y aspecto',async()=>{
+ const {rayoDesdePantalla}=await modulePromise
+ // Centro de la pantalla: el rayo es la dirección de vista.
+ const centro=rayoDesdePantalla({x:0.5,y:0.5},CAMARA_RECTA)
+ cercaPunto(centro.direccion,{x:0,y:0,z:-1})
+ cercaPunto(centro.origen,{x:0,y:1.6,z:0})
+ // Esquina superior derecha: adelante + derecha + arriba (fov 90°, aspecto 1) -> (1,1,-1)/√3.
+ const tercio=1/Math.sqrt(3)
+ const supDer=rayoDesdePantalla({x:1,y:0},CAMARA_RECTA)
+ cercaPunto(supDer.direccion,{x:tercio,y:tercio,z:-tercio})
+ // Esquina inferior izquierda: adelante - derecha - arriba -> (-1,-1,-1)/√3.
+ const infIzq=rayoDesdePantalla({x:0,y:1},CAMARA_RECTA)
+ cercaPunto(infIzq.direccion,{x:-tercio,y:-tercio,z:-tercio})
+ // Un aspecto 2 estira la componente horizontal en el borde derecho.
+ const ancho=rayoDesdePantalla({x:1,y:0.5},{...CAMARA_RECTA,aspecto:2})
+ const n=Math.hypot(2,0,-1)
+ cercaPunto(ancho.direccion,{x:2/n,y:0,z:-1/n})
+ // La dirección siempre es unitaria.
+ for(const d of [centro.direccion,supDer.direccion,infIzq.direccion,ancho.direccion])cerca(Math.hypot(d.x,d.y,d.z),1)
+})
+
+test('rayo desde el píxel: un toque arriba del horizonte no corta el suelo',async()=>{
+ const {rayoDesdePantalla,interseccionRayoPlanoY,anguloBajoHorizonte}=await modulePromise
+ // Con la cámara horizontal, el borde superior apunta por encima del horizonte (y > 0).
+ const arriba=rayoDesdePantalla({x:0.5,y:0},CAMARA_RECTA)
+ assert.ok(arriba.direccion.y>0)
+ assert.ok(anguloBajoHorizonte(arriba.direccion)<0)
+ assert.equal(interseccionRayoPlanoY(arriba.origen,arriba.direccion,0),null)
+ // El borde inferior sí corta por delante del plano y=0.
+ const abajo=rayoDesdePantalla({x:0.5,y:1},CAMARA_RECTA)
+ const corte=interseccionRayoPlanoY(abajo.origen,abajo.direccion,0)
+ assert.ok(corte&&corte.y===0&&corte.z<0)
+ // Entradas no válidas.
+ assert.equal(rayoDesdePantalla(null,CAMARA_RECTA),null)
+ assert.equal(rayoDesdePantalla({x:NaN,y:0.5},CAMARA_RECTA),null)
+ assert.equal(rayoDesdePantalla({x:0.5,y:0.5},null),null)
+ assert.equal(rayoDesdePantalla({x:0.5,y:0.5},{...CAMARA_RECTA,fovGrados:0}),null)
+ assert.equal(rayoDesdePantalla({x:0.5,y:0.5},{...CAMARA_RECTA,aspecto:0}),null)
+ assert.equal(rayoDesdePantalla({x:0.5,y:0.5},{...CAMARA_RECTA,adelante:{x:0,y:0,z:0}}),null)
+})

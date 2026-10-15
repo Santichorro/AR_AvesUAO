@@ -11,7 +11,7 @@ import {refreshAnimatedBounds} from './animated-bounds'
 import {SeguimientoAve, ESTADOS, normalizarConfig} from './bird-follow'
 import seguimientoConfig from './data/seguimiento.json'
 import colocadoConfig from './data/colocacion.json'
-import {normalizarConfig as normalizarColocacion, interseccionRayoPlanoY, validarPuntoSuelo, acercarPuntoSuave} from './colocacion-suelo'
+import {normalizarConfig as normalizarColocacion, interseccionRayoPlanoY, validarPuntoSuelo, acercarPuntoSuave, rayoDesdePantalla, anguloBajoHorizonte} from './colocacion-suelo'
 import colibriCalibration from './data/colibri-aterrizaje.json'
 import martinCalibration from './data/martin_pescador-aterrizaje.json'
 import palomaCalibration from './data/paloma-aterrizaje.json'
@@ -40,6 +40,8 @@ const COLOCACION = normalizarColocacion(colocadoConfig)
 const RETICULA_VALIDA = {r: 34, g: 197, b: 94}
 const RETICULA_INVALIDA = {r: 237, g: 28, b: 36}
 const RETICULA_OCULTA = {x: 0, y: -1000, z: 0}
+// Tiempo que permanece visible el anillo 3D tras un toque en el modo "toque".
+const RETICULA_DESTELLO_SEGUNDOS = 0.6
 
 // Crea el seguimiento puro de un ave: mezcla la configuración global con la anulación por ave
 // y aporta los datos que la máquina de estados necesita (presencia real de clips, giro y ángulo
@@ -79,6 +81,37 @@ function poseCamara(world: ecs.World) {
     // Rotación de (0,0,1) por el cuaternión (producto de Hamilton).
     const adelante = {x: 2 * (x * z + w * y), y: 2 * (z * y - w * x), z: 1 - 2 * (x * x + y * y)}
     return {posicion: {x: posicion.x, y: posicion.y, z: posicion.z}, adelante}
+  } catch (error) {
+    return null
+  }
+}
+
+// Base de proyección de la cámara que renderiza la escena (mundo three del motor), leída de su
+// matriz de mundo y de su FOV/aspecto reales. Se usa para construir el rayo que pasa por el
+// píxel tocado con la proyección real, sin depender de three.js (no es importable aquí). La
+// cámara de render mira por su -Z local, de modo que la dirección de vista es -(columna Z). El
+// origen y la orientación pueden ir un fotograma por detrás: es la pose con la que se dibujó lo
+// que el usuario vio. Devuelve null si no hay cámara perspectiva utilizable.
+function camaraRender(world: ecs.World) {
+  try {
+    const cam: any = (world as any).three?.activeCamera
+    if (!cam || !cam.isPerspectiveCamera) return null
+    const m = cam.matrixWorld?.elements
+    if (!m || m.length < 16 || !m.every((n: number) => Number.isFinite(n))) return null
+    if (!Number.isFinite(cam.fov) || cam.fov <= 0 || cam.fov >= 180) return null
+    const canvas = (world as any).three?.renderer?.domElement
+    const aspecto = Number.isFinite(cam.aspect) && cam.aspect > 0
+      ? cam.aspect
+      : canvas && canvas.height > 0 ? canvas.width / canvas.height : null
+    if (!Number.isFinite(aspecto) || aspecto <= 0) return null
+    return {
+      posicion: {x: m[12], y: m[13], z: m[14]},
+      derecha: {x: m[0], y: m[1], z: m[2]},
+      arriba: {x: m[4], y: m[5], z: m[6]},
+      adelante: {x: -m[8], y: -m[9], z: -m[10]},
+      fovGrados: cam.fov,
+      aspecto,
+    }
   } catch (error) {
     return null
   }
@@ -133,6 +166,13 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let reticulaPunto: {x: number; y: number; z: number} | null = null
   let reticulaValida = false
   let reticulaColor: 'valida' | 'invalida' | null = null
+  // Destello tras un toque en el modo "toque": resta segundos en el tick hasta ocultarse.
+  let reticulaFlashRestante = 0
+  // Último punto calculado a partir de un toque, solo para el panel ?debug.
+  let ultimoToque: {
+    via: string; x: number; z: number; distancia: number; angulo: number;
+    valido: boolean; motivo: string | null; colocado: boolean;
+  } | null = null
   let inspection = new InspectionControls({
     escalaBase: bird.escalaExhibicion,
     escalaMinima: bird.inspeccion?.escalaMinima,
@@ -579,7 +619,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       if (model === null || session.phase !== 'EXPLORAR') return
       paused = !paused; ecs.GltfModel.set(world, model, {paused: paused || seguimientoCongelado})
     },
-  }, desktop, COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop)
+  }, desktop, COLOCACION.habilitado && !desktop && (COLOCACION.modoColocacion === 'toque' || COLOCACION.reticulaSuelo))
   session.emit()
   if (desktop) session.setTracking(true)
   const ready = () => {
@@ -635,6 +675,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     reticulaPunto = null
     reticulaValida = false
     reticulaColor = null
+    reticulaFlashRestante = 0
   }
   const aplicarColorReticula = (valida: boolean) => {
     if (reticulaEid === null) return
@@ -646,10 +687,31 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       side: 'double', blending: 'normal', depthTest: false, depthWrite: false, forceTransparent: true,
     })
   }
+  // Muestra el anillo en un punto del suelo, a su altura de reposo y con el color indicado.
+  const mostrarReticulaEn = (punto: {x: number; y: number; z: number}, valida: boolean) => {
+    if (reticulaEid === null) return
+    aplicarColorReticula(valida)
+    const entity = world.getEntity(reticulaEid)
+    entity.show()
+    entity.setLocalPosition({x: punto.x, y: COLOCACION.alturaReticula, z: punto.z})
+  }
   const tickReticula = () => {
     if (reticulaEid === null) return
-    const activa = COLOCACION.habilitado && COLOCACION.reticulaSuelo &&
-      ['ESCANEO', 'REUBICAR'].includes(session.phase) && session.trackingReady
+    const disponible = COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop
+    if (!disponible) return ocultarReticula()
+    // Modo "toque": no hay anillo fijo en el centro; solo destella unos 0.6 s donde se tocó.
+    // No depende de la fase (para verse también mientras aparece el ave), pero nunca se muestra
+    // en EXPLORAR, donde el ave es interactiva y el anillo podría interferir con su toque.
+    if (COLOCACION.modoColocacion === 'toque') {
+      if (reticulaFlashRestante <= 0 || reticulaPunto === null || session.phase === 'EXPLORAR') return ocultarReticula()
+      if (!session.trackingReady) return ocultarReticula()
+      reticulaFlashRestante = Math.max(0, reticulaFlashRestante - world.time.delta / 1000)
+      mostrarReticulaEn(reticulaPunto, reticulaValida)
+      if (reticulaFlashRestante <= 0) return ocultarReticula()
+      return
+    }
+    // Modo "centro": anillo continuo en el corte del rayo central con y=0 (comportamiento previo).
+    const activa = ['ESCANEO', 'REUBICAR'].includes(session.phase) && session.trackingReady
     if (!activa) return ocultarReticula()
     const pose = poseCamara(world)
     if (!pose) return ocultarReticula()
@@ -658,18 +720,70 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     reticulaValida = validarPuntoSuelo(punto, pose, COLOCACION).valido
     // Suavizado con delta del tick: el mismo tiempo de reacción sin importar los FPS.
     reticulaPunto = acercarPuntoSuave(reticulaPunto, punto, world.time.delta / 1000, COLOCACION.suavizadoSegundos)
-    aplicarColorReticula(reticulaValida)
-    const entity = world.getEntity(reticulaEid)
-    entity.show()
-    entity.setLocalPosition({x: reticulaPunto!.x, y: COLOCACION.alturaReticula, z: reticulaPunto!.z})
+    mostrarReticulaEn(reticulaPunto!, reticulaValida)
   }
   if (COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop) crearReticula()
+  // Modo "toque": el punto de apoyo sale del píxel tocado, cortando el rayo con la proyección
+  // real de la cámara contra el plano y=0 con la misma función pura de colocacion-suelo.js. Si
+  // no hay proyección utilizable se recurre al worldPosition del evento pasándolo por la misma
+  // validación. Se aplican exactamente las mismas reglas y el mismo mensaje que el resto: sin
+  // seguimiento no se coloca y el destello del anillo marca el resultado.
+  const intentarColocarConToque = (data: any) => {
+    if (!session.trackingReady) return
+    const pantalla = normalizedScreenPosition(data?.position)
+    const poseEcs = poseCamara(world)
+    let camara = pantalla ? camaraRender(world) : null
+    // Cruce de seguridad: la base de la cámara de render y la pose ECS deben apuntar en la misma
+    // dirección de vista. Si no coinciden, la convención no es la esperada y no se usa el rayo.
+    if (camara && poseEcs) {
+      const norma = Math.hypot(camara.adelante.x, camara.adelante.y, camara.adelante.z)
+      const punto = norma > 1e-9
+        ? (camara.adelante.x * poseEcs.adelante.x + camara.adelante.y * poseEcs.adelante.y + camara.adelante.z * poseEcs.adelante.z) / norma
+        : 0
+      if (!(punto > 0.5)) camara = null
+    }
+    const pose = camara
+      ? {posicion: camara.posicion, adelante: camara.adelante}
+      : poseEcs
+    let punto: {x: number; y: number; z: number} | null = null
+    let via = 'worldPosition'
+    if (camara) {
+      via = 'rayo'
+      const rayo = rayoDesdePantalla(pantalla!, camara)
+      // Toque al cielo o cerca del horizonte: el rayo no corta y=0 -> se rechaza sin destello.
+      if (rayo) punto = interseccionRayoPlanoY(rayo.origen, rayo.direccion, 0)
+    } else if (validPosition(data?.worldPosition)) {
+      punto = data.worldPosition
+    }
+    const resultado = punto
+      ? validarPuntoSuelo(punto, pose, COLOCACION)
+      : {valido: false, motivo: 'sinPunto'}
+    let colocado = false
+    if (punto && resultado.valido) {
+      colocado = session.place(punto, p => validarPuntoSuelo(p, pose, COLOCACION).valido)
+    }
+    ultimoToque = {
+      via,
+      x: punto?.x ?? 0,
+      z: punto?.z ?? 0,
+      distancia: punto && pose ? Math.hypot(punto.x - pose.posicion.x, punto.z - pose.posicion.z) : 0,
+      angulo: pose ? anguloBajoHorizonte(pose.adelante) ?? 0 : 0,
+      valido: resultado.valido,
+      motivo: resultado.motivo,
+      colocado,
+    }
+    if (punto) {
+      reticulaPunto = {x: punto.x, y: 0, z: punto.z}
+      reticulaValida = colocado
+      reticulaFlashRestante = RETICULA_DESTELLO_SEGUNDOS
+    }
+    if (!colocado) ui.showMessage(labels.superficieInvalida)
+  }
   const touch = (event: any) => {
     if (isUiTouch(event.data.position)) return
     if (!['ESCANEO', 'REUBICAR'].includes(session.phase)) return
-    // Con la retícula de suelo activa, el punto de apoyo es el que ella marca (calculado
-    // analíticamente en cada tick). Si no es válido, se rechaza sin cambiar de fase.
-    if (COLOCACION.habilitado && COLOCACION.reticulaSuelo && !desktop) {
+    // Modo "centro": el punto lo marca la retícula fija (comportamiento sin cambios).
+    if (COLOCACION.habilitado && COLOCACION.reticulaSuelo && COLOCACION.modoColocacion === 'centro' && !desktop) {
       const pose = poseCamara(world)
       if (reticulaPunto && reticulaValida && pose) {
         const valido = session.place({x: reticulaPunto.x, y: 0, z: reticulaPunto.z},
@@ -678,6 +792,11 @@ function attach(world: ecs.World, ground: ecs.Eid) {
       } else {
         ui.showMessage(labels.superficieInvalida)
       }
+      return
+    }
+    // Modo "toque": el punto sale del píxel tocado, con las mismas reglas de validación.
+    if (COLOCACION.habilitado && COLOCACION.modoColocacion === 'toque' && !desktop) {
+      intentarColocarConToque(event.data)
       return
     }
     // Sin retícula (desactivada o escritorio) se conserva el comportamiento previo: el
@@ -840,9 +959,17 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     }
     debugPanel.textContent = [
       `seguimiento: ${estado.trackingStatus ?? '-'} · ${estado.trackingReason ?? '-'}`,
+      `modo de colocación: ${COLOCACION.modoColocacion}`,
       `altura de la cámara: ${pose ? pose.posicion.y.toFixed(2) : '-'} m`,
       `distancia horizontal al ave: ${distancia}`,
       `retícula: ${reticulaPunto ? (reticulaValida ? 'válida' : 'inválida') : 'sin punto'}`,
+      ultimoToque
+        ? `último punto (${ultimoToque.via}): x=${ultimoToque.x.toFixed(2)}, z=${ultimoToque.z.toFixed(2)}, ` +
+          `d=${ultimoToque.distancia.toFixed(2)} m, ángulo=${ultimoToque.angulo.toFixed(1)}°, ` +
+          (ultimoToque.colocado ? 'colocado'
+            : ultimoToque.valido ? 'válido sin colocar'
+            : `rechazado (${ultimoToque.motivo ?? '-'})`)
+        : 'último punto: ninguno',
       `fps: ${debugFps.toFixed(0)}`,
     ].join('\n')
   }

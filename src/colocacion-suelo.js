@@ -7,8 +7,12 @@
 // tap-to-place.ts). "Bajo el horizonte" se mide como el ángulo descendente del rayo respecto
 // al plano horizontal: 0 = horizontal, 90 = apuntando en vertical hacia el suelo.
 
-export const DEFAULTS = Object.freeze({
+// Objeto declarado aparte (y no como literal dentro de Object.freeze) para que TypeScript
+// infiera los campos como boolean/string/number en lugar de sus valores literales, de modo que
+// comparaciones como modoColocacion === 'centro' sean válidas al importar desde TypeScript.
+const BASE = {
   habilitado: true,
+  modoColocacion: 'toque', // 'toque': el punto sale del píxel tocado; 'centro': lo marca la retícula.
   distanciaMaxima: 4, // m: distancia horizontal máxima de la cámara al punto.
   toleranciaAltura: 0.05, // m: desviación máxima admitida respecto a la altura del suelo.
   anguloMinimoGrados: 15, // grados: inclinación mínima por debajo del horizonte.
@@ -17,7 +21,11 @@ export const DEFAULTS = Object.freeze({
   radioExteriorReticula: 0.12, // unidades de mundo del anillo.
   radioInteriorReticula: 0.09,
   alturaReticula: 0.005, // separación mínima sobre el suelo para evitar z-fighting.
-})
+}
+
+export const DEFAULTS = Object.freeze(BASE)
+
+const MODOS_COLOCACION = ['toque', 'centro']
 
 const NUMEROS = ['distanciaMaxima', 'toleranciaAltura', 'anguloMinimoGrados', 'suavizadoSegundos',
   'radioExteriorReticula', 'radioInteriorReticula', 'alturaReticula']
@@ -31,6 +39,8 @@ export function normalizarConfig(global) {
   if (!global || typeof global !== 'object') return salida
   if (Object.prototype.hasOwnProperty.call(global, 'habilitado')) salida.habilitado = global.habilitado !== false
   if (Object.prototype.hasOwnProperty.call(global, 'reticulaSuelo')) salida.reticulaSuelo = global.reticulaSuelo !== false
+  // Solo se aceptan los modos conocidos; cualquier otro valor conserva el defecto ('toque').
+  if (MODOS_COLOCACION.includes(global.modoColocacion)) salida.modoColocacion = global.modoColocacion
   for (const clave of NUMEROS) {
     if (!Object.prototype.hasOwnProperty.call(global, clave)) continue
     const valor = global[clave]
@@ -47,6 +57,48 @@ export function interseccionRayoPlanoY(origen, direccion, planoY = 0) {
   const t = (planoY - origen.y) / direccion.y
   if (!(t > 0)) return null
   return {x: origen.x + direccion.x * t, y: planoY, z: origen.z + direccion.z * t}
+}
+
+const esPunto2 = p => !!p && Number.isFinite(p.x) && Number.isFinite(p.y)
+
+const versor = v => {
+  if (!esPunto(v)) return null
+  const n = Math.hypot(v.x, v.y, v.z)
+  return n > 1e-9 ? {x: v.x / n, y: v.y / n, z: v.z / n} : null
+}
+
+// Rayo del mundo que pasa por un píxel tocado, a partir de la proyección real de la cámara.
+// `pantalla` = {x, y} normalizado a [0,1] (x a la derecha, y hacia abajo, como los toques del
+// ECS). `camara` = {posicion, derecha, arriba, adelante, fovGrados, aspecto}: la base ortonormal
+// del mundo de la cámara de render, su campo de visión VERTICAL y el aspecto ancho/alto. Los
+// vectores base se normalizan, así que un escalado de la cámara no distorsiona el resultado.
+// Devuelve {origen, direccion} (dirección unitaria) o null si faltan datos. Proyección
+// perspectiva estándar: el centro de la pantalla apunta en `adelante` y las esquinas hacia
+// adelante ± derecha·tan(fov/2)·aspecto ± arriba·tan(fov/2).
+export function rayoDesdePantalla(pantalla, camara) {
+  if (!esPunto2(pantalla) || !camara) return null
+  const origen = esPunto(camara.posicion) ? {...camara.posicion} : null
+  const derecha = versor(camara.derecha)
+  const arriba = versor(camara.arriba)
+  const adelante = versor(camara.adelante)
+  const fov = Number(camara.fovGrados)
+  const aspecto = Number(camara.aspecto)
+  if (!origen || !derecha || !arriba || !adelante) return null
+  if (!Number.isFinite(fov) || fov <= 0 || fov >= 180) return null
+  if (!Number.isFinite(aspecto) || aspecto <= 0) return null
+  // Pantalla (y hacia abajo) -> coordenadas normalizadas de dispositivo (y hacia arriba).
+  const ndcX = 2 * pantalla.x - 1
+  const ndcY = 1 - 2 * pantalla.y
+  const tanMedio = Math.tan((fov * Math.PI / 180) / 2)
+  const sx = ndcX * tanMedio * aspecto
+  const sy = ndcY * tanMedio
+  const direccion = versor({
+    x: adelante.x + derecha.x * sx + arriba.x * sy,
+    y: adelante.y + derecha.y * sx + arriba.y * sy,
+    z: adelante.z + derecha.z * sx + arriba.z * sy,
+  })
+  if (!direccion) return null
+  return {origen, direccion}
 }
 
 // Ángulo descendente del rayo (grados). 0 = horizontal, positivo hacia el suelo,

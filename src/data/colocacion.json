@@ -1,5 +1,6 @@
 {
   "habilitado": true,
+  "modoColocacion": "toque",
   "distanciaMaxima": 4,
   "toleranciaAltura": 0.05,
   "anguloMinimoGrados": 15,
