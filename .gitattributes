@@ -3,3 +3,10 @@
 *.jpeg filter=lfs diff=lfs merge=lfs -text
 src/assets/** filter=lfs diff=lfs merge=lfs -text
 external/** filter=lfs diff=lfs merge=lfs -text
+
+# Imágenes del HUD y de las fichas: guardar los bytes reales para publicación estática.
+# Estas excepciones deben quedar después de las reglas generales de Git LFS.
+src/assets/logo-colibri.png -filter -diff -merge -text
+src/assets/img/** -filter -diff -merge -text
+docs/assets/logo-colibri.png -filter -diff -merge -text
+docs/assets/img/** -filter -diff -merge -text
