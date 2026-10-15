@@ -58,6 +58,10 @@ export class ArrivalMotion {
       y: this.origin.y + (this.target.y - this.origin.y) * vertical,
       z: this.origin.z + (this.target.z - this.origin.z) * horizontal,
     }
+    if (!this.calibration) return {
+      position, localPosition: copy(this.localPosition), yaw: this.yaw, clipTime: 0, landed,
+      finished: this.phase === 'blend' && this.blendElapsed >= c.mezclaReposoSegundos,
+    }
     const clipTime = u * this.calibration.contactoSegundos
     const translation = rootTranslationAt(this.calibration.traslacionRoot, clipTime)
     const reference = this.calibration.rootContacto ?? this.calibration.rootReposo

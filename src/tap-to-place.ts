@@ -89,10 +89,10 @@ function attach(world: ecs.World, ground: ecs.Eid) {
   let activeClip = bird.animaciones.reposo
   let ui: ReturnType<typeof createPilotUi>
   let arrival = new ArrivalMotion(bird.llegada, landingCalibration)
-  let landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
+  let landingRate = (landingCalibration?.contactoSegundos ?? bird.llegada.duracionSegundos) / bird.llegada.duracionSegundos
   let landingFrameApplied = false
   // Descenso simple de la llegada inicial si el ave no tiene clip de aterrizaje (defensivo;
-  // hoy las cuatro aves lo tienen). Reutiliza el origen aéreo aleatorio de ArrivalMotion.
+  // el Carpintero usa esta ruta). Reutiliza el origen aéreo aleatorio de ArrivalMotion.
   let arrivalSimple = false
   let arrivalTranscurrido = 0
   let arrivalInicio: {x: number; y: number; z: number} = {x: 0, y: 0, z: 0}
@@ -538,7 +538,7 @@ function attach(world: ecs.World, ground: ecs.Eid) {
     seguimiento = crearSeguimiento(bird)
     seguimientoAterrizajeListo = false
     seguimientoCongelado = false
-    landingRate = landingCalibration.contactoSegundos / bird.llegada.duracionSegundos
+    landingRate = (landingCalibration?.contactoSegundos ?? bird.llegada.duracionSegundos) / bird.llegada.duracionSegundos
     inspection = new InspectionControls({escalaBase: bird.escalaExhibicion, ...bird.inspeccion})
     activeClip = bird.animaciones.reposo
     ui.setBird(bird)

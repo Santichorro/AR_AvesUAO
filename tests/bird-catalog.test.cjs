@@ -5,11 +5,11 @@ const source=fs.readFileSync(path.join(root,'src/bird-catalog.js'),'utf8')
 const catalogModule=import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex')
 
-test('catálogo vigente habilita cuatro modelos y rechaza entradas descartadas o pendientes',async()=>{
+test('catálogo vigente habilita cinco modelos y rechaza entradas descartadas o pendientes',async()=>{
  const {availableBird}=await catalogModule
- assert.deepEqual(birds.filter(b=>b.disponible).map(b=>b.id).sort(),['colibri','loro','martin_pescador','paloma'])
+ assert.deepEqual(birds.filter(b=>b.disponible).map(b=>b.id).sort(),['carpintero','colibri','loro','martin_pescador','paloma'])
  for(const id of ['pechirrojo','azulejo','desconocido'])assert.equal(availableBird(birds,id),undefined)
- for(const id of ['colibri','loro','martin_pescador','paloma'])assert.equal(availableBird(birds,id).id,id)
+ for(const id of ['carpintero','colibri','loro','martin_pescador','paloma'])assert.equal(availableBird(birds,id).id,id)
 })
 for(const id of ['martin_pescador','paloma','loro'])test(`${id}: clips y calibración corresponden al GLB, conservando el original`,()=>{
  const bird=birds.find(b=>b.id===id),cal=JSON.parse(fs.readFileSync(path.join(root,'src/data/'+id+'-aterrizaje.json')))
@@ -81,7 +81,7 @@ test('Paloma documenta sus recortes de Take 001 y Martín conserva sus nombres r
 
 test('cada ave tiene su propio MP3 y los nuevos cantos conservan el archivo aportado',()=>{
  const urls=birds.filter(b=>b.disponible).map(b=>b.audioCanto)
- assert.equal(new Set(urls).size,4)
+ assert.equal(new Set(urls).size,5)
  for(const b of birds.filter(b=>b.disponible)){
   const audio=fs.readFileSync(path.join(root,'src',b.audioCanto))
   assert.ok(audio.length>1000)

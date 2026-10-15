@@ -80,7 +80,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
         <div class="aves-quiz-header">
             <span class="aves-quiz-counter"></span>
-            <button data-quiz-exit aria-label="Cerrar quiz">×</button>
+            <button data-quiz-exit aria-label="Cerrar quiz">${icon('close')}</button>
         </div>
 
         <h2 class="aves-quiz-title">
@@ -191,7 +191,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         #aves-quiz-panel {
             position: fixed !important;
             inset: 0 !important;
-            z-index: 99999 !important;
+            z-index: 4 !important;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -226,7 +226,6 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         #aves-quiz-lock .aves-quiz-lock-content,
         #aves-quiz-panel .aves-quiz-content {
             position: relative;
-            z-index: 100000;
             width: min(430px, 90vw);
             max-height: 84vh;
             box-sizing: border-box;
@@ -273,7 +272,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             border-radius: 12px;
             padding: 12px 20px;
             font: inherit;
-            font-weight: 800;
+            font-weight: 650;
             cursor: pointer;
             pointer-events: auto !important;
             touch-action: manipulation;
@@ -302,7 +301,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             position: fixed !important;
             left: 16px !important;
             bottom: 86px !important;
-            z-index: 9000 !important;
+            z-index: 1 !important;
             width: 62px !important;
             height: 50px !important;
             min-width: 62px !important;
@@ -317,7 +316,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             place-items: center !important;
             font: inherit !important;
             font-size: 15px !important;
-            font-weight: 900 !important;
+            font-weight: 700 !important;
             line-height: 1 !important;
             text-align: center !important;
             cursor: pointer !important;
@@ -341,7 +340,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
         #aves-quiz-panel .aves-quiz-content {
             padding: 58px 22px 22px;
-            transform: translateX(2px);
+            transform: none;
         }
 
         #aves-quiz-panel .aves-quiz-header {
@@ -373,16 +372,19 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             border: 1px solid rgba(237,29,36,.20);
             color: var(--uao-red-dark);
             font-size: 12px;
-            font-weight: 900;
+            font-weight: 700;
             line-height: 1;
         }
 
         #aves-quiz-panel [data-quiz-exit] {
-            width: 42px;
-            height: 42px;
-            min-width: 42px;
-            min-height: 42px;
-            flex: 0 0 42px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            flex: 0 0 44px;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
             display: grid;
             place-items: center;
             border: 1px solid rgba(237,29,36,.16);
@@ -415,7 +417,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             margin: 0 auto 20px;
             color: var(--uao-navy);
             font-size: clamp(17px, 4.3vw, 21px);
-            font-weight: 800;
+            font-weight: 650;
             line-height: 1.4;
             text-align: center;
         }
@@ -457,7 +459,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             color: #fff;
             font: inherit;
             font-size: 14px;
-            font-weight: 900;
+            font-weight: 700;
             cursor: pointer;
             box-shadow: 0 5px 14px rgba(237,29,36,.18);
             touch-action: manipulation;
@@ -471,7 +473,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         #aves-quiz-panel .aves-quiz-audio-status {
             color: var(--uao-red-dark);
             font-size: 12px;
-            font-weight: 800;
+            font-weight: 650;
         }
 
         /* ---------------- Opciones ---------------- */
@@ -563,7 +565,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             background: var(--uao-red);
             color: #fff;
             font: inherit;
-            font-weight: 900;
+            font-weight: 700;
             cursor: pointer;
             pointer-events: auto !important;
             touch-action: manipulation;
@@ -591,7 +593,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             background: #fff0f1;
             color: var(--uao-navy);
             font-size: 17px;
-            font-weight: 900;
+            font-weight: 700;
             text-align: center;
         }
 
@@ -621,7 +623,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             margin-bottom: 5px;
             color: var(--uao-red);
             font-size: 11px;
-            font-weight: 900;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .05em;
         }
@@ -630,7 +632,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             margin: 0 0 8px;
             color: var(--uao-navy);
             font-size: 15px;
-            font-weight: 800;
+            font-weight: 650;
             line-height: 1.4;
         }
 
@@ -647,17 +649,17 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
         #aves-quiz-panel .aves-quiz-review-answer.is-wrong {
             color: var(--uao-red-dark);
-            font-weight: 800;
+            font-weight: 650;
         }
 
         #aves-quiz-panel .aves-quiz-review-answer.is-correct {
             color: #2d6849;
-            font-weight: 800;
+            font-weight: 650;
         }
 
         #aves-quiz-panel .aves-quiz-review-correct {
             color: #2d6849;
-            font-weight: 800;
+            font-weight: 650;
         }
 
         /* ---------------- Móvil ---------------- */
@@ -692,7 +694,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
 
             #aves-quiz-panel .aves-quiz-content {
                 padding: 55px 14px 16px;
-                transform: translateX(2px);
+                transform: none;
             }
 
             #aves-quiz-panel .aves-quiz-header {
@@ -708,9 +710,9 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             }
 
             #aves-quiz-panel [data-quiz-exit] {
-                width: 40px;
-                height: 40px;
-                flex-basis: 40px;
+                width: 44px;
+                height: 44px;
+                flex-basis: 44px;
             }
 
             #aves-quiz-panel .aves-quiz-title {
@@ -738,6 +740,11 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
                 min-height: 47px;
             }
         }
+        @media (prefers-reduced-motion: reduce) {
+            #aves-quiz-lock, #aves-quiz-panel, #aves-pilot .aves-quiz-trigger {
+                transition: none !important;
+            }
+        }
     `
     root.appendChild(quizStyle)
 
@@ -755,6 +762,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     const hideQuizOverlay = (element: HTMLElement) => {
         element.classList.remove('is-visible')
         element.setAttribute('aria-hidden', 'true')
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { element.hidden = true; return }
         window.setTimeout(() => {
             if (!element.classList.contains('is-visible')) {
                 element.hidden = true
@@ -1495,6 +1503,13 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
         }
         else photo.removeAttribute('src')
         get('.aves-source').textContent = bird.fuente?.paginas?.length ? `${labels.guia} · ${labels.pagina} ${bird.fuente.paginas.join(', ')}` : labels.fuentePendiente
+        if (bird.fuenteComplementaria) {
+            const source = document.createElement('a')
+            source.textContent = bird.fuenteComplementaria.cita
+            source.href = bird.fuenteComplementaria.url
+            source.target = '_blank'; source.rel = 'noopener noreferrer'
+            get('.aves-source').append(document.createTextNode(' · '), source)
+        }
         const facts = get('.aves-facts'); facts.replaceChildren()
         if (bird.fichaNota) { const note = document.createElement('p'); note.textContent = bird.fichaNota; facts.append(note) }
         for (const [key, label] of [['descripcion', labels.descripcion], ['habitat', labels.habitat], ['comportamiento', labels.comportamiento], ['rasgos', labels.rasgos]]) {
@@ -1504,6 +1519,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             const text = document.createElement('p'); text.textContent = bird.ficha?.[key]
             section.append(heading, text); facts.append(section)
         }
+        get('[data-action="idle"]').textContent = bird.etiquetaAnimacionInicial || labels.reposo
         get('.aves-clips').replaceChildren()
         get('#aves-animation > p').textContent = bird.animacionesNota || labels.animacionesNota
         for (const clip of bird.clips) {
@@ -1823,7 +1839,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
             start.textContent = phase === 'ERROR' ? labels.reintentar : labels.comenzar
             const messages: Record<string, string> = {
                 INTRO: labels.intro, PREPARANDO: labels.preparando,
-                ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, ATERRIZANDO: labels.aterrizando, EXPLORAR: labels.explorar,
+                ESCANEO: labels.escaneo, COLOCANDO: labels.colocando, ATERRIZANDO: bird.mensajeLlegada || labels.aterrizando, EXPLORAR: labels.explorar,
                 REUBICAR: labels.reubicando, ERROR: snapshot.message || labels.errorRecurso
             }
             setStatusMessage(!snapshot.trackingReady && ['ESCANEO', 'REUBICAR', 'ATERRIZANDO', 'EXPLORAR'].includes(phase) ? labels.seguimiento : birdText(messages[phase]))
