@@ -9,7 +9,7 @@
       "audioCanto": "assets/audio/martin_pescador_canto.mp3",
       "imagen": "assets/img/martin_pescador.jpg",
       "escalaExhibicion": 0.18,
-      "elevacionVuelo": 0.08,
+      "elevacionVuelo": 1.0,
       "inspeccion": {
         "escalaMinima": 0.09,
         "escalaMaxima": 0.45,
