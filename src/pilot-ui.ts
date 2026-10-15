@@ -60,7 +60,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     const root = document.createElement('main')
     root.id = 'aves-pilot'
     root.style.setProperty('--radial-highlight-scale', String(RADIAL_CONFIG.visualScale))
-    root.innerHTML = `<header class="aves-header"><img class="aves-brand" src="assets/logo-colibri.png" alt="Colibrí de Aves UAO"><div><h1></h1><p></p></div></header>
+    root.innerHTML = `<header class="aves-header"><img class="aves-brand" src="assets/logo-colibri.png" alt="Colibrí de Plumas"><div><h1></h1><p></p></div></header>
     <section class="aves-status" data-aves-ui aria-live="polite"><button class="aves-status-dismiss" data-dismiss="status" hidden>${icon('close')}</button><p></p><button class="aves-start-button" data-action="start"></button></section>
     <div class="aves-scan" aria-hidden="true"><span></span></div>
     <button class="aves-species-trigger" data-aves-ui data-species-toggle aria-haspopup="dialog" aria-expanded="false" aria-controls="aves-species-popover">${icon('species')}</button>
@@ -1432,12 +1432,7 @@ export function createPilotUi(catalog: any[], bird: any, controls: Controls, des
     })
     let song = makeSong()
     const birdText = (text: string) => text.replace(/\{ave\}/g, () => bird.nombre)
-    get('h1').replaceChildren(...labels.titulo.split(/(\bUAO\b)/).map(part => {
-        if (part !== 'UAO') return document.createTextNode(part)
-        const accent = document.createElement('span')
-        accent.className = 'aves-title-uao'; accent.textContent = part
-        return accent
-    }))
+    get('h1').textContent = labels.titulo
     get('header p').textContent = birdText(labels.subtitulo)
     get('#aves-species-title').textContent = labels.catalogo
     const speciesTrigger = get<HTMLButtonElement>('[data-species-toggle]')
